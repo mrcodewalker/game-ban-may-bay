@@ -1,11 +1,11 @@
 [gd_scene load_steps=4 format=3 uid="uid://cenemyfast001"]
 
 [ext_resource type="Script" path="res://scripts/enemies/enemy_fast.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://cviratazero001" path="res://extracted_assets/Textures/virata zero CV1_0.png" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://c6blueplane001" path="res://extracted_assets/Textures/6.png" id="2_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 28.0
-height = 76.0
+height = 74.0
 
 [node name="EnemyFast" type="Area2D" groups=["enemies"]]
 collision_layer = 4
@@ -16,12 +16,12 @@ script = ExtResource("1_script")
 modulate = Color(0, 0, 0, 0.45)
 position = Vector2(14, 22)
 rotation = 3.14159
-scale = Vector2(1.0, 1.0)
+scale = Vector2(0.66, 0.66)
 texture = ExtResource("2_texture")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 rotation = 3.14159
-scale = Vector2(1.1, 1.1)
+scale = Vector2(0.72, 0.72)
 texture = ExtResource("2_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

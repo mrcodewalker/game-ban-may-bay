@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://cenemysmall001"]
 
 [ext_resource type="Script" path="res://scripts/enemies/enemy_small.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://c5greenplane001" path="res://extracted_assets/Textures/5.png" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://c2redplane001" path="res://extracted_assets/Textures/2.png" id="2_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 28.0
@@ -16,12 +16,12 @@ script = ExtResource("1_script")
 modulate = Color(0, 0, 0, 0.45)
 position = Vector2(14, 22)
 rotation = 3.14159
-scale = Vector2(0.6, 0.6)
+scale = Vector2(0.66, 0.66)
 texture = ExtResource("2_texture")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 rotation = 3.14159
-scale = Vector2(0.65, 0.65)
+scale = Vector2(0.72, 0.72)
 texture = ExtResource("2_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
