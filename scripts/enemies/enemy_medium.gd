@@ -37,7 +37,7 @@ func _process(delta: float) -> void:
 	position += Vector2(vx, vy) * delta
 	
 	if sprite:
-		var target_roll = (vx / 85.0) * deg_to_rad(14.0)
+		var target_roll = PI + (vx / 85.0) * deg_to_rad(14.0)
 		sprite.rotation = lerp_angle(sprite.rotation, target_roll, 10.0 * delta)
 
 	shoot_timer -= delta
