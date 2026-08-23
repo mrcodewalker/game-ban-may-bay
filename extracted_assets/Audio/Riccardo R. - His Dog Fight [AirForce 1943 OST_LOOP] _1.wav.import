@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bk5jqxglcmiy8"
+path="res://.godot/imported/Riccardo R. - His Dog Fight [AirForce 1943 OST_LOOP] _1.wav-3ca5a63e0556e7b9aa59684a2fda33a1.sample"
+
+[deps]
+
+source_file="res://extracted_assets/Audio/Riccardo R. - His Dog Fight [AirForce 1943 OST_LOOP] _1.wav"
+dest_files=["res://.godot/imported/Riccardo R. - His Dog Fight [AirForce 1943 OST_LOOP] _1.wav-3ca5a63e0556e7b9aa59684a2fda33a1.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

@@ -1,0 +1,25 @@
+[gd_scene load_steps=7 format=3 uid="uid://cmainscene001"]
+
+[ext_resource type="Script" path="res://scripts/main/main.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://cscrollingbg001" path="res://scenes/scrolling_background.tscn" id="2_bg"]
+[ext_resource type="Script" path="res://scripts/core/wave_spawner.gd" id="3_spawner"]
+[ext_resource type="PackedScene" uid="uid://cplayer001" path="res://scenes/player/player.tscn" id="4_player"]
+[ext_resource type="PackedScene" uid="uid://chud001" path="res://scenes/ui/hud.tscn" id="5_hud"]
+[ext_resource type="Script" path="res://scripts/core/camera_shake.gd" id="6_camera"]
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
+script = ExtResource("6_camera")
+
+[node name="ScrollingBackground" parent="." instance=ExtResource("2_bg")]
+
+[node name="WaveSpawner" type="Node" parent="."]
+script = ExtResource("3_spawner")
+
+[node name="Player" parent="." instance=ExtResource("4_player")]
+position = Vector2(270, 800)
+
+[node name="HUD" parent="." instance=ExtResource("5_hud")]

@@ -1,0 +1,112 @@
+[gd_scene load_steps=4 format=3 uid="uid://cmainmenu001"]
+
+[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://db5k1y7u82n1p" path="res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://c8n48j51x97q0" path="res://extracted_assets/Textures/AIRFORCE1943 LOGO.png" id="3_logo"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Logo" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -220.0
+offset_top = 80.0
+offset_right = 220.0
+offset_bottom = 320.0
+grow_horizontal = 2
+texture = ExtResource("3_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = 30.0
+offset_right = 140.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="StartButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 22
+text = "START GAME"
+
+[node name="ExitButton" type="Button" parent="VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "EXIT"
+
+[node name="ControlsPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(400, 120)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -180.0
+offset_right = 200.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBoxControls" type="VBoxContainer" parent="ControlsPanel"]
+layout_mode = 2
+alignment = 1
+
+[node name="LabelTitle" type="Label" parent="ControlsPanel/VBoxControls"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "CONTROLS GUIDE"
+horizontal_alignment = 1
+
+[node name="LabelMove" type="Label" parent="ControlsPanel/VBoxControls"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "• Move: WASD / Arrow Keys or Mouse Drag"
+horizontal_alignment = 1
+
+[node name="LabelShoot" type="Label" parent="ControlsPanel/VBoxControls"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "• Shoot: Spacebar / Left Click / J"
+horizontal_alignment = 1
+
+[node name="LabelBomb" type="Label" parent="ControlsPanel/VBoxControls"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "• Bomb: Shift / Key K"
+horizontal_alignment = 1

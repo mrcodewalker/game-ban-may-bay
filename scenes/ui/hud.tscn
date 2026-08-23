@@ -1,0 +1,118 @@
+[gd_scene load_steps=3 format=3 uid="uid://chud001"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://cgameover001" path="res://scenes/ui/game_over_dialog.tscn" id="2_gameover"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="TopMargin" type="MarginContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 80.0
+grow_horizontal = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+
+[node name="HBox" type="HBoxContainer" parent="TopMargin"]
+layout_mode = 2
+alignment = 1
+
+[node name="VBoxLeft" type="VBoxContainer" parent="TopMargin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScoreLabel" type="Label" parent="TopMargin/HBox/VBoxLeft"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 20
+text = "SCORE: 000000"
+
+[node name="HighScoreLabel" type="Label" parent="TopMargin/HBox/VBoxLeft"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "HIGH: 000000"
+
+[node name="VBoxRight" type="VBoxContainer" parent="TopMargin/HBox"]
+layout_mode = 2
+alignment = 2
+
+[node name="WeaponLabel" type="Label" parent="TopMargin/HBox/VBoxRight"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "WEAPON LV.1"
+horizontal_alignment = 2
+
+[node name="BombLabel" type="Label" parent="TopMargin/HBox/VBoxRight"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
+text = "BOMBS: 3"
+horizontal_alignment = 2
+
+[node name="BottomMargin" type="MarginContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBoxHP" type="VBoxContainer" parent="BottomMargin"]
+layout_mode = 2
+
+[node name="HPTitle" type="Label" parent="BottomMargin/VBoxHP"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "ARMOR HEALTH"
+
+[node name="HPBar" type="ProgressBar" parent="BottomMargin/VBoxHP"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="BossContainer" type="VBoxContainer" parent="."]
+visible = false
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 90.0
+offset_bottom = 130.0
+grow_horizontal = 2
+
+[node name="BossTitle" type="Label" parent="BossContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 16
+text = "WARNING: ENEMY FLAGSHIP"
+horizontal_alignment = 1
+
+[node name="BossHPBar" type="ProgressBar" parent="BossContainer"]
+custom_minimum_size = Vector2(400, 16)
+layout_mode = 2
+size_flags_horizontal = 4
+value = 100.0
+show_percentage = false
+
+[node name="GameOverDialog" parent="." instance=ExtResource("2_gameover")]
+visible = false

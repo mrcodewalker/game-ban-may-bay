@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://dmcim8asetla3"
+path="res://.godot/imported/Paper Moving 3 (short).wav-52b284637ae0abe4b79cbdb9097c1147.sample"
+
+[deps]
+
+source_file="res://extracted_assets/Audio/Paper Moving 3 (short).wav"
+dest_files=["res://.godot/imported/Paper Moving 3 (short).wav-52b284637ae0abe4b79cbdb9097c1147.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

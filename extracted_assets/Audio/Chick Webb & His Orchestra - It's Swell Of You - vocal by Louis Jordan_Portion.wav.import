@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://xiboknmle2lk"
+path="res://.godot/imported/Chick Webb & His Orchestra - It's Swell Of You - vocal by Louis Jordan_Portion.wav-18071999fe6982a7865ff7882b5b19a4.sample"
+
+[deps]
+
+source_file="res://extracted_assets/Audio/Chick Webb & His Orchestra - It's Swell Of You - vocal by Louis Jordan_Portion.wav"
+dest_files=["res://.godot/imported/Chick Webb & His Orchestra - It's Swell Of You - vocal by Louis Jordan_Portion.wav-18071999fe6982a7865ff7882b5b19a4.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

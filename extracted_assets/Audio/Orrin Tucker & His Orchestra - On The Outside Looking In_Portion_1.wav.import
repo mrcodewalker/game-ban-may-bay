@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://ci03ugl35uuu"
+path="res://.godot/imported/Orrin Tucker & His Orchestra - On The Outside Looking In_Portion_1.wav-73a077af2a1ac5323520358ce1f676ae.sample"
+
+[deps]
+
+source_file="res://extracted_assets/Audio/Orrin Tucker & His Orchestra - On The Outside Looking In_Portion_1.wav"
+dest_files=["res://.godot/imported/Orrin Tucker & His Orchestra - On The Outside Looking In_Portion_1.wav-73a077af2a1ac5323520358ce1f676ae.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

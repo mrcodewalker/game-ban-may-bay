@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://ccvirqdwotrgk"
+path="res://.godot/imported/Riccardo R. - WEP [AirForce 1943 OST - LOOPED]  (1).wav-4c1a10bc209a67d012a70776f16c4e5b.sample"
+
+[deps]
+
+source_file="res://extracted_assets/Audio/Riccardo R. - WEP [AirForce 1943 OST - LOOPED]  (1).wav"
+dest_files=["res://.godot/imported/Riccardo R. - WEP [AirForce 1943 OST - LOOPED]  (1).wav-4c1a10bc209a67d012a70776f16c4e5b.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

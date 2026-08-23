@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b4i0vjhx03cn"
+path="res://.godot/imported/Ambrose & His Orchestra - Just A Wearin For You_Portion_1.wav-745a86dce3ddc1c5795dbc14de09f7d8.sample"
+
+[deps]
+
+source_file="res://extracted_assets/Audio/Ambrose & His Orchestra - Just A Wearin For You_Portion_1.wav"
+dest_files=["res://.godot/imported/Ambrose & His Orchestra - Just A Wearin For You_Portion_1.wav-745a86dce3ddc1c5795dbc14de09f7d8.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

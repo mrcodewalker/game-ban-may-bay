@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://7lciquior1hs"
+path="res://.godot/imported/Paper Moving 2.wav-b3203c6d62fd08ed50f7ced6500ba5d6.sample"
+
+[deps]
+
+source_file="res://extracted_assets/Audio/Paper Moving 2.wav"
+dest_files=["res://.godot/imported/Paper Moving 2.wav-b3203c6d62fd08ed50f7ced6500ba5d6.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

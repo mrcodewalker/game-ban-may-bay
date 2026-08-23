@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://cplayerbullet001"]
+
+[ext_resource type="Script" path="res://scripts/combat/player_bullet.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://dr6x481g5a1n" path="res://extracted_assets/Textures/bullett.png" id="2_texture"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 8.0
+height = 36.0
+
+[node name="PlayerBullet" type="Area2D" groups=["player_bullets"]]
+collision_layer = 2
+collision_mask = 4
+script = ExtResource("1_script")
+
+[node name="GlowSprite" type="Sprite2D" parent="."]
+modulate = Color(2.5, 2.0, 0.4, 0.95)
+scale = Vector2(1.6, 2.2)
+texture = ExtResource("2_texture")
+
+[node name="CoreSprite" type="Sprite2D" parent="."]
+modulate = Color(1.0, 1.0, 0.8, 1.0)
+scale = Vector2(0.9, 1.6)
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")

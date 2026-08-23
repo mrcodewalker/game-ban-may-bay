@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://ve7fwt0sjmpx"
+path="res://.godot/imported/Rubber Stamp THUMP 1.wav-8e5469ee38140e7de411a8dcfba8008c.sample"
+
+[deps]
+
+source_file="res://extracted_assets/Audio/Rubber Stamp THUMP 1.wav"
+dest_files=["res://.godot/imported/Rubber Stamp THUMP 1.wav-8e5469ee38140e7de411a8dcfba8008c.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2
