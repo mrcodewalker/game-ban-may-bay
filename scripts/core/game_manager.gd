@@ -34,7 +34,7 @@ var map_high_scores: Array = [0, 0, 0, 0, 0]
 # Upgrades
 var upgrade_hp: int = 0         # Cost: 300, 600, 1000, 1500, 2200
 var upgrade_speed: int = 0      # Cost: 250, 500, 850, 1300, 2000
-var upgrade_weapon: int = 0     # Cost: 500, 1200, 2500
+var upgrade_weapon_start: int = 0 # Cost: 500, 1200, 2500
 var upgrade_bombs: int = 0      # Cost: 400, 900, 1800
 var upgrade_magnet: int = 0     # Cost: 350, 750, 1400, 2200, 3200
 
@@ -49,7 +49,7 @@ func save_game() -> void:
 	config.set_value("player", "coins", coins)
 	config.set_value("player", "upgrade_hp", upgrade_hp)
 	config.set_value("player", "upgrade_speed", upgrade_speed)
-	config.set_value("player", "upgrade_weapon", upgrade_weapon)
+	config.set_value("player", "upgrade_weapon_start", upgrade_weapon_start)
 	config.set_value("player", "upgrade_bombs", upgrade_bombs)
 	config.set_value("player", "upgrade_magnet", upgrade_magnet)
 	
@@ -66,7 +66,7 @@ func load_game() -> void:
 		coins = config.get_value("player", "coins", 0)
 		upgrade_hp = config.get_value("player", "upgrade_hp", 0)
 		upgrade_speed = config.get_value("player", "upgrade_speed", 0)
-		upgrade_weapon = config.get_value("player", "upgrade_weapon", 0)
+		upgrade_weapon_start = config.get_value("player", "upgrade_weapon_start", 0)
 		upgrade_bombs = config.get_value("player", "upgrade_bombs", 0)
 		upgrade_magnet = config.get_value("player", "upgrade_magnet", 0)
 		
@@ -81,7 +81,7 @@ func reset_game() -> void:
 	player_max_hp = 100.0 + (upgrade_hp * 25.0)
 	player_hp = player_max_hp
 	player_bombs = 3 + upgrade_bombs
-	current_weapon_level = 1 + upgrade_weapon
+	current_weapon_level = 1 + upgrade_weapon_start
 	
 	is_game_over = false
 	is_boss_active = false

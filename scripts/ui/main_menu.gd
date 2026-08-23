@@ -158,8 +158,8 @@ func update_shop_ui() -> void:
 
 	# Start Weapon Upgrade
 	var wpn_cost = [500, 1200, 2500]
-	if GameManager.upgrade_weapon < wpn_cost.size():
-		var cost = wpn_cost[GameManager.upgrade_weapon]
+	if GameManager.upgrade_weapon_start < wpn_cost.size():
+		var cost = wpn_cost[GameManager.upgrade_weapon_start]
 		if buy_weapon_btn:
 			buy_weapon_btn.text = "UPGRADE (START LVL)\n💰 %d" % cost
 			buy_weapon_btn.disabled = GameManager.coins < cost
@@ -200,11 +200,11 @@ func _on_buy_speed() -> void:
 
 func _on_buy_weapon() -> void:
 	var wpn_cost = [500, 1200, 2500]
-	if GameManager.upgrade_weapon < wpn_cost.size():
-		var cost = wpn_cost[GameManager.upgrade_weapon]
+	if GameManager.upgrade_weapon_start < wpn_cost.size():
+		var cost = wpn_cost[GameManager.upgrade_weapon_start]
 		if GameManager.coins >= cost:
 			GameManager.coins -= cost
-			GameManager.upgrade_weapon += 1
+			GameManager.upgrade_weapon_start += 1
 			GameManager.save_game()
 			if AudioManager: AudioManager.play_sfx("powerup")
 			update_shop_ui()
