@@ -30,7 +30,6 @@ func load_environment_assets() -> void:
 			var tex = load(path) as Texture2D
 			if tex: island_textures.append(tex)
 
-	# Only use soft semi-transparent cloud textures, NEVER use solid white shapes!
 	var soft_cloud_path = "res://extracted_assets/Textures/Mid_Fresche_Sfumate_2.1_1.png"
 	if ResourceLoader.exists(soft_cloud_path):
 		var tex = load(soft_cloud_path) as Texture2D
@@ -38,19 +37,37 @@ func load_environment_assets() -> void:
 
 func apply_map_theme() -> void:
 	var map_id = GameManager.current_map
-	var bg_tex: Texture2D = null
+	var bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
+	var tint_color = Color(1.0, 1.0, 1.0)
 	
 	match map_id:
-		1: bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
-		2: bg_tex = load("res://extracted_assets/Textures/Airforce1943_sunrise.png")
-		3: bg_tex = load("res://extracted_assets/Textures/Airforce1943_dogfight.png")
-		4: bg_tex = load("res://extracted_assets/Textures/Airforce1943_sunset.png")
-		5: bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_Lontano_5.png")
-		_: bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
-		
-	if bg_tex and ocean_sprite1 and ocean_sprite2:
-		ocean_sprite1.texture = bg_tex
-		ocean_sprite2.texture = bg_tex
+		1:
+			# Pacific Strike: Crystal Clear Blue Water
+			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
+			tint_color = Color(1.0, 1.0, 1.0)
+		2:
+			# Sunrise Archipelago: Warm Golden Morning Sea
+			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
+			tint_color = Color(1.22, 0.96, 0.72)
+		3:
+			# Dogfight Thunderstorm: Deep Dark Stormy Blue Water
+			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_Lontano_5.png")
+			tint_color = Color(0.68, 0.74, 0.95)
+		4:
+			# Sunset Bay Assault: Rich Crimson Sunset Sea
+			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
+			tint_color = Color(1.28, 0.76, 0.58)
+		5:
+			# Final Fortress Assault: Dark Abyss Deep Water
+			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_Lontano_5.png")
+			tint_color = Color(0.55, 0.78, 0.82)
+			
+	if ocean_sprite1 and ocean_sprite2:
+		if bg_tex:
+			ocean_sprite1.texture = bg_tex
+			ocean_sprite2.texture = bg_tex
+		ocean_sprite1.modulate = tint_color
+		ocean_sprite2.modulate = tint_color
 
 func populate_initial_environment() -> void:
 	for i in range(4):
@@ -105,7 +122,7 @@ func spawn_cloud(pos: Vector2) -> void:
 	cloud.position = pos
 	var cloud_scale = randf_range(0.8, 1.4)
 	cloud.scale = Vector2(cloud_scale, cloud_scale)
-	cloud.modulate = Color(1.0, 1.0, 1.0, randf_range(0.18, 0.28)) # Soft semi-transparent cloud
+	cloud.modulate = Color(1.0, 1.0, 1.0, randf_range(0.18, 0.28))
 	
 	cloud.set_meta("speed", scroll_speed * randf_range(1.2, 1.4))
 	cloud.set_meta("drift", randf_range(-8.0, 8.0))
