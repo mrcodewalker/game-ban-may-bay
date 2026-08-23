@@ -15,7 +15,6 @@ var island_spawn_timer: float = 1.0
 var cloud_spawn_timer: float = 0.5
 
 func _ready() -> void:
-	# Completely hide awkward carrier ship on normal maps as requested!
 	if carrier_container:
 		carrier_container.hide()
 		carrier_container.queue_free()
@@ -31,14 +30,11 @@ func load_environment_assets() -> void:
 			var tex = load(path) as Texture2D
 			if tex: island_textures.append(tex)
 
-	for path in [
-		"res://extracted_assets/Textures/Low_Fresche_NOPIXEL_0.png",
-		"res://extracted_assets/Textures/Low_Fresche_WHITE.png",
-		"res://extracted_assets/Textures/Mid_Fresche_Sfumate_2.1_1.png"
-	]:
-		if ResourceLoader.exists(path):
-			var tex = load(path) as Texture2D
-			if tex: cloud_textures.append(tex)
+	# Only use soft semi-transparent cloud textures, NEVER use solid white shapes!
+	var soft_cloud_path = "res://extracted_assets/Textures/Mid_Fresche_Sfumate_2.1_1.png"
+	if ResourceLoader.exists(soft_cloud_path):
+		var tex = load(soft_cloud_path) as Texture2D
+		if tex: cloud_textures.append(tex)
 
 func apply_map_theme() -> void:
 	var map_id = GameManager.current_map
@@ -60,7 +56,7 @@ func populate_initial_environment() -> void:
 	for i in range(4):
 		spawn_island(Vector2(randf_range(60, 480), randf_range(50, 900)))
 		
-	for i in range(6):
+	for i in range(4):
 		spawn_cloud(Vector2(randf_range(-40, 580), randf_range(0, 960)))
 
 func _process(delta: float) -> void:
@@ -90,7 +86,7 @@ func _process(delta: float) -> void:
 	cloud_spawn_timer -= delta
 	if cloud_spawn_timer <= 0.0:
 		spawn_cloud(Vector2(randf_range(-100, 600), -280))
-		cloud_spawn_timer = randf_range(2.5, 4.5)
+		cloud_spawn_timer = randf_range(3.5, 6.0)
 
 func spawn_island(pos: Vector2) -> void:
 	if island_textures.size() == 0 or not island_container: return
@@ -107,10 +103,10 @@ func spawn_cloud(pos: Vector2) -> void:
 	var cloud = Sprite2D.new()
 	cloud.texture = cloud_textures[randi() % cloud_textures.size()]
 	cloud.position = pos
-	var cloud_scale = randf_range(0.8, 1.6)
+	var cloud_scale = randf_range(0.8, 1.4)
 	cloud.scale = Vector2(cloud_scale, cloud_scale)
-	cloud.modulate = Color(1.0, 1.0, 1.0, randf_range(0.45, 0.72))
+	cloud.modulate = Color(1.0, 1.0, 1.0, randf_range(0.18, 0.28)) # Soft semi-transparent cloud
 	
-	cloud.set_meta("speed", scroll_speed * randf_range(1.25, 1.55))
-	cloud.set_meta("drift", randf_range(-10.0, 10.0))
+	cloud.set_meta("speed", scroll_speed * randf_range(1.2, 1.4))
+	cloud.set_meta("drift", randf_range(-8.0, 8.0))
 	cloud_container.add_child(cloud)
