@@ -211,6 +211,10 @@ func upgrade_weapon() -> void:
 		current_weapon_level += 1
 		weapon_level_updated.emit(current_weapon_level)
 
+func downgrade_weapon() -> void:
+	current_weapon_level = 1
+	weapon_level_updated.emit(current_weapon_level)
+
 func add_bomb(amount: int = 1) -> void:
 	player_bombs = min(6, player_bombs + amount)
 	player_bombs_updated.emit(player_bombs)

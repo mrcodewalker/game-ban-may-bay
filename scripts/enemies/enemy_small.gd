@@ -148,11 +148,11 @@ func die() -> void:
 		b.direction = target_dir
 		get_parent().call_deferred("add_child", b)
 
-	# Drop PowerUp chance (20%)
-	if randf() < 0.20 and powerup_scene:
+	# Drop PowerUp chance (22%)
+	if randf() < 0.22 and powerup_scene:
 		var item = powerup_scene.instantiate()
 		item.global_position = global_position
-		item.type = randi() % 5
+		item.type = randi() % 6
 		get_parent().call_deferred("add_child", item)
 		
 	queue_free()

@@ -104,7 +104,7 @@ func die() -> void:
 	if randf() < 0.35 and powerup_scene:
 		var item = powerup_scene.instantiate()
 		item.global_position = global_position
-		item.type = randi() % 5
+		item.type = randi() % 6
 		get_parent().call_deferred("add_child", item)
 		
 	queue_free()

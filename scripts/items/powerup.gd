@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerUpType { POWER, LASER, MISSILE, SPREAD, BOMB }
+enum PowerUpType { POWER, LASER, MISSILE, SPREAD, BOMB, DOWNGRADE }
 
 @export var type: PowerUpType = PowerUpType.POWER
 @export var speed: float = 120.0
@@ -34,13 +34,15 @@ func update_appearance() -> void:
 		PowerUpType.BOMB:
 			if label: label.text = "B"
 			if sprite: sprite.modulate = Color(0.95, 0.9, 0.2) # Gold Bomb
+		PowerUpType.DOWNGRADE:
+			if label: label.text = "💀"
+			if sprite: sprite.modulate = Color(0.8, 0.1, 0.15) # Hazard Skull Red
 
 func _process(delta: float) -> void:
 	time_passed += delta
 	position.y += speed * delta
 	position.x += sin(time_passed * 4.5) * 1.8
 	
-	# Gentle floating scale pulse
 	var pulse = 1.0 + sin(time_passed * 6.0) * 0.08
 	if sprite:
 		sprite.scale = Vector2(0.24, 0.24) * pulse
@@ -55,25 +57,31 @@ func _on_area_entered(area: Area2D) -> void:
 			PowerUpType.POWER:
 				GameManager.upgrade_weapon()
 				text_popup = "POWER UP!"
+				if AudioManager: AudioManager.play_sfx("powerup")
 			PowerUpType.LASER:
 				if area.has_method("set_weapon_type"):
 					area.set_weapon_type(1) # LASER
 				text_popup = "LASER BEAM!"
+				if AudioManager: AudioManager.play_sfx("powerup")
 			PowerUpType.MISSILE:
 				if area.has_method("set_weapon_type"):
 					area.set_weapon_type(2) # MISSILE
 				text_popup = "HOMING MISSILES!"
+				if AudioManager: AudioManager.play_sfx("powerup")
 			PowerUpType.SPREAD:
 				if area.has_method("set_weapon_type"):
 					area.set_weapon_type(3) # SPREAD
 				text_popup = "SPREAD CANNON!"
+				if AudioManager: AudioManager.play_sfx("powerup")
 			PowerUpType.BOMB:
 				GameManager.add_bomb(1)
 				text_popup = "+1 MEGA BOMB!"
+				if AudioManager: AudioManager.play_sfx("powerup")
+			PowerUpType.DOWNGRADE:
+				GameManager.downgrade_weapon()
+				text_popup = "WEAPON RESET TO LV.1! ⚠️"
+				if AudioManager: AudioManager.play_sfx("explosion", 0.0, 1.3)
 				
-		if AudioManager:
-			AudioManager.play_sfx("powerup")
-			
 		spawn_pickup_text(text_popup)
 		queue_free()
 
