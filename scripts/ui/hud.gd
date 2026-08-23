@@ -33,11 +33,11 @@ func _ready() -> void:
 
 func _on_score_updated(new_score: int) -> void:
 	if score_label:
-		score_label.text = "SCORE: %06d" % new_score
+		score_label.text = "MAP %d | SCORE: %06d" % [GameManager.current_map, new_score]
 
 func _on_high_score_updated(new_high: int) -> void:
 	if high_score_label:
-		high_score_label.text = "HIGH: %06d" % new_high
+		high_score_label.text = "BEST: %06d" % new_high
 
 func _on_player_health_updated(current: float, max_hp: float) -> void:
 	if hp_bar:
@@ -61,10 +61,12 @@ func _on_boss_health_updated(current: float, max_hp: float, is_visible: bool) ->
 
 func _on_game_over() -> void:
 	if game_over_panel:
-		game_over_panel.set_title("GAME OVER")
+		if game_over_panel.has_method("set_title"):
+			game_over_panel.set_title("GAME OVER", 0, 0)
 		game_over_panel.show()
 
-func _on_game_won() -> void:
+func _on_game_won(stars: int, coins_earned: int) -> void:
 	if game_over_panel:
-		game_over_panel.set_title("MISSION ACCOMPLISHED!")
+		if game_over_panel.has_method("set_title"):
+			game_over_panel.set_title("MISSION ACCOMPLISHED!", stars, coins_earned)
 		game_over_panel.show()

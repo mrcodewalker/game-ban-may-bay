@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://chomingmissile001"]
+[gd_scene format=3 uid="uid://dh70goc3xw0tw"]
 
 [ext_resource type="Script" path="res://scripts/combat/homing_missile.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://cbrocket001" path="res://extracted_assets/Textures/b_rocket.png" id="2_texture"]

@@ -24,63 +24,524 @@ texture = ExtResource("2_bg")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Logo" type="TextureRect" parent="."]
+[node name="MainPanel" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Logo" type="TextureRect" parent="MainPanel"]
 layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -220.0
-offset_top = 80.0
-offset_right = 220.0
-offset_bottom = 320.0
+offset_left = -230.0
+offset_top = 40.0
+offset_right = 230.0
+offset_bottom = 280.0
 grow_horizontal = 2
 texture = ExtResource("3_logo")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="VBox" type="VBoxContainer" parent="."]
+[node name="CoinsLabelMain" type="Label" parent="MainPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 285.0
+offset_right = 150.0
+offset_bottom = 315.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 18
+text = "💰 COINS: 0"
+horizontal_alignment = 1
+
+[node name="VBox" type="VBoxContainer" parent="MainPanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -140.0
-offset_top = 30.0
-offset_right = 140.0
-offset_bottom = 220.0
+offset_left = -160.0
+offset_top = -10.0
+offset_right = 160.0
+offset_bottom = 270.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 16
 alignment = 1
 
-[node name="StartButton" type="Button" parent="VBox"]
-custom_minimum_size = Vector2(0, 52)
+[node name="CampaignButton" type="Button" parent="MainPanel/VBox"]
+custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 22
-text = "START GAME"
-
-[node name="ExitButton" type="Button" parent="VBox"]
-custom_minimum_size = Vector2(0, 52)
-layout_mode = 2
 theme_override_font_sizes/font_size = 20
-text = "EXIT"
+text = "🎯 PLAY CAMPAIGN (MAPS 1-5)"
+
+[node name="ShopButton" type="Button" parent="MainPanel/VBox"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "🛒 UPGRADE SHOP"
+
+[node name="ControlsButton" type="Button" parent="MainPanel/VBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "🎮 CONTROLS GUIDE"
+
+[node name="ExitButton" type="Button" parent="MainPanel/VBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+text = "❌ EXIT GAME"
+
+[node name="CampaignPanel" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="CampaignPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 35.0
+offset_right = 200.0
+offset_bottom = 75.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 26
+text = "SELECT CAMPAIGN STAGE"
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="CampaignPanel"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 30.0
+offset_right = 125.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 16
+text = "⬅ BACK"
+
+[node name="GridStages" type="VBoxContainer" parent="CampaignPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -370.0
+offset_right = 230.0
+offset_bottom = 410.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="Stage1" type="PanelContainer" parent="CampaignPanel/GridStages"]
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage1"]
+layout_mode = 2
+
+[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage1/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage1/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = " MAP 1: Pacific Strike"
+
+[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage1/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = " ★ ★ ★"
+
+[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage1/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = " BEST: 000000"
+
+[node name="PlayButton1" type="Button" parent="CampaignPanel/GridStages/Stage1"]
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_font_sizes/font_size = 15
+text = "PLAY STAGE 1"
+
+[node name="Stage2" type="PanelContainer" parent="CampaignPanel/GridStages"]
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage2"]
+layout_mode = 2
+
+[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage2/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage2/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = " MAP 2: Sunrise Archipelago"
+
+[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage2/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = " ☆ ☆ ☆"
+
+[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage2/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = " LOCKED"
+
+[node name="PlayButton2" type="Button" parent="CampaignPanel/GridStages/Stage2"]
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 15
+text = "LOCKED 🔒"
+
+[node name="Stage3" type="PanelContainer" parent="CampaignPanel/GridStages"]
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage3"]
+layout_mode = 2
+
+[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage3/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage3/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = " MAP 3: Dogfight Thunderstorm"
+
+[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage3/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = " ☆ ☆ ☆"
+
+[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage3/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = " LOCKED"
+
+[node name="PlayButton3" type="Button" parent="CampaignPanel/GridStages/Stage3"]
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 15
+text = "LOCKED 🔒"
+
+[node name="Stage4" type="PanelContainer" parent="CampaignPanel/GridStages"]
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage4"]
+layout_mode = 2
+
+[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage4/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage4/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = " MAP 4: Sunset Bay Assault"
+
+[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage4/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = " ☆ ☆ ☆"
+
+[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage4/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = " LOCKED"
+
+[node name="PlayButton4" type="Button" parent="CampaignPanel/GridStages/Stage4"]
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 15
+text = "LOCKED 🔒"
+
+[node name="Stage5" type="PanelContainer" parent="CampaignPanel/GridStages"]
+custom_minimum_size = Vector2(0, 130)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage5"]
+layout_mode = 2
+
+[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage5/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage5/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = " MAP 5: Final Fortress Assault"
+
+[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage5/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = " ☆ ☆ ☆"
+
+[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage5/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = " LOCKED"
+
+[node name="PlayButton5" type="Button" parent="CampaignPanel/GridStages/Stage5"]
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 15
+text = "LOCKED 🔒"
+
+[node name="ShopPanel" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxHeader" type="VBoxContainer" parent="ShopPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 25.0
+offset_right = 200.0
+offset_bottom = 85.0
+grow_horizontal = 2
+
+[node name="TitleShop" type="Label" parent="ShopPanel/VBoxHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 24
+text = "HANGAR UPGRADE SHOP"
+horizontal_alignment = 1
+
+[node name="CoinsLabelShop" type="Label" parent="ShopPanel/VBoxHeader"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_font_sizes/font_size = 18
+text = "💰 TOTAL COINS: 0"
+horizontal_alignment = 1
+
+[node name="BackButton" type="Button" parent="ShopPanel"]
+layout_mode = 0
+offset_left = 25.0
+offset_top = 30.0
+offset_right = 125.0
+offset_bottom = 70.0
+theme_override_font_sizes/font_size = 16
+text = "⬅ BACK"
+
+[node name="GridUpgrades" type="VBoxContainer" parent="ShopPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -340.0
+offset_right = 220.0
+offset_bottom = 360.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="CardHP" type="PanelContainer" parent="ShopPanel/GridUpgrades"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="ShopPanel/GridUpgrades/CardHP"]
+layout_mode = 2
+
+[node name="VBoxText" type="VBoxContainer" parent="ShopPanel/GridUpgrades/CardHP/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="ShopPanel/GridUpgrades/CardHP/HBox/VBoxText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.95, 0.4, 1)
+theme_override_font_sizes/font_size = 17
+text = " ❤️ MAX HEALTH (+25 HP)"
+
+[node name="Desc" type="Label" parent="ShopPanel/GridUpgrades/CardHP/HBox/VBoxText"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = " Increases aircraft armor & HP bar."
+
+[node name="BuyHPBtn" type="Button" parent="ShopPanel/GridUpgrades/CardHP"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 14
+text = "UPGRADE (+25 HP)\n💰 300"
+
+[node name="CardSpeed" type="PanelContainer" parent="ShopPanel/GridUpgrades"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="ShopPanel/GridUpgrades/CardSpeed"]
+layout_mode = 2
+
+[node name="VBoxText" type="VBoxContainer" parent="ShopPanel/GridUpgrades/CardSpeed/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="ShopPanel/GridUpgrades/CardSpeed/HBox/VBoxText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 17
+text = " ⚡ FLIGHT SPEED (+SPEED)"
+
+[node name="Desc" type="Label" parent="ShopPanel/GridUpgrades/CardSpeed/HBox/VBoxText"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = " Increases plane movement maneuverability."
+
+[node name="BuySpeedBtn" type="Button" parent="ShopPanel/GridUpgrades/CardSpeed"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 14
+text = "UPGRADE (+SPEED)\n💰 250"
+
+[node name="CardWeapon" type="PanelContainer" parent="ShopPanel/GridUpgrades"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="ShopPanel/GridUpgrades/CardWeapon"]
+layout_mode = 2
+
+[node name="VBoxText" type="VBoxContainer" parent="ShopPanel/GridUpgrades/CardWeapon/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="ShopPanel/GridUpgrades/CardWeapon/HBox/VBoxText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 17
+text = " 🔫 START WEAPON (LVL 1-4)"
+
+[node name="Desc" type="Label" parent="ShopPanel/GridUpgrades/CardWeapon/HBox/VBoxText"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = " Start each stage with upgraded cannon level."
+
+[node name="BuyWeaponBtn" type="Button" parent="ShopPanel/GridUpgrades/CardWeapon"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 14
+text = "UPGRADE (START LVL)\n💰 500"
+
+[node name="CardBombs" type="PanelContainer" parent="ShopPanel/GridUpgrades"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="ShopPanel/GridUpgrades/CardBombs"]
+layout_mode = 2
+
+[node name="VBoxText" type="VBoxContainer" parent="ShopPanel/GridUpgrades/CardBombs/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="ShopPanel/GridUpgrades/CardBombs/HBox/VBoxText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.3, 1)
+theme_override_font_sizes/font_size = 17
+text = " 💣 START BOMBS (3-6 BOMBS)"
+
+[node name="Desc" type="Label" parent="ShopPanel/GridUpgrades/CardBombs/HBox/VBoxText"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = " Start each stage with additional screen bombs."
+
+[node name="BuyBombsBtn" type="Button" parent="ShopPanel/GridUpgrades/CardBombs"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 14
+text = "UPGRADE (+1 BOMB)\n💰 400"
 
 [node name="ControlsPanel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(400, 120)
+visible = false
+custom_minimum_size = Vector2(440, 220)
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -180.0
-offset_right = 200.0
-offset_bottom = -60.0
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -110.0
+offset_right = 220.0
+offset_bottom = 110.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
 
 [node name="VBoxControls" type="VBoxContainer" parent="ControlsPanel"]
 layout_mode = 2
@@ -89,24 +550,38 @@ alignment = 1
 [node name="LabelTitle" type="Label" parent="ControlsPanel/VBoxControls"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_font_sizes/font_size = 18
 text = "CONTROLS GUIDE"
 horizontal_alignment = 1
 
 [node name="LabelMove" type="Label" parent="ControlsPanel/VBoxControls"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "• Move: WASD / Arrow Keys or Mouse Drag"
 horizontal_alignment = 1
 
 [node name="LabelShoot" type="Label" parent="ControlsPanel/VBoxControls"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "• Shoot: Spacebar / Left Click / J"
 horizontal_alignment = 1
 
 [node name="LabelBomb" type="Label" parent="ControlsPanel/VBoxControls"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 14
 text = "• Bomb: Shift / Key K"
 horizontal_alignment = 1
+
+[node name="LabelWeapons" type="Label" parent="ControlsPanel/VBoxControls"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = "• Switch Weapons: Keys 1, 2, 3, 4"
+horizontal_alignment = 1
+
+[node name="CloseButton" type="Button" parent="ControlsPanel"]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 0
+text = "✖"
