@@ -1,55 +1,86 @@
 extends Area2D
 
-enum PowerUpType { WEAPON, HEALTH, BOMB, SCORE }
+enum PowerUpType { POWER, LASER, MISSILE, SPREAD, BOMB }
 
-@export var type: PowerUpType = PowerUpType.WEAPON
-@export var speed: float = 130.0
+@export var type: PowerUpType = PowerUpType.POWER
+@export var speed: float = 120.0
 
 var time_passed: float = 0.0
+
+@onready var label: Label = $Label
+@onready var sprite: Sprite2D = $Sprite2D
 
 func _ready() -> void:
 	area_entered.connect(_on_area_entered)
 	update_appearance()
 
 func update_appearance() -> void:
-	var label = $Label if has_node("Label") else null
-	var sprite = $Sprite2D if has_node("Sprite2D") else null
-	
+	if not is_inside_tree():
+		return
+		
 	match type:
-		PowerUpType.WEAPON:
+		PowerUpType.POWER:
 			if label: label.text = "P"
-			if sprite: sprite.modulate = Color(1.0, 0.85, 0.2) # Gold
-		PowerUpType.HEALTH:
-			if label: label.text = "HP"
-			if sprite: sprite.modulate = Color(0.2, 0.9, 0.3) # Green
+			if sprite: sprite.modulate = Color(1.0, 0.35, 0.3) # Vivid Red Power
+		PowerUpType.LASER:
+			if label: label.text = "L"
+			if sprite: sprite.modulate = Color(0.2, 0.85, 1.0) # Laser Cyan
+		PowerUpType.MISSILE:
+			if label: label.text = "M"
+			if sprite: sprite.modulate = Color(1.0, 0.65, 0.2) # Missile Orange
+		PowerUpType.SPREAD:
+			if label: label.text = "S"
+			if sprite: sprite.modulate = Color(0.3, 0.95, 0.4) # Spread Green
 		PowerUpType.BOMB:
 			if label: label.text = "B"
-			if sprite: sprite.modulate = Color(0.9, 0.3, 0.2) # Red
-		PowerUpType.SCORE:
-			if label: label.text = "+$"
-			if sprite: sprite.modulate = Color(0.3, 0.7, 1.0) # Blue
+			if sprite: sprite.modulate = Color(0.95, 0.9, 0.2) # Gold Bomb
 
 func _process(delta: float) -> void:
 	time_passed += delta
 	position.y += speed * delta
-	position.x += sin(time_passed * 4.0) * 1.5
+	position.x += sin(time_passed * 4.5) * 1.8
 	
-	if position.y > 1000:
+	# Gentle floating scale pulse
+	var pulse = 1.0 + sin(time_passed * 6.0) * 0.08
+	if sprite:
+		sprite.scale = Vector2(0.24, 0.24) * pulse
+	
+	if position.y > 1020:
 		queue_free()
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player"):
+		var text_popup = ""
 		match type:
-			PowerUpType.WEAPON:
+			PowerUpType.POWER:
 				GameManager.upgrade_weapon()
-			PowerUpType.HEALTH:
-				GameManager.heal_player(35.0)
+				text_popup = "POWER UP!"
+			PowerUpType.LASER:
+				if area.has_method("set_weapon_type"):
+					area.set_weapon_type(1) # LASER
+				text_popup = "LASER BEAM!"
+			PowerUpType.MISSILE:
+				if area.has_method("set_weapon_type"):
+					area.set_weapon_type(2) # MISSILE
+				text_popup = "HOMING MISSILES!"
+			PowerUpType.SPREAD:
+				if area.has_method("set_weapon_type"):
+					area.set_weapon_type(3) # SPREAD
+				text_popup = "SPREAD CANNON!"
 			PowerUpType.BOMB:
 				GameManager.add_bomb(1)
-			PowerUpType.SCORE:
-				GameManager.add_score(500)
+				text_popup = "+1 MEGA BOMB!"
 				
 		if AudioManager:
 			AudioManager.play_sfx("powerup")
 			
+		spawn_pickup_text(text_popup)
 		queue_free()
+
+func spawn_pickup_text(msg: String) -> void:
+	var pop_scene = load("res://scenes/effects/score_popup.tscn")
+	if pop_scene:
+		var pop = pop_scene.instantiate()
+		pop.global_position = global_position
+		pop.setup(0, msg)
+		get_parent().add_child(pop)
