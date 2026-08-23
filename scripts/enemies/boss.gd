@@ -38,7 +38,7 @@ func configure_boss_by_map() -> void:
 			max_hp = 2200.0
 			score_value = 5000
 			if sprite:
-				sprite.texture = load("res://extracted_assets/Textures/Large02.png")
+				sprite.texture = load("res://extracted_assets/Textures/Large02_solid.png")
 				sprite.scale = Vector2(0.55, 0.55)
 				sprite.rotation = PI
 		2:
@@ -54,7 +54,7 @@ func configure_boss_by_map() -> void:
 			max_hp = 4500.0
 			score_value = 12000
 			if sprite:
-				sprite.texture = load("res://extracted_assets/Textures/Large01.png")
+				sprite.texture = load("res://extracted_assets/Textures/Large01_solid.png")
 				sprite.scale = Vector2(0.65, 0.65)
 				sprite.rotation = PI
 		4:

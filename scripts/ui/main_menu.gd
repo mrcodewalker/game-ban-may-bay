@@ -3,11 +3,13 @@ extends Control
 @onready var main_panel: Control = $MainPanel
 @onready var campaign_panel: Control = $CampaignPanel
 @onready var shop_panel: Control = $ShopPanel
+@onready var settings_panel: Control = $SettingsPanel
 @onready var controls_panel: Control = $ControlsPanel
 
 # Main Panel Buttons
 @onready var campaign_button: Button = $MainPanel/VBox/CampaignButton
 @onready var shop_button: Button = $MainPanel/VBox/ShopButton
+@onready var settings_button: Button = $MainPanel/VBox/SettingsButton
 @onready var controls_button: Button = $MainPanel/VBox/ControlsButton
 @onready var exit_button: Button = $MainPanel/VBox/ExitButton
 
@@ -16,9 +18,13 @@ extends Control
 @onready var normal_btn: Button = $MainPanel/DifficultyHBox/NormalBtn
 @onready var hard_btn: Button = $MainPanel/DifficultyHBox/HardBtn
 
-# Currency Label
+# Currency Labels
 @onready var coins_label_main: Label = $MainPanel/CoinsLabelMain
 @onready var coins_label_shop: Label = $ShopPanel/VBoxHeader/CoinsLabelShop
+
+# Settings Controls
+@onready var music_slider: HSlider = $SettingsPanel/VBox/HBoxMusic/MusicSlider if has_node("SettingsPanel/VBox/HBoxMusic/MusicSlider") else null
+@onready var sfx_slider: HSlider = $SettingsPanel/VBox/HBoxSFX/SFXSlider if has_node("SettingsPanel/VBox/HBoxSFX/SFXSlider") else null
 
 # Campaign Stage Buttons
 @onready var stage_buttons: Array[Button] = [
@@ -38,6 +44,7 @@ extends Control
 func _ready() -> void:
 	if campaign_button: campaign_button.pressed.connect(_on_campaign_pressed)
 	if shop_button: shop_button.pressed.connect(_on_shop_pressed)
+	if settings_button: settings_button.pressed.connect(_on_settings_pressed)
 	if controls_button: controls_button.pressed.connect(_on_controls_pressed)
 	if exit_button: exit_button.pressed.connect(_on_exit_pressed)
 	
@@ -49,7 +56,14 @@ func _ready() -> void:
 	# Connect Back Buttons
 	if has_node("CampaignPanel/BackButton"): $CampaignPanel/BackButton.pressed.connect(show_main_panel)
 	if has_node("ShopPanel/BackButton"): $ShopPanel/BackButton.pressed.connect(show_main_panel)
+	if has_node("SettingsPanel/BackButton"): $SettingsPanel/BackButton.pressed.connect(show_main_panel)
 	if has_node("ControlsPanel/CloseButton"): $ControlsPanel/CloseButton.pressed.connect(show_main_panel)
+
+	# Connect Sliders
+	if music_slider:
+		music_slider.value_changed.connect(_on_music_volume_changed)
+	if sfx_slider:
+		sfx_slider.value_changed.connect(_on_sfx_volume_changed)
 
 	# Connect Campaign Stage Play Buttons
 	for i in range(stage_buttons.size()):
@@ -88,6 +102,7 @@ func show_main_panel() -> void:
 	main_panel.show()
 	campaign_panel.hide()
 	shop_panel.hide()
+	settings_panel.hide()
 	controls_panel.hide()
 	update_ui_data()
 
@@ -101,11 +116,22 @@ func _on_shop_pressed() -> void:
 	shop_panel.show()
 	update_shop_ui()
 
+func _on_settings_pressed() -> void:
+	main_panel.hide()
+	settings_panel.show()
+
 func _on_controls_pressed() -> void:
 	controls_panel.visible = !controls_panel.visible
 
 func _on_exit_pressed() -> void:
 	get_tree().quit()
+
+func _on_music_volume_changed(val: float) -> void:
+	var db = linear_to_db(val / 100.0)
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), db)
+
+func _on_sfx_volume_changed(_val: float) -> void:
+	if AudioManager: AudioManager.play_sfx("shoot", -6.0)
 
 func update_ui_data() -> void:
 	if coins_label_main: coins_label_main.text = "💰 COINS: %d" % GameManager.coins
@@ -129,7 +155,7 @@ func update_campaign_ui() -> void:
 				card.modulate = Color(1, 1, 1, 1)
 				if play_btn:
 					play_btn.disabled = false
-					play_btn.text = "PLAY STAGE %d" % stage_num
+					play_btn.text = "START MISSION %02d" % stage_num
 				if stars_label:
 					var star_str = ""
 					for s in range(3): star_str += "★ " if s < stars else "☆ "
