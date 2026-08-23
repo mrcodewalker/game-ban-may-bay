@@ -1,11 +1,11 @@
-[gd_scene format=3 uid="uid://cenemygold001"]
+[gd_scene load_steps=4 format=3 uid="uid://cenemygold001"]
 
 [ext_resource type="Script" path="res://scripts/enemies/enemy_gold.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://c3goldplane001" path="res://extracted_assets/Textures/3.png" id="2_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
-radius = 18.0
-height = 52.0
+radius = 22.0
+height = 60.0
 
 [node name="EnemyGold" type="Area2D" groups=["enemies"]]
 collision_layer = 4
@@ -13,13 +13,13 @@ collision_mask = 3
 script = ExtResource("1_script")
 
 [node name="ShadowSprite" type="Sprite2D" parent="."]
-modulate = Color(0, 0, 0, 0.3)
-position = Vector2(10, 18)
-scale = Vector2(0.32, 0.32)
+modulate = Color(0, 0, 0, 0.45)
+position = Vector2(10, 20)
+scale = Vector2(0.42, 0.42)
 texture = ExtResource("2_texture")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.35, 0.35)
+scale = Vector2(0.46, 0.46)
 texture = ExtResource("2_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
