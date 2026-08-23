@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://cenemygold001"]
 
 [ext_resource type="Script" path="res://scripts/enemies/enemy_gold.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://c4crimsonplane001" path="res://extracted_assets/Textures/4.png" id="2_texture"]
+[ext_resource type="Texture2D" uid="uid://c4solidcolor001" path="res://extracted_assets/Textures/4_1.png" id="2_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 28.0

@@ -38,8 +38,8 @@ func configure_boss_by_map() -> void:
 			max_hp = 2200.0
 			score_value = 5000
 			if sprite:
-				sprite.texture = load("res://extracted_assets/Textures/Large02_solid.png")
-				sprite.scale = Vector2(0.55, 0.55)
+				sprite.texture = load("res://extracted_assets/Textures/Aereo.png")
+				sprite.scale = Vector2(0.25, 0.25)
 				sprite.rotation = PI
 		2:
 			# Map 2: Sunrise Super Carrier
@@ -54,8 +54,8 @@ func configure_boss_by_map() -> void:
 			max_hp = 4500.0
 			score_value = 12000
 			if sprite:
-				sprite.texture = load("res://extracted_assets/Textures/Large01_solid.png")
-				sprite.scale = Vector2(0.65, 0.65)
+				sprite.texture = load("res://extracted_assets/Textures/Aereo_1.png")
+				sprite.scale = Vector2(0.28, 0.28)
 				sprite.rotation = PI
 		4:
 			# Map 4: Sunset Dreadnought Warship
