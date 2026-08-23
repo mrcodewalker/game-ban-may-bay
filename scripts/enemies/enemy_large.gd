@@ -2,7 +2,7 @@ extends Area2D
 
 @export var max_hp: float = 240.0
 @export var score_value: int = 500
-@export var speed: float = 95.0
+@export var speed: float = 120.0
 
 @export var bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet.tscn")
 @export var purple_bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet_purple.tscn")
@@ -12,19 +12,34 @@ extends Area2D
 @export var score_popup_scene: PackedScene = preload("res://scenes/effects/score_popup.tscn")
 
 var hp: float
+var time_passed: float = 0.0
 var shoot_timer: float = 0.9
+var phase_offset: float = 0.0
+
+@onready var sprite: Sprite2D = $Sprite2D if has_node("Sprite2D") else null
 
 func _ready() -> void:
 	add_to_group("enemies")
 	hp = max_hp * GameManager.get_enemy_hp_mult()
+	phase_offset = randf_range(0.0, TAU)
 	area_entered.connect(_on_area_entered)
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over:
 		return
 		
-	position.y += speed * GameManager.get_enemy_speed_mult() * delta
+	time_passed += delta
+	var speed_mult = GameManager.get_enemy_speed_mult()
 	
+	# Heavy fortress bomber active weaving movement
+	var vx = sin(time_passed * 1.8 + phase_offset) * 60.0 * speed_mult
+	var vy = speed * speed_mult
+	position += Vector2(vx, vy) * delta
+	
+	if sprite:
+		var target_roll = (vx / 60.0) * deg_to_rad(10.0)
+		sprite.rotation = lerp_angle(sprite.rotation, target_roll, 8.0 * delta)
+
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		shoot()
@@ -52,7 +67,6 @@ func shoot() -> void:
 
 func take_damage(amount: float) -> void:
 	hp -= amount
-	var sprite = $Sprite2D if has_node("Sprite2D") else null
 	if sprite:
 		sprite.modulate = Color(2.5, 0.4, 0.4)
 		var tween = create_tween()

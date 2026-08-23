@@ -2,7 +2,7 @@ extends Area2D
 
 @export var max_hp: float = 90.0
 @export var score_value: int = 250
-@export var speed: float = 160.0
+@export var speed: float = 165.0
 
 @export var bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet.tscn")
 @export var purple_bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet_purple.tscn")
@@ -12,36 +12,51 @@ extends Area2D
 @export var score_popup_scene: PackedScene = preload("res://scenes/effects/score_popup.tscn")
 
 var hp: float
+var time_passed: float = 0.0
 var shoot_timer: float = 1.1
+var phase_offset: float = 0.0
+
+@onready var sprite: Sprite2D = $Sprite2D if has_node("Sprite2D") else null
 
 func _ready() -> void:
 	add_to_group("enemies")
 	hp = max_hp * GameManager.get_enemy_hp_mult()
+	phase_offset = randf_range(0.0, TAU)
 	area_entered.connect(_on_area_entered)
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over:
 		return
 		
-	position.y += speed * GameManager.get_enemy_speed_mult() * delta
+	time_passed += delta
+	var speed_mult = GameManager.get_enemy_speed_mult()
 	
+	# Dynamic horizontal weaving movement
+	var vx = cos(time_passed * 2.2 + phase_offset) * 85.0 * speed_mult
+	var vy = speed * speed_mult
+	position += Vector2(vx, vy) * delta
+	
+	if sprite:
+		var target_roll = (vx / 85.0) * deg_to_rad(14.0)
+		sprite.rotation = lerp_angle(sprite.rotation, target_roll, 10.0 * delta)
+
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		shoot()
 		shoot_timer = 1.4
 		
-	if position.y > 1020:
+	if position.y > 1030:
 		queue_free()
 
 func shoot() -> void:
 	if position.y < 0 or position.y > 850:
 		return
 		
-	# 3-Way Fan Fire with Purple Void Orbs!
 	var scene_to_use = purple_bullet_scene if purple_bullet_scene else bullet_scene
 	if not scene_to_use: return
 	
-	for angle in [-16.0, 0.0, 16.0]:
+	# 3-Way Fan Fire with Purple Void Orbs!
+	for angle in [-18.0, 0.0, 18.0]:
 		var b = scene_to_use.instantiate()
 		b.global_position = global_position + Vector2(0, 24)
 		b.direction = Vector2.DOWN.rotated(deg_to_rad(angle))
@@ -52,7 +67,6 @@ func shoot() -> void:
 
 func take_damage(amount: float) -> void:
 	hp -= amount
-	var sprite = $Sprite2D if has_node("Sprite2D") else null
 	if sprite:
 		sprite.modulate = Color(2.5, 0.4, 0.4)
 		var tween = create_tween()

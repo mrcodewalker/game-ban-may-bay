@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cenemybulletpurple001"]
+[gd_scene format=3 uid="uid://bqdlm24dpawgm"]
 
 [ext_resource type="Script" path="res://scripts/combat/enemy_bullet_advanced.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://ccircle001" path="res://extracted_assets/Textures/circle.png" id="2_texture"]

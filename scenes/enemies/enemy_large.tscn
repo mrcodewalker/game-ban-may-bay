@@ -1,11 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://cenemylarge001"]
+[gd_scene load_steps=4 format=3 uid="uid://clargebomber001"]
 
 [ext_resource type="Script" path="res://scripts/enemies/enemy_large.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://clargebomber001" path="res://extracted_assets/Textures/Large01.png" id="2_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
 radius = 48.0
-height = 110.0
+height = 130.0
 
 [node name="EnemyLarge" type="Area2D" groups=["enemies"]]
 collision_layer = 4
@@ -13,15 +13,13 @@ collision_mask = 3
 script = ExtResource("1_script")
 
 [node name="ShadowSprite" type="Sprite2D" parent="."]
-modulate = Color(0, 0, 0, 0.35)
-position = Vector2(18, 28)
-rotation = 3.14159
-scale = Vector2(0.36, 0.36)
+modulate = Color(0, 0, 0, 0.45)
+position = Vector2(18, 26)
+scale = Vector2(0.44, 0.44)
 texture = ExtResource("2_texture")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-rotation = 3.14159
-scale = Vector2(0.38, 0.38)
+scale = Vector2(0.48, 0.48)
 texture = ExtResource("2_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
