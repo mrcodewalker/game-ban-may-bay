@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cmissionbriefing001"]
+[gd_scene format=3 uid="uid://s53stjlp2qg3"]
 
 [ext_resource type="Script" path="res://scripts/ui/mission_briefing.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://cfont231" path="res://extracted_assets/Fonts/font_231.ttf" id="2_font"]
