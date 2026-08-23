@@ -38,9 +38,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -230.0
-offset_top = 40.0
+offset_top = 30.0
 offset_right = 230.0
-offset_bottom = 280.0
+offset_bottom = 260.0
 grow_horizontal = 2
 texture = ExtResource("3_logo")
 expand_mode = 1
@@ -52,9 +52,9 @@ anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -150.0
-offset_top = 285.0
+offset_top = 265.0
 offset_right = 150.0
-offset_bottom = 315.0
+offset_bottom = 295.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
@@ -62,6 +62,43 @@ theme_override_constants/outline_size = 5
 theme_override_font_sizes/font_size = 18
 text = "💰 COINS: 0"
 horizontal_alignment = 1
+
+[node name="DifficultyHBox" type="HBoxContainer" parent="MainPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -17.0
+offset_right = 200.0
+offset_bottom = 27.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="EasyBtn" type="Button" parent="MainPanel/DifficultyHBox"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.4, 1)
+theme_override_font_sizes/font_size = 14
+text = "🟢 EASY"
+
+[node name="NormalBtn" type="Button" parent="MainPanel/DifficultyHBox"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = "🟡 NORMAL"
+
+[node name="HardBtn" type="Button" parent="MainPanel/DifficultyHBox"]
+custom_minimum_size = Vector2(120, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = "🔴 HARDCORE"
 
 [node name="VBox" type="VBoxContainer" parent="MainPanel"]
 layout_mode = 1
@@ -71,38 +108,38 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -160.0
-offset_top = -10.0
+offset_top = 40.0
 offset_right = 160.0
-offset_bottom = 270.0
+offset_bottom = 280.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 14
 alignment = 1
 
 [node name="CampaignButton" type="Button" parent="MainPanel/VBox"]
-custom_minimum_size = Vector2(0, 54)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_font_sizes/font_size = 19
 text = "🎯 PLAY CAMPAIGN (MAPS 1-5)"
 
 [node name="ShopButton" type="Button" parent="MainPanel/VBox"]
-custom_minimum_size = Vector2(0, 54)
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 19
 text = "🛒 UPGRADE SHOP"
 
 [node name="ControlsButton" type="Button" parent="MainPanel/VBox"]
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 text = "🎮 CONTROLS GUIDE"
 
 [node name="ExitButton" type="Button" parent="MainPanel/VBox"]
-custom_minimum_size = Vector2(0, 46)
+custom_minimum_size = Vector2(0, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 16
 text = "❌ EXIT GAME"
 
 [node name="CampaignPanel" type="Control" parent="."]

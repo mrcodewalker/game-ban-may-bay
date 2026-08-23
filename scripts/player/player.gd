@@ -5,7 +5,7 @@ enum WeaponType { VULCAN, LASER, MISSILE, SPREAD }
 @export var move_speed: float = 500.0
 
 @export var vulcan_bullet_scene: PackedScene = preload("res://scenes/combat/player_bullet.tscn")
-@export var laser_bullet_scene: PackedScene = preload("res://scenes/combat/laser_bullet.tscn")
+@export var laser_beam_scene: PackedScene = preload("res://scenes/combat/laser_beam.tscn")
 @export var missile_bullet_scene: PackedScene = preload("res://scenes/combat/homing_missile.tscn")
 @export var spread_bullet_scene: PackedScene = preload("res://scenes/combat/spread_bullet.tscn")
 @export var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
@@ -18,6 +18,7 @@ var is_taking_off: bool = true
 var takeoff_timer: float = 0.0
 
 var current_weapon_type: WeaponType = WeaponType.VULCAN
+var active_laser_beam: Area2D = null
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var shadow_sprite: Sprite2D = $ShadowSprite
@@ -37,37 +38,31 @@ func _ready() -> void:
 	
 	load_banking_textures()
 	
-	# Start takeoff position from carrier deck
+	# Takeoff setup
 	position = Vector2(270, 900)
 	is_taking_off = true
 	trigger_invulnerability(2.5)
+	
+	# Apply Speed upgrade modifier
+	move_speed = 500.0 + (GameManager.upgrade_speed * 35.0)
 
 func load_banking_textures() -> void:
-	# Load neutral frame
 	bank_neutral = load("res://extracted_assets/Textures/512x512 L_0.png")
-	
-	# Load left roll frames
 	for i in range(4):
 		var tex = load("res://extracted_assets/Textures/512x512 L_%d.png" % i) as Texture2D
 		if tex: bank_textures_left.append(tex)
-		
-	# Load right roll frames
 	for i in range(3):
 		var tex = load("res://extracted_assets/Textures/512x512 R_%d.png" % i) as Texture2D
 		if tex: bank_textures_right.append(tex)
 
 func set_weapon_type(w_type: int) -> void:
 	current_weapon_type = w_type as WeaponType
-	if AudioManager:
-		AudioManager.play_sfx("powerup")
+	if AudioManager: AudioManager.play_sfx("powerup")
 
 func _process(delta: float) -> void:
-	if GameManager.is_game_over:
-		return
+	if GameManager.is_game_over: return
 		
-	# Propeller spin animation
-	if prop_sprite:
-		prop_sprite.rotation += 50.0 * delta
+	if prop_sprite: prop_sprite.rotation += 50.0 * delta
 		
 	if is_taking_off:
 		handle_takeoff(delta)
@@ -90,96 +85,85 @@ func handle_movement(delta: float) -> void:
 	if move_dir != Vector2.ZERO:
 		position += move_dir * move_speed * delta
 		
-	# Mouse / Touch Dragging support
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		var mouse_pos = get_global_mouse_position()
 		var dir_to_mouse = (mouse_pos - position)
 		position = position.lerp(mouse_pos, 22.0 * delta)
-		if abs(dir_to_mouse.x) > 6.0:
-			move_dir.x = sign(dir_to_mouse.x)
+		if abs(dir_to_mouse.x) > 6.0: move_dir.x = sign(dir_to_mouse.x)
 
-	# Realistic sub-sprite bank roll frame selection
 	update_banking_sprite(move_dir.x)
 
-	# Banking tilt rotation
 	target_rotation = move_dir.x * deg_to_rad(14.0)
 	rotation = lerp_angle(rotation, target_rotation, 16.0 * delta)
 	
-	# Update shadow sprite offset & texture frame
 	if shadow_sprite and sprite:
 		shadow_sprite.texture = sprite.texture
 		shadow_sprite.position = Vector2(16, 26)
 		shadow_sprite.rotation = rotation
 		shadow_sprite.scale = sprite.scale * 0.95
 
-	# Clamp to viewport bounds
 	position.x = clamp(position.x, 28.0, 512.0)
 	position.y = clamp(position.y, 40.0, 920.0)
 
 func update_banking_sprite(horizontal_input: float) -> void:
-	if not sprite:
-		return
-		
+	if not sprite: return
 	var bank_intensity = abs(horizontal_input)
 	if bank_intensity < 0.15:
 		if bank_neutral: sprite.texture = bank_neutral
 	elif horizontal_input < 0:
-		# Left roll bank frames
-		if bank_intensity < 0.45 and bank_textures_left.size() > 1:
-			sprite.texture = bank_textures_left[1]
-		elif bank_intensity < 0.85 and bank_textures_left.size() > 2:
-			sprite.texture = bank_textures_left[2]
-		elif bank_textures_left.size() > 3:
-			sprite.texture = bank_textures_left[3]
+		if bank_intensity < 0.45 and bank_textures_left.size() > 1: sprite.texture = bank_textures_left[1]
+		elif bank_intensity < 0.85 and bank_textures_left.size() > 2: sprite.texture = bank_textures_left[2]
+		elif bank_textures_left.size() > 3: sprite.texture = bank_textures_left[3]
 	else:
-		# Right roll bank frames
-		if bank_intensity < 0.55 and bank_textures_right.size() > 0:
-			sprite.texture = bank_textures_right[0]
-		elif bank_intensity < 0.85 and bank_textures_right.size() > 1:
-			sprite.texture = bank_textures_right[1]
-		elif bank_textures_right.size() > 2:
-			sprite.texture = bank_textures_right[2]
+		if bank_intensity < 0.55 and bank_textures_right.size() > 0: sprite.texture = bank_textures_right[0]
+		elif bank_intensity < 0.85 and bank_textures_right.size() > 1: sprite.texture = bank_textures_right[1]
+		elif bank_textures_right.size() > 2: sprite.texture = bank_textures_right[2]
 
 func handle_shooting(delta: float) -> void:
 	fire_timer -= delta
-	if Input.is_action_pressed("shoot") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		var fire_rate = get_fire_rate()
-		if fire_timer <= 0.0:
-			shoot_bullets()
-			fire_timer = fire_rate
+	var is_firing = Input.is_action_pressed("shoot") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	
+	if is_firing:
+		if current_weapon_type == WeaponType.LASER:
+			fire_continuous_laser()
+		else:
+			var fire_rate = get_fire_rate()
+			if fire_timer <= 0.0:
+				shoot_bullets()
+				fire_timer = fire_rate
+
+func fire_continuous_laser() -> void:
+	if not laser_beam_scene: return
+	if not is_instance_valid(active_laser_beam):
+		active_laser_beam = laser_beam_scene.instantiate()
+		active_laser_beam.position = Vector2(0, -32)
+		add_child(active_laser_beam)
+		
+	if active_laser_beam.has_method("fire_beam"):
+		active_laser_beam.fire_beam()
+		
+	if AudioManager and fmod(Time.get_ticks_msec() * 0.001, 0.15) < 0.05:
+		AudioManager.play_sfx("shoot", -7.0, 1.3)
 
 func get_fire_rate() -> float:
 	match current_weapon_type:
-		WeaponType.VULCAN:
-			return 0.12 - (GameManager.current_weapon_level * 0.01)
-		WeaponType.LASER:
-			return 0.16 - (GameManager.current_weapon_level * 0.012)
-		WeaponType.MISSILE:
-			return 0.22 - (GameManager.current_weapon_level * 0.015)
-		WeaponType.SPREAD:
-			return 0.15 - (GameManager.current_weapon_level * 0.01)
-		_:
-			return 0.14
+		WeaponType.VULCAN: return 0.12 - (GameManager.current_weapon_level * 0.01)
+		WeaponType.MISSILE: return 0.22 - (GameManager.current_weapon_level * 0.015)
+		WeaponType.SPREAD: return 0.15 - (GameManager.current_weapon_level * 0.01)
+		_: return 0.14
 
 func shoot_bullets() -> void:
 	var level = GameManager.current_weapon_level
-	
 	if AudioManager:
 		match current_weapon_type:
 			WeaponType.VULCAN: AudioManager.play_sfx("shoot", -6.0, randf_range(0.96, 1.04))
-			WeaponType.LASER: AudioManager.play_sfx("shoot", -4.0, 1.2)
 			WeaponType.MISSILE: AudioManager.play_sfx("shoot", -5.0, 0.85)
 			WeaponType.SPREAD: AudioManager.play_sfx("shoot", -5.0, 1.1)
 
 	match current_weapon_type:
-		WeaponType.VULCAN:
-			shoot_vulcan(level)
-		WeaponType.LASER:
-			shoot_laser(level)
-		WeaponType.MISSILE:
-			shoot_missile(level)
-		WeaponType.SPREAD:
-			shoot_spread(level)
+		WeaponType.VULCAN: shoot_vulcan(level)
+		WeaponType.MISSILE: shoot_missile(level)
+		WeaponType.SPREAD: shoot_spread(level)
 
 func shoot_vulcan(level: int) -> void:
 	if not vulcan_bullet_scene: return
@@ -188,36 +172,16 @@ func shoot_vulcan(level: int) -> void:
 			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(-8, -30), Vector2.UP)
 			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(8, -30), Vector2.UP)
 		2:
-			# Quad parallel yellow glowing bolts (matching user screenshot!)
 			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(-16, -26), Vector2.UP)
 			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(-6, -32), Vector2.UP)
 			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(6, -32), Vector2.UP)
 			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(16, -26), Vector2.UP)
 		3:
-			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(-22, -24), Vector2.UP)
-			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(-12, -28), Vector2.UP)
-			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(-4, -32), Vector2.UP)
-			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(4, -32), Vector2.UP)
-			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(12, -28), Vector2.UP)
-			spawn_bullet(vulcan_bullet_scene, global_position + Vector2(22, -24), Vector2.UP)
+			for offset_x in [-22, -12, -4, 4, 12, 22]:
+				spawn_bullet(vulcan_bullet_scene, global_position + Vector2(offset_x, -30), Vector2.UP)
 		_:
 			for offset_x in [-28, -20, -12, -4, 4, 12, 20, 28]:
 				spawn_bullet(vulcan_bullet_scene, global_position + Vector2(offset_x, -30), Vector2.UP)
-
-func shoot_laser(level: int) -> void:
-	if not laser_bullet_scene: return
-	match level:
-		1:
-			spawn_bullet(laser_bullet_scene, global_position + Vector2(-10, -32), Vector2.UP)
-			spawn_bullet(laser_bullet_scene, global_position + Vector2(10, -32), Vector2.UP)
-		2:
-			spawn_bullet(laser_bullet_scene, global_position + Vector2(-18, -28), Vector2.UP)
-			spawn_bullet(laser_bullet_scene, global_position + Vector2(-6, -34), Vector2.UP)
-			spawn_bullet(laser_bullet_scene, global_position + Vector2(6, -34), Vector2.UP)
-			spawn_bullet(laser_bullet_scene, global_position + Vector2(18, -28), Vector2.UP)
-		_:
-			for offset_x in [-24, -14, -4, 4, 14, 24]:
-				spawn_bullet(laser_bullet_scene, global_position + Vector2(offset_x, -32), Vector2.UP)
 
 func shoot_missile(level: int) -> void:
 	if not missile_bullet_scene: return
@@ -251,8 +215,7 @@ func shoot_spread(level: int) -> void:
 func spawn_bullet(scene: PackedScene, pos: Vector2, dir: Vector2) -> void:
 	var bullet = scene.instantiate()
 	bullet.global_position = pos
-	if "direction" in bullet:
-		bullet.direction = dir
+	if "direction" in bullet: bullet.direction = dir
 	get_parent().add_child(bullet)
 
 func handle_weapon_shortcut_keys() -> void:
@@ -264,16 +227,13 @@ func handle_weapon_shortcut_keys() -> void:
 func handle_bomb_input() -> void:
 	if Input.is_action_just_pressed("bomb"):
 		if GameManager.use_bomb():
-			if AudioManager:
-				AudioManager.play_sfx("explosion_heavy")
+			if AudioManager: AudioManager.play_sfx("explosion_heavy")
 			create_bomb_flash()
 			
-			# Screen shake
 			var main_scene = get_tree().current_scene
 			if main_scene and main_scene.has_node("Camera2D"):
 				var cam = main_scene.get_node("Camera2D")
-				if cam.has_method("add_shake"):
-					cam.add_shake(20.0)
+				if cam.has_method("add_shake"): cam.add_shake(20.0)
 
 func create_bomb_flash() -> void:
 	var flash = CanvasLayer.new()
@@ -287,26 +247,20 @@ func create_bomb_flash() -> void:
 	tween.tween_property(rect, "color:a", 0.0, 0.5)
 	tween.tween_callback(flash.queue_free)
 	
-	# Clear screen enemies & bullets
 	for enemy in get_tree().get_nodes_in_group("enemies"):
-		if enemy.has_method("take_damage"):
-			enemy.take_damage(300.0)
+		if enemy.has_method("take_damage"): enemy.take_damage(300.0)
 			
 	for b in get_tree().get_nodes_in_group("enemy_bullets"):
 		b.queue_free()
 
 func take_damage(amount: float) -> void:
-	if is_invulnerable or GameManager.is_game_over:
-		return
+	if is_invulnerable or GameManager.is_game_over: return
 		
 	GameManager.damage_player(amount)
 	trigger_invulnerability(1.8)
 	
-	if sprite:
-		sprite.modulate = Color(3.0, 0.3, 0.3)
-		
-	if AudioManager:
-		AudioManager.play_sfx("explosion", 0.0, 1.1)
+	if sprite: sprite.modulate = Color(3.0, 0.3, 0.3)
+	if AudioManager: AudioManager.play_sfx("explosion", 0.0, 1.1)
 
 func trigger_invulnerability(duration: float) -> void:
 	is_invulnerable = true
@@ -315,8 +269,7 @@ func trigger_invulnerability(duration: float) -> void:
 func handle_invulnerability(delta: float) -> void:
 	if is_invulnerable:
 		invuln_timer -= delta
-		if sprite:
-			sprite.visible = fmod(invuln_timer, 0.16) > 0.08
+		if sprite: sprite.visible = fmod(invuln_timer, 0.16) > 0.08
 		if invuln_timer <= 0.0:
 			is_invulnerable = false
 			if sprite:
@@ -326,8 +279,7 @@ func handle_invulnerability(delta: float) -> void:
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("enemies"):
 		take_damage(25.0)
-		if area.has_method("take_damage"):
-			area.take_damage(80.0)
+		if area.has_method("take_damage"): area.take_damage(80.0)
 
 func _on_game_over() -> void:
 	if explosion_fx_scene:

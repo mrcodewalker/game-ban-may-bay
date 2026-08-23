@@ -1,5 +1,7 @@
 extends Node
 
+enum Difficulty { EASY, NORMAL, HARD }
+
 signal score_updated(new_score: int)
 signal high_score_updated(new_high_score: int)
 signal player_health_updated(current_hp: float, max_hp: float)
@@ -10,8 +12,10 @@ signal game_over_triggered()
 signal game_won_triggered(stars_earned: int, coins_earned: int)
 signal bomb_exploded()
 signal coins_updated(total_coins: int)
+signal difficulty_updated(diff: Difficulty)
 
 var current_map: int = 1
+var current_difficulty: Difficulty = Difficulty.NORMAL
 
 var score: int = 0
 var high_score: int = 0
@@ -44,9 +48,46 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_game()
 
+func set_difficulty(diff: Difficulty) -> void:
+	current_difficulty = diff
+	difficulty_updated.emit(diff)
+	save_game()
+
+func get_enemy_hp_mult() -> float:
+	match current_difficulty:
+		Difficulty.EASY: return 0.8
+		Difficulty.NORMAL: return 1.0
+		Difficulty.HARD: return 1.65
+		_: return 1.0
+
+func get_enemy_speed_mult() -> float:
+	match current_difficulty:
+		Difficulty.EASY: return 0.85
+		Difficulty.NORMAL: return 1.0
+		Difficulty.HARD: return 1.45
+		_: return 1.0
+
+func get_bullet_speed_mult() -> float:
+	match current_difficulty:
+		Difficulty.EASY: return 0.75
+		Difficulty.NORMAL: return 1.0
+		Difficulty.HARD: return 1.85
+		_: return 1.0
+
+func get_score_coin_mult() -> float:
+	match current_difficulty:
+		Difficulty.EASY: return 1.0
+		Difficulty.NORMAL: return 1.5
+		Difficulty.HARD: return 2.8
+		_: return 1.0
+
+func is_hard_mode() -> bool:
+	return current_difficulty == Difficulty.HARD
+
 func save_game() -> void:
 	var config = ConfigFile.new()
 	config.set_value("player", "coins", coins)
+	config.set_value("player", "difficulty", int(current_difficulty))
 	config.set_value("player", "upgrade_hp", upgrade_hp)
 	config.set_value("player", "upgrade_speed", upgrade_speed)
 	config.set_value("player", "upgrade_weapon_start", upgrade_weapon_start)
@@ -64,6 +105,7 @@ func load_game() -> void:
 	var err = config.load(SAVE_PATH)
 	if err == OK:
 		coins = config.get_value("player", "coins", 0)
+		current_difficulty = config.get_value("player", "difficulty", Difficulty.NORMAL) as Difficulty
 		upgrade_hp = config.get_value("player", "upgrade_hp", 0)
 		upgrade_speed = config.get_value("player", "upgrade_speed", 0)
 		upgrade_weapon_start = config.get_value("player", "upgrade_weapon_start", 0)
@@ -100,10 +142,13 @@ func reset_game() -> void:
 func add_score(amount: int) -> void:
 	if is_game_over:
 		return
-	score += amount
+		
+	var mult = get_score_coin_mult()
+	var final_score = int(amount * mult)
+	score += final_score
 	
-	# Earn coins (10% of score + bonus)
-	var earned = int(amount * 0.12)
+	# Earn coins
+	var earned = int(amount * 0.14 * mult)
 	if earned > 0:
 		coins += earned
 		coins_earned_in_run += earned
@@ -166,8 +211,8 @@ func trigger_game_won() -> void:
 	# Calculate stars earned (1 to 3 Stars ★★★)
 	var hp_ratio = player_hp / player_max_hp
 	var stars = 1
-	if hp_ratio >= 0.5: stars += 1
-	if hp_ratio >= 0.8 and score >= 4000: stars += 1
+	if hp_ratio >= 0.45: stars += 1
+	if hp_ratio >= 0.75 and score >= 3500: stars += 1
 	
 	# Record map high score and stars
 	var idx = current_map - 1
