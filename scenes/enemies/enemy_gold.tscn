@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://cenemygold001"]
+[gd_scene format=3 uid="uid://cenemygold001"]
 
 [ext_resource type="Script" path="res://scripts/enemies/enemy_gold.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://c3goldplane001" path="res://extracted_assets/Textures/3.png" id="2_texture"]

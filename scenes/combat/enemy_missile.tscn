@@ -1,0 +1,36 @@
+[gd_scene load_steps=4 format=3 uid="uid://cenemymissile001"]
+
+[ext_resource type="Script" path="res://scripts/combat/enemy_bullet_advanced.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cbrocket001" path="res://extracted_assets/Textures/b_rocket.png" id="2_texture"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 8.0
+height = 28.0
+
+[node name="EnemyMissile" type="Area2D" groups=["enemy_bullets"]]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_script")
+type = 3
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
+position = Vector2(0, 14)
+amount = 12
+lifetime = 0.28
+direction = Vector2(0, 1)
+spread = 15.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 40.0
+initial_velocity_max = 70.0
+scale_amount_min = 2.5
+scale_amount_max = 5.0
+color = Color(1, 0.4, 0.2, 0.8)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(2.8, 0.5, 0.2, 1)
+rotation = 1.5708
+scale = Vector2(0.55, 0.55)
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")

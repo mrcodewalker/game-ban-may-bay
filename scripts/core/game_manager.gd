@@ -22,6 +22,10 @@ var high_score: int = 0
 var coins: int = 0
 var coins_earned_in_run: int = 0
 
+# Combo System
+var combo_count: int = 0
+var combo_timer: float = 0.0
+
 var player_hp: float = 100.0
 var player_max_hp: float = 100.0
 var player_bombs: int = 3
@@ -47,6 +51,12 @@ const SAVE_PATH: String = "user://save_data.cfg"
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	load_game()
+
+func _process(delta: float) -> void:
+	if combo_timer > 0.0:
+		combo_timer -= delta
+		if combo_timer <= 0.0:
+			combo_count = 0
 
 func set_difficulty(diff: Difficulty) -> void:
 	current_difficulty = diff
@@ -119,6 +129,8 @@ func load_game() -> void:
 func reset_game() -> void:
 	score = 0
 	coins_earned_in_run = 0
+	combo_count = 0
+	combo_timer = 0.0
 	
 	player_max_hp = 100.0 + (upgrade_hp * 25.0)
 	player_hp = player_max_hp
@@ -139,6 +151,27 @@ func reset_game() -> void:
 	boss_health_updated.emit(0.0, 100.0, false)
 	coins_updated.emit(coins)
 
+func register_kill(pos: Vector2) -> void:
+	combo_count += 1
+	combo_timer = 1.5
+	
+	if combo_count >= 2:
+		var combo_msg = ""
+		match combo_count:
+			2: combo_msg = "COMBO x2!"
+			4: combo_msg = "GREAT COMBO x4!"
+			7: combo_msg = "SUPER COMBO x7!"
+			10: combo_msg = "ULTRA COMBO x10!"
+			_: if combo_count % 3 == 0: combo_msg = "MAX COMBO x%d!" % combo_count
+			
+		if combo_msg != "":
+			var pop_scene = load("res://scenes/effects/score_popup.tscn")
+			if pop_scene:
+				var pop = pop_scene.instantiate()
+				pop.global_position = pos + Vector2(0, -25)
+				pop.setup(0, combo_msg)
+				get_tree().current_scene.add_child(pop)
+
 func add_score(amount: int) -> void:
 	if is_game_over:
 		return
@@ -147,7 +180,7 @@ func add_score(amount: int) -> void:
 	var final_score = int(amount * mult)
 	score += final_score
 	
-	# Earn coins
+	# Earn coins (14% of score + bonus)
 	var earned = int(amount * 0.14 * mult)
 	if earned > 0:
 		coins += earned

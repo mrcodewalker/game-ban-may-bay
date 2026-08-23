@@ -1,10 +1,13 @@
 extends Area2D
 
-@export var max_hp: float = 220.0
+@export var max_hp: float = 240.0
 @export var score_value: int = 500
 @export var speed: float = 95.0
+
 @export var bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet.tscn")
+@export var purple_bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet_purple.tscn")
 @export var powerup_scene: PackedScene = preload("res://scenes/items/powerup.tscn")
+@export var coin_scene: PackedScene = preload("res://scenes/items/coin_item.tscn")
 @export var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
 @export var score_popup_scene: PackedScene = preload("res://scenes/effects/score_popup.tscn")
 
@@ -13,33 +16,39 @@ var shoot_timer: float = 0.9
 
 func _ready() -> void:
 	add_to_group("enemies")
-	hp = max_hp
+	hp = max_hp * GameManager.get_enemy_hp_mult()
 	area_entered.connect(_on_area_entered)
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over:
 		return
 		
-	position.y += speed * delta
+	position.y += speed * GameManager.get_enemy_speed_mult() * delta
 	
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		shoot()
-		shoot_timer = 1.8
+		shoot_timer = 1.7
 		
 	if position.y > 1050:
 		queue_free()
 
 func shoot() -> void:
-	if bullet_scene and position.y > 0 and position.y < 850:
-		for angle in [-22.0, 0.0, 22.0]:
-			var b = bullet_scene.instantiate()
-			b.global_position = global_position + Vector2(0, 28)
-			b.direction = Vector2.DOWN.rotated(deg_to_rad(angle))
-			get_parent().add_child(b)
-			
-		if AudioManager:
-			AudioManager.play_sfx("enemy_shoot", -7.0)
+	if position.y < 0 or position.y > 850:
+		return
+		
+	var scene_to_use = purple_bullet_scene if purple_bullet_scene else bullet_scene
+	if not scene_to_use: return
+	
+	# 5-Way Heavy Radial Burst
+	for angle in [-32.0, -16.0, 0.0, 16.0, 32.0]:
+		var b = scene_to_use.instantiate()
+		b.global_position = global_position + Vector2(0, 28)
+		b.direction = Vector2.DOWN.rotated(deg_to_rad(angle))
+		get_parent().add_child(b)
+		
+	if AudioManager:
+		AudioManager.play_sfx("enemy_shoot", -7.0)
 
 func take_damage(amount: float) -> void:
 	hp -= amount
@@ -55,12 +64,15 @@ func take_damage(amount: float) -> void:
 func die() -> void:
 	if AudioManager:
 		AudioManager.play_sfx("explosion_heavy")
+		
+	GameManager.register_kill(global_position)
 	GameManager.add_score(score_value)
 	
 	if explosion_fx_scene:
 		for i in range(2):
 			var exp = explosion_fx_scene.instantiate()
-			exp.global_position = global_position + Vector2(randf_range(-20, 20), randf_range(-20, 20))
+			exp.global_position = global_position + Vector2(randf_range(-25, 25), randf_range(-25, 25))
+			if exp.has_method("setup_scale"): exp.setup_scale(1.0)
 			get_parent().add_child(exp)
 		
 	if score_popup_scene:
@@ -69,10 +81,17 @@ func die() -> void:
 		pop.setup(score_value)
 		get_parent().add_child(pop)
 	
+	# Drop 3 Gold Coins
+	if coin_scene:
+		for i in range(3):
+			var coin = coin_scene.instantiate()
+			coin.global_position = global_position + Vector2((i - 1) * 22, 0)
+			get_parent().call_deferred("add_child", coin)
+			
 	if powerup_scene:
 		var item = powerup_scene.instantiate()
 		item.global_position = global_position
-		item.type = randi() % 3
+		item.type = randi() % 5
 		get_parent().call_deferred("add_child", item)
 		
 	queue_free()
