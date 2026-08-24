@@ -1,7 +1,7 @@
 extends Area2D
 
 @export var speed: float = 1100.0
-@export var damage: float = 30.0
+@export var damage: float = 10.0
 @export var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
 
 var direction: Vector2 = Vector2.UP

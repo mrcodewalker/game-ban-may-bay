@@ -1,9 +1,18 @@
-[gd_scene load_steps=5 format=3 uid="uid://cmainmenu001"]
+[gd_scene load_steps=9 format=3 uid="uid://cmainmenu001"]
 
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://db5k1y7u82n1p" path="res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://c1943carrier01" path="res://extracted_assets/Textures/Airforce1943_sunset.png" id="2_carrier_bg"]
 [ext_resource type="Texture2D" uid="uid://c8n48j51x97q0" path="res://extracted_assets/Textures/AIRFORCE1943 LOGO.png" id="3_logo"]
 [ext_resource type="FontFile" uid="uid://cfont231" path="res://extracted_assets/Fonts/font_231.ttf" id="4_font"]
+[ext_resource type="Texture2D" uid="uid://clavagna001" path="res://extracted_assets/Textures/lavagna.png" id="5_board_bg"]
+[ext_resource type="Texture2D" uid="uid://ccartina001" path="res://extracted_assets/Textures/cartina 1.png" id="6_map_tex"]
+[ext_resource type="Texture2D" uid="uid://cdogfightphoto001" path="res://extracted_assets/Textures/Dogfight_foto2.png" id="7_photo_tex"]
+[ext_resource type="Texture2D" uid="uid://ccerchietto001" path="res://extracted_assets/Textures/cerchietto 1.png" id="8_circle_tex"]
+[ext_resource type="Texture2D" uid="uid://cisland01" path="res://extracted_assets/Textures/isola2 512x512.png" id="9_isle1"]
+[ext_resource type="Texture2D" uid="uid://cisland02" path="res://extracted_assets/Textures/isola3 512x512.png" id="10_isle2"]
+[ext_resource type="Texture2D" uid="uid://cisland03" path="res://extracted_assets/Textures/isola4 512x512.png" id="11_isle3"]
+[ext_resource type="Texture2D" uid="uid://cisland04" path="res://extracted_assets/Textures/isola5 512x512.png" id="12_isle4"]
+[ext_resource type="Texture2D" uid="uid://cisland05" path="res://extracted_assets/Textures/FONDALE_Isle2.png" id="13_isle5"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -21,11 +30,71 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-texture = ExtResource("2_bg")
+texture = ExtResource("2_carrier_bg")
 expand_mode = 1
 stretch_mode = 6
 
+[node name="TitlePanel" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Logo" type="TextureRect" parent="TitlePanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -260.0
+offset_top = -240.0
+offset_right = 260.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BottomBar" type="ColorRect" parent="TitlePanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 0.92)
+
+[node name="PressAnyLabel" type="Label" parent="TitlePanel/BottomBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 22
+text = "PRESS ANY BUTTON"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PressAnyButton" type="Button" parent="TitlePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
 [node name="MainPanel" type="Control" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -38,381 +107,64 @@ layout_mode = 1
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -230.0
-offset_top = 25.0
-offset_right = 230.0
-offset_bottom = 245.0
+offset_left = -250.0
+offset_top = 30.0
+offset_right = 250.0
+offset_bottom = 280.0
 grow_horizontal = 2
 texture = ExtResource("3_logo")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CoinsLabelMain" type="Label" parent="MainPanel"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -160.0
-offset_top = 250.0
-offset_right = 160.0
-offset_bottom = 280.0
-grow_horizontal = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 5
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 18
-text = "💰 COINS: 0"
-horizontal_alignment = 1
-
-[node name="DifficultyHBox" type="HBoxContainer" parent="MainPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -28.0
-offset_right = 200.0
-offset_bottom = 16.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 10
-alignment = 1
-
-[node name="EasyBtn" type="Button" parent="MainPanel/DifficultyHBox"]
-custom_minimum_size = Vector2(120, 42)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.9, 0.4, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "🟢 EASY"
-
-[node name="NormalBtn" type="Button" parent="MainPanel/DifficultyHBox"]
-custom_minimum_size = Vector2(120, 42)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "🟡 NORMAL"
-
-[node name="HardBtn" type="Button" parent="MainPanel/DifficultyHBox"]
-custom_minimum_size = Vector2(120, 42)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "🔴 HARDCORE"
-
 [node name="VBox" type="VBoxContainer" parent="MainPanel"]
 layout_mode = 1
-anchors_preset = 8
+anchors_preset = 7
 anchor_left = 0.5
-anchor_top = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -165.0
-offset_top = 28.0
-offset_right = 165.0
-offset_bottom = 308.0
+anchor_bottom = 1.0
+offset_left = -150.0
+offset_top = -260.0
+offset_right = 150.0
+offset_bottom = -40.0
 grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 12
+grow_vertical = 0
+theme_override_constants/separation = 16
 alignment = 1
 
-[node name="CampaignButton" type="Button" parent="MainPanel/VBox"]
-custom_minimum_size = Vector2(0, 48)
+[node name="PlayButton" type="Button" parent="MainPanel/VBox"]
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 17
-text = "🎯 SELECT MISSIONS (01-05)"
+theme_override_font_sizes/font_size = 20
+text = "▶ PLAY"
 
 [node name="ShopButton" type="Button" parent="MainPanel/VBox"]
-custom_minimum_size = Vector2(0, 48)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 17
-text = "🛒 HANGAR UPGRADE SHOP"
-
-[node name="SettingsButton" type="Button" parent="MainPanel/VBox"]
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 16
-text = "⚙️ AUDIO & SETTINGS"
-
-[node name="ControlsButton" type="Button" parent="MainPanel/VBox"]
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 16
-text = "🎮 CONTROLS GUIDE"
-
-[node name="ExitButton" type="Button" parent="MainPanel/VBox"]
-custom_minimum_size = Vector2(0, 42)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 16
-text = "❌ EXIT GAME"
-
-[node name="CampaignPanel" type="Control" parent="."]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="TitleLabel" type="Label" parent="CampaignPanel"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 30.0
-offset_right = 200.0
-offset_bottom = 70.0
-grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 24
-text = "SELECT MISSION"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+text = "✈ HANGAR & SHOP"
 
-[node name="BackButton" type="Button" parent="CampaignPanel"]
-layout_mode = 0
-offset_left = 20.0
-offset_top = 25.0
-offset_right = 110.0
-offset_bottom = 65.0
+[node name="OptionsButton" type="Button" parent="MainPanel/VBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 15
-text = "⬅ BACK"
+theme_override_font_sizes/font_size = 18
+text = "OPTIONS"
 
-[node name="GridStages" type="VBoxContainer" parent="CampaignPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -235.0
-offset_top = -375.0
-offset_right = 235.0
-offset_bottom = 405.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 12
-alignment = 1
-
-[node name="Stage1" type="PanelContainer" parent="CampaignPanel/GridStages"]
-custom_minimum_size = Vector2(0, 130)
+[node name="QuitButton" type="Button" parent="MainPanel/VBox"]
+custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage1"]
-layout_mode = 2
-
-[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage1/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage1/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 17
-text = " MISSION 01: Pacific Strike"
+theme_override_font_sizes/font_size = 18
+text = "QUIT"
 
-[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage1/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
-theme_override_font_sizes/font_size = 19
-text = " ★ ★ ★"
-
-[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage1/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " BEST: 000000"
-
-[node name="PlayButton1" type="Button" parent="CampaignPanel/GridStages/Stage1"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "START MISSION 01"
-
-[node name="Stage2" type="PanelContainer" parent="CampaignPanel/GridStages"]
-custom_minimum_size = Vector2(0, 130)
-layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage2"]
-layout_mode = 2
-
-[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage2/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage2/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 17
-text = " MISSION 02: Sunrise Archipelago"
-
-[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage2/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
-theme_override_font_sizes/font_size = 19
-text = " ☆ ☆ ☆"
-
-[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage2/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " LOCKED"
-
-[node name="PlayButton2" type="Button" parent="CampaignPanel/GridStages/Stage2"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "LOCKED 🔒"
-
-[node name="Stage3" type="PanelContainer" parent="CampaignPanel/GridStages"]
-custom_minimum_size = Vector2(0, 130)
-layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage3"]
-layout_mode = 2
-
-[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage3/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage3/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 17
-text = " MISSION 03: Dogfight Thunderstorm"
-
-[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage3/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
-theme_override_font_sizes/font_size = 19
-text = " ☆ ☆ ☆"
-
-[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage3/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " LOCKED"
-
-[node name="PlayButton3" type="Button" parent="CampaignPanel/GridStages/Stage3"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "LOCKED 🔒"
-
-[node name="Stage4" type="PanelContainer" parent="CampaignPanel/GridStages"]
-custom_minimum_size = Vector2(0, 130)
-layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage4"]
-layout_mode = 2
-
-[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage4/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage4/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 17
-text = " MISSION 04: Sunset Bay Assault"
-
-[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage4/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
-theme_override_font_sizes/font_size = 19
-text = " ☆ ☆ ☆"
-
-[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage4/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " LOCKED"
-
-[node name="PlayButton4" type="Button" parent="CampaignPanel/GridStages/Stage4"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "LOCKED 🔒"
-
-[node name="Stage5" type="PanelContainer" parent="CampaignPanel/GridStages"]
-custom_minimum_size = Vector2(0, 130)
-layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="CampaignPanel/GridStages/Stage5"]
-layout_mode = 2
-
-[node name="VBoxInfo" type="VBoxContainer" parent="CampaignPanel/GridStages/Stage5/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="NameLabel" type="Label" parent="CampaignPanel/GridStages/Stage5/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 17
-text = " MISSION 05: Final Fortress Assault"
-
-[node name="StarsLabel" type="Label" parent="CampaignPanel/GridStages/Stage5/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.1, 1)
-theme_override_font_sizes/font_size = 19
-text = " ☆ ☆ ☆"
-
-[node name="ScoreLabel" type="Label" parent="CampaignPanel/GridStages/Stage5/HBox/VBoxInfo"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " LOCKED"
-
-[node name="PlayButton5" type="Button" parent="CampaignPanel/GridStages/Stage5"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "LOCKED 🔒"
-
-[node name="ShopPanel" type="Control" parent="."]
+[node name="MissionBoardPanel" type="Control" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -421,196 +173,342 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxHeader" type="VBoxContainer" parent="ShopPanel"]
+[node name="CorkBoard" type="TextureRect" parent="MissionBoardPanel"]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -200.0
-offset_top = 25.0
-offset_right = 200.0
-offset_bottom = 85.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_board_bg")
+expand_mode = 1
+stretch_mode = 6
 
-[node name="TitleShop" type="Label" parent="ShopPanel/VBoxHeader"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 6
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 22
-text = "HANGAR UPGRADE SHOP"
-horizontal_alignment = 1
-
-[node name="CoinsLabelShop" type="Label" parent="ShopPanel/VBoxHeader"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 17
-text = "💰 TOTAL COINS: 0"
-horizontal_alignment = 1
-
-[node name="BackButton" type="Button" parent="ShopPanel"]
-layout_mode = 0
-offset_left = 20.0
-offset_top = 25.0
-offset_right = 110.0
-offset_bottom = 65.0
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 15
-text = "⬅ BACK"
-
-[node name="GridUpgrades" type="VBoxContainer" parent="ShopPanel"]
+[node name="MissionList" type="VBoxContainer" parent="MissionBoardPanel/CorkBoard"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -225.0
-offset_top = -340.0
-offset_right = 225.0
-offset_bottom = 360.0
-grow_horizontal = 2
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 35.0
+offset_top = 80.0
+offset_right = 160.0
+offset_bottom = -80.0
 grow_vertical = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="CardHP" type="PanelContainer" parent="ShopPanel/GridUpgrades"]
-custom_minimum_size = Vector2(0, 110)
-layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="ShopPanel/GridUpgrades/CardHP"]
-layout_mode = 2
-
-[node name="VBoxText" type="VBoxContainer" parent="ShopPanel/GridUpgrades/CardHP/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Name" type="Label" parent="ShopPanel/GridUpgrades/CardHP/HBox/VBoxText"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.95, 0.4, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 16
-text = " ❤️ MAX HEALTH (+25 HP)"
-
-[node name="Desc" type="Label" parent="ShopPanel/GridUpgrades/CardHP/HBox/VBoxText"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " Increases aircraft armor & HP bar."
-
-[node name="BuyHPBtn" type="Button" parent="ShopPanel/GridUpgrades/CardHP"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = "UPGRADE (+25 HP)\n💰 300"
-
-[node name="CardSpeed" type="PanelContainer" parent="ShopPanel/GridUpgrades"]
-custom_minimum_size = Vector2(0, 110)
-layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="ShopPanel/GridUpgrades/CardSpeed"]
-layout_mode = 2
-
-[node name="VBoxText" type="VBoxContainer" parent="ShopPanel/GridUpgrades/CardSpeed/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Name" type="Label" parent="ShopPanel/GridUpgrades/CardSpeed/HBox/VBoxText"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 16
-text = " ⚡ FLIGHT SPEED (+SPEED)"
-
-[node name="Desc" type="Label" parent="ShopPanel/GridUpgrades/CardSpeed/HBox/VBoxText"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " Increases plane movement maneuverability."
-
-[node name="BuySpeedBtn" type="Button" parent="ShopPanel/GridUpgrades/CardSpeed"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = "UPGRADE (+SPEED)\n💰 250"
-
-[node name="CardWeapon" type="PanelContainer" parent="ShopPanel/GridUpgrades"]
-custom_minimum_size = Vector2(0, 110)
-layout_mode = 2
-
-[node name="HBox" type="HBoxContainer" parent="ShopPanel/GridUpgrades/CardWeapon"]
-layout_mode = 2
-
-[node name="VBoxText" type="VBoxContainer" parent="ShopPanel/GridUpgrades/CardWeapon/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Name" type="Label" parent="ShopPanel/GridUpgrades/CardWeapon/HBox/VBoxText"]
+[node name="TitleMission" type="Label" parent="MissionBoardPanel/CorkBoard/MissionList"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 16
-text = " 🔫 START WEAPON (LVL 1-4)"
+theme_override_font_sizes/font_size = 22
+text = "MISSION"
 
-[node name="Desc" type="Label" parent="ShopPanel/GridUpgrades/CardWeapon/HBox/VBoxText"]
+[node name="Btn01" type="Button" parent="MissionBoardPanel/CorkBoard/MissionList"]
+custom_minimum_size = Vector2(100, 45)
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " Start each stage with upgraded cannon level."
+theme_override_font_sizes/font_size = 22
+text = "01"
+flat = true
 
-[node name="BuyWeaponBtn" type="Button" parent="ShopPanel/GridUpgrades/CardWeapon"]
-custom_minimum_size = Vector2(150, 48)
+[node name="RedCircle" type="TextureRect" parent="MissionBoardPanel/CorkBoard/MissionList/Btn01"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -22.0
+offset_right = 30.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_circle_tex")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Btn02" type="Button" parent="MissionBoardPanel/CorkBoard/MissionList"]
+custom_minimum_size = Vector2(100, 45)
 layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = "UPGRADE (START LVL)\n💰 500"
+theme_override_font_sizes/font_size = 22
+text = "02"
+flat = true
 
-[node name="CardBombs" type="PanelContainer" parent="ShopPanel/GridUpgrades"]
-custom_minimum_size = Vector2(0, 110)
-layout_mode = 2
+[node name="RedCircle" type="TextureRect" parent="MissionBoardPanel/CorkBoard/MissionList/Btn02"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -22.0
+offset_right = 30.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_circle_tex")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="HBox" type="HBoxContainer" parent="ShopPanel/GridUpgrades/CardBombs"]
+[node name="Btn03" type="Button" parent="MissionBoardPanel/CorkBoard/MissionList"]
+custom_minimum_size = Vector2(100, 45)
 layout_mode = 2
-
-[node name="VBoxText" type="VBoxContainer" parent="ShopPanel/GridUpgrades/CardBombs/HBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-alignment = 1
-
-[node name="Name" type="Label" parent="ShopPanel/GridUpgrades/CardBombs/HBox/VBoxText"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.4, 0.3, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 16
-text = " 💣 START BOMBS (3-6 BOMBS)"
+theme_override_font_sizes/font_size = 22
+text = "03"
+flat = true
 
-[node name="Desc" type="Label" parent="ShopPanel/GridUpgrades/CardBombs/HBox/VBoxText"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = " Start each stage with additional screen bombs."
+[node name="RedCircle" type="TextureRect" parent="MissionBoardPanel/CorkBoard/MissionList/Btn03"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -22.0
+offset_right = 30.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_circle_tex")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="BuyBombsBtn" type="Button" parent="ShopPanel/GridUpgrades/CardBombs"]
-custom_minimum_size = Vector2(150, 48)
+[node name="Btn04" type="Button" parent="MissionBoardPanel/CorkBoard/MissionList"]
+custom_minimum_size = Vector2(100, 45)
 layout_mode = 2
-size_flags_horizontal = 8
-size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 13
-text = "UPGRADE (+1 BOMB)\n💰 400"
+theme_override_font_sizes/font_size = 22
+text = "04"
+flat = true
+
+[node name="RedCircle" type="TextureRect" parent="MissionBoardPanel/CorkBoard/MissionList/Btn04"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -22.0
+offset_right = 30.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_circle_tex")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Btn05" type="Button" parent="MissionBoardPanel/CorkBoard/MissionList"]
+custom_minimum_size = Vector2(100, 45)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 22
+text = "05"
+flat = true
+
+[node name="RedCircle" type="TextureRect" parent="MissionBoardPanel/CorkBoard/MissionList/Btn05"]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.0
+offset_top = -22.0
+offset_right = 30.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("8_circle_tex")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TacticalMap" type="TextureRect" parent="MissionBoardPanel/CorkBoard"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -270.0
+offset_right = 240.0
+offset_bottom = 210.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("6_map_tex")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="IslandsContainer" type="Control" parent="MissionBoardPanel/CorkBoard/TacticalMap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Island1" type="TextureRect" parent="MissionBoardPanel/CorkBoard/TacticalMap/IslandsContainer"]
+layout_mode = 0
+offset_left = 140.0
+offset_top = 310.0
+offset_right = 250.0
+offset_bottom = 405.0
+texture = ExtResource("9_isle1")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Island2" type="TextureRect" parent="MissionBoardPanel/CorkBoard/TacticalMap/IslandsContainer"]
+layout_mode = 0
+offset_left = 210.0
+offset_top = 230.0
+offset_right = 325.0
+offset_bottom = 330.0
+texture = ExtResource("10_isle2")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Island3" type="TextureRect" parent="MissionBoardPanel/CorkBoard/TacticalMap/IslandsContainer"]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 150.0
+offset_right = 220.0
+offset_bottom = 245.0
+texture = ExtResource("11_isle3")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Island4" type="TextureRect" parent="MissionBoardPanel/CorkBoard/TacticalMap/IslandsContainer"]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 80.0
+offset_right = 145.0
+offset_bottom = 170.0
+texture = ExtResource("12_isle4")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Island5" type="TextureRect" parent="MissionBoardPanel/CorkBoard/TacticalMap/IslandsContainer"]
+layout_mode = 0
+offset_left = 200.0
+offset_top = 30.0
+offset_right = 320.0
+offset_bottom = 135.0
+texture = ExtResource("13_isle5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TargetCrosshair" type="TextureRect" parent="MissionBoardPanel/CorkBoard/TacticalMap"]
+layout_mode = 0
+offset_left = 165.0
+offset_top = 325.0
+offset_right = 230.0
+offset_bottom = 390.0
+texture = ExtResource("8_circle_tex")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="IntelLabel" type="Label" parent="MissionBoardPanel/CorkBoard/TacticalMap"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -140.0
+offset_top = 10.0
+offset_right = 140.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.25, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 14
+text = "🎯 TARGET:\nYAMATO NAVY BASE"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="ImagesShopBtn" type="Button" parent="MissionBoardPanel/CorkBoard"]
+custom_minimum_size = Vector2(110, 48)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -140.0
+offset_top = 60.0
+offset_right = -30.0
+offset_bottom = 108.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 15
+text = "IMAGES / SHOP"
+
+[node name="ExitBoardBtn" type="Button" parent="MissionBoardPanel/CorkBoard"]
+custom_minimum_size = Vector2(110, 48)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 175.0
+offset_top = -120.0
+offset_right = 285.0
+offset_bottom = -72.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+text = "EXIT"
+
+[node name="EngageBtn" type="Button" parent="MissionBoardPanel/CorkBoard"]
+custom_minimum_size = Vector2(130, 52)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -170.0
+offset_top = -125.0
+offset_right = -40.0
+offset_bottom = -73.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 20
+text = "🚀 ENGAGE"
 
 [node name="SettingsPanel" type="PanelContainer" parent="."]
 visible = false
@@ -641,38 +539,6 @@ theme_override_font_sizes/font_size = 20
 text = "AUDIO & SETTINGS"
 horizontal_alignment = 1
 
-[node name="HBoxMusic" type="HBoxContainer" parent="SettingsPanel/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="LabelMusic" type="Label" parent="SettingsPanel/VBox/HBoxMusic"]
-custom_minimum_size = Vector2(130, 0)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 15
-text = "🎵 BGM MUSIC:"
-
-[node name="MusicSlider" type="HSlider" parent="SettingsPanel/VBox/HBoxMusic"]
-custom_minimum_size = Vector2(220, 30)
-layout_mode = 2
-value = 80.0
-
-[node name="HBoxSFX" type="HBoxContainer" parent="SettingsPanel/VBox"]
-layout_mode = 2
-alignment = 1
-
-[node name="LabelSFX" type="Label" parent="SettingsPanel/VBox/HBoxSFX"]
-custom_minimum_size = Vector2(130, 0)
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 15
-text = "🔊 SOUND SFX:"
-
-[node name="SFXSlider" type="HSlider" parent="SettingsPanel/VBox/HBoxSFX"]
-custom_minimum_size = Vector2(220, 30)
-layout_mode = 2
-value = 85.0
-
 [node name="BackButton" type="Button" parent="SettingsPanel"]
 custom_minimum_size = Vector2(90, 36)
 layout_mode = 2
@@ -697,48 +563,6 @@ offset_right = 220.0
 offset_bottom = 120.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="VBoxControls" type="VBoxContainer" parent="ControlsPanel"]
-layout_mode = 2
-theme_override_constants/separation = 10
-alignment = 1
-
-[node name="LabelTitle" type="Label" parent="ControlsPanel/VBoxControls"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 18
-text = "CONTROLS GUIDE"
-horizontal_alignment = 1
-
-[node name="LabelMove" type="Label" parent="ControlsPanel/VBoxControls"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "• Move: WASD / Arrow Keys or Mouse Drag"
-horizontal_alignment = 1
-
-[node name="LabelShoot" type="Label" parent="ControlsPanel/VBoxControls"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "• Shoot: Spacebar / Left Click / J"
-horizontal_alignment = 1
-
-[node name="LabelBomb" type="Label" parent="ControlsPanel/VBoxControls"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "• Bomb: Shift / Key K"
-horizontal_alignment = 1
-
-[node name="LabelWeapons" type="Label" parent="ControlsPanel/VBoxControls"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
-theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 14
-text = "• Switch Weapons: Keys 1, 2, 3, 4"
-horizontal_alignment = 1
 
 [node name="CloseButton" type="Button" parent="ControlsPanel"]
 custom_minimum_size = Vector2(80, 36)

@@ -12,7 +12,11 @@ signal game_over_triggered()
 signal game_won_triggered(stars_earned: int, coins_earned: int)
 signal bomb_exploded()
 signal coins_updated(total_coins: int)
+signal gems_updated(total_gems: int)
 signal difficulty_updated(diff: Difficulty)
+signal player_revived()
+signal phase_changed(phase_num: int, phase_name: String)
+signal wave_progress_updated(phase_num: int, progress_ratio: float, phase_title: String)
 
 var current_map: int = 1
 var current_difficulty: Difficulty = Difficulty.NORMAL
@@ -20,6 +24,7 @@ var current_difficulty: Difficulty = Difficulty.NORMAL
 var score: int = 0
 var high_score: int = 0
 var coins: int = 0
+var gems: int = 50
 var coins_earned_in_run: int = 0
 
 # Combo System
@@ -38,6 +43,70 @@ var is_boss_active: bool = false
 var map_unlocked: Array = [true, false, false, false, false]
 var map_stars: Array = [0, 0, 0, 0, 0]
 var map_high_scores: Array = [0, 0, 0, 0, 0]
+
+# Hangar & Plane Switching State
+var selected_plane_idx: int = 0
+var unlocked_planes: Array = [true, false, false, false, false]
+
+# Pre-Game Munition / Loadout Items
+var loadout_homing_missiles: bool = false
+var loadout_shield: bool = false
+var loadout_laser_boost: bool = false
+var loadout_extra_bombs: bool = false
+
+# Airplane Catalog
+const PLANES_DATA: Array[Dictionary] = [
+	{
+		"name": "P-40 WARHAWK",
+		"desc": "Standard WWII Fighter. Balanced armor and dual vulcan firepower.",
+		"texture": "res://extracted_assets/Textures/512x512 L_0.png",
+		"flip_v": false,
+		"hp": 100.0,
+		"speed": 500.0,
+		"weapon_type": 0, # Vulcan
+		"price": 0
+	},
+	{
+		"name": "F4U CORSAIR",
+		"desc": "Heavy Carrier Fighter. Heavy armor (+50% HP) & homing rocket launcher.",
+		"texture": "res://extracted_assets/Textures/corsair 2.png",
+		"flip_v": true,
+		"hp": 160.0,
+		"speed": 460.0,
+		"weapon_type": 2, # Missile
+		"price": 1200
+	},
+	{
+		"name": "J2M2 RAIDEN",
+		"desc": "High-Speed Interceptor. Agile maneuverability & wide spread cannon.",
+		"texture": "res://extracted_assets/Textures/J2M2_color_1.png",
+		"flip_v": true,
+		"hp": 110.0,
+		"speed": 620.0,
+		"weapon_type": 3, # Spread
+		"price": 2500
+	},
+	{
+		"name": "KI-45 DRAGON",
+		"desc": "Twin-Engine Heavy Fighter. High HP & dual continuous laser beam.",
+		"texture": "res://extracted_assets/Textures/ki45 CV_0.png",
+		"flip_v": false,
+		"hp": 140.0,
+		"speed": 520.0,
+		"weapon_type": 1, # Laser
+		"price": 4500
+	},
+	{
+		"name": "ZERO PHANTOM",
+		"desc": "Ultimate Stealth Fighter. Maximum armor, speed & heavy firepower.",
+		"texture": "res://extracted_assets/Textures/Aereo.png",
+		"flip_v": true,
+		"hp": 200.0,
+		"speed": 680.0,
+		"weapon_type": 0, # Vulcan/All
+		"price": 8000
+	}
+]
 
 # Upgrades
 var upgrade_hp: int = 0         # Cost: 300, 600, 1000, 1500, 2200
@@ -65,24 +134,24 @@ func set_difficulty(diff: Difficulty) -> void:
 
 func get_enemy_hp_mult() -> float:
 	match current_difficulty:
-		Difficulty.EASY: return 0.8
-		Difficulty.NORMAL: return 1.0
-		Difficulty.HARD: return 1.65
-		_: return 1.0
+		Difficulty.EASY: return 0.65
+		Difficulty.NORMAL: return 0.85
+		Difficulty.HARD: return 1.4
+		_: return 0.85
 
 func get_enemy_speed_mult() -> float:
 	match current_difficulty:
-		Difficulty.EASY: return 0.85
-		Difficulty.NORMAL: return 1.0
-		Difficulty.HARD: return 1.45
-		_: return 1.0
+		Difficulty.EASY: return 0.75
+		Difficulty.NORMAL: return 0.9
+		Difficulty.HARD: return 1.3
+		_: return 0.9
 
 func get_bullet_speed_mult() -> float:
 	match current_difficulty:
-		Difficulty.EASY: return 0.75
-		Difficulty.NORMAL: return 1.0
-		Difficulty.HARD: return 1.85
-		_: return 1.0
+		Difficulty.EASY: return 0.65
+		Difficulty.NORMAL: return 0.85
+		Difficulty.HARD: return 1.5
+		_: return 0.85
 
 func get_score_coin_mult() -> float:
 	match current_difficulty:
@@ -94,15 +163,24 @@ func get_score_coin_mult() -> float:
 func is_hard_mode() -> bool:
 	return current_difficulty == Difficulty.HARD
 
+func get_current_plane_data() -> Dictionary:
+	if selected_plane_idx >= 0 and selected_plane_idx < PLANES_DATA.size():
+		return PLANES_DATA[selected_plane_idx]
+	return PLANES_DATA[0]
+
 func save_game() -> void:
 	var config = ConfigFile.new()
 	config.set_value("player", "coins", coins)
+	config.set_value("player", "gems", gems)
 	config.set_value("player", "difficulty", int(current_difficulty))
 	config.set_value("player", "upgrade_hp", upgrade_hp)
 	config.set_value("player", "upgrade_speed", upgrade_speed)
 	config.set_value("player", "upgrade_weapon_start", upgrade_weapon_start)
 	config.set_value("player", "upgrade_bombs", upgrade_bombs)
 	config.set_value("player", "upgrade_magnet", upgrade_magnet)
+	
+	config.set_value("hangar", "selected_plane_idx", selected_plane_idx)
+	config.set_value("hangar", "unlocked_planes", unlocked_planes)
 	
 	config.set_value("campaign", "map_unlocked", map_unlocked)
 	config.set_value("campaign", "map_stars", map_stars)
@@ -115,6 +193,7 @@ func load_game() -> void:
 	var err = config.load(SAVE_PATH)
 	if err == OK:
 		coins = config.get_value("player", "coins", 0)
+		gems = config.get_value("player", "gems", 50)
 		current_difficulty = config.get_value("player", "difficulty", Difficulty.NORMAL) as Difficulty
 		upgrade_hp = config.get_value("player", "upgrade_hp", 0)
 		upgrade_speed = config.get_value("player", "upgrade_speed", 0)
@@ -122,9 +201,31 @@ func load_game() -> void:
 		upgrade_bombs = config.get_value("player", "upgrade_bombs", 0)
 		upgrade_magnet = config.get_value("player", "upgrade_magnet", 0)
 		
+		selected_plane_idx = config.get_value("hangar", "selected_plane_idx", 0)
+		unlocked_planes = config.get_value("hangar", "unlocked_planes", [true, false, false, false, false])
+		
 		map_unlocked = config.get_value("campaign", "map_unlocked", [true, false, false, false, false])
 		map_stars = config.get_value("campaign", "map_stars", [0, 0, 0, 0, 0])
 		map_high_scores = config.get_value("campaign", "map_high_scores", [0, 0, 0, 0, 0])
+
+func add_gems(amount: int) -> void:
+	gems += amount
+	gems_updated.emit(gems)
+	save_game()
+
+func use_gems(amount: int) -> bool:
+	if gems >= amount:
+		gems -= amount
+		gems_updated.emit(gems)
+		save_game()
+		return true
+	return false
+
+func revive_player() -> void:
+	is_game_over = false
+	player_hp = player_max_hp
+	player_health_updated.emit(player_hp, player_max_hp)
+	player_revived.emit()
 
 func reset_game() -> void:
 	score = 0
@@ -132,7 +233,20 @@ func reset_game() -> void:
 	combo_count = 0
 	combo_timer = 0.0
 	
-	player_max_hp = 100.0 + (upgrade_hp * 25.0)
+	var plane_data = get_current_plane_data()
+	var base_hp = plane_data.get("hp", 100.0) as float
+	
+	player_max_hp = base_hp + (upgrade_hp * 25.0)
+	if loadout_shield:
+		player_max_hp += 50.0 # Shield boost
+	player_hp = player_max_hp
+	
+	var extra_b = 2 if loadout_extra_bombs else 0
+	player_bombs = 3 + upgrade_bombs + extra_b
+	current_weapon_level = 1 + upgrade_weapon_start
+	
+	is_game_over = false
+	is_boss_active = false
 	player_hp = player_max_hp
 	player_bombs = 3 + upgrade_bombs
 	current_weapon_level = 1 + upgrade_weapon_start

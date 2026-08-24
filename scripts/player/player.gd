@@ -17,6 +17,10 @@ var target_rotation: float = 0.0
 var is_taking_off: bool = true
 var takeoff_timer: float = 0.0
 
+var has_shield: bool = false
+var shield_hp: float = 0.0
+var shield_sprite: Sprite2D = null
+
 var current_weapon_type: WeaponType = WeaponType.VULCAN
 var active_laser_beam: Area2D = null
 
@@ -35,16 +39,39 @@ func _ready() -> void:
 	add_to_group("player")
 	area_entered.connect(_on_area_entered)
 	GameManager.game_over_triggered.connect(_on_game_over)
+	GameManager.player_revived.connect(func(): trigger_revive_invulnerability(3.0))
 	
-	load_banking_textures()
+	var plane_data = GameManager.get_current_plane_data()
+	var base_speed = plane_data.get("speed", 500.0) as float
+	move_speed = base_speed + (GameManager.upgrade_speed * 35.0)
+	
+	create_shield_sprite()
+	if GameManager.loadout_shield:
+		activate_shield(60.0)
+	
+	# Load plane default weapon type or loadout weapon type
+	if GameManager.loadout_laser_boost:
+		current_weapon_type = WeaponType.LASER
+	elif GameManager.loadout_homing_missiles:
+		current_weapon_type = WeaponType.MISSILE
+	else:
+		current_weapon_type = plane_data.get("weapon_type", 0) as WeaponType
+		
+	# Apply plane sprite texture
+	var tex_path = plane_data.get("texture", "res://extracted_assets/Textures/512x512 L_0.png") as String
+	var flip = plane_data.get("flip_v", false) as bool
+	var plane_tex = load(tex_path) as Texture2D
+	if plane_tex and sprite:
+		sprite.texture = plane_tex
+		sprite.flip_v = flip
+		bank_neutral = plane_tex
+	else:
+		load_banking_textures()
 	
 	# Takeoff setup
 	position = Vector2(270, 900)
 	is_taking_off = true
 	trigger_invulnerability(2.5)
-	
-	# Apply Speed upgrade modifier
-	move_speed = 500.0 + (GameManager.upgrade_speed * 35.0)
 
 func load_banking_textures() -> void:
 	bank_neutral = load("res://extracted_assets/Textures/512x512 L_0.png")
@@ -253,9 +280,43 @@ func create_bomb_flash() -> void:
 	for b in get_tree().get_nodes_in_group("enemy_bullets"):
 		b.queue_free()
 
+func activate_shield(amount: float = 60.0) -> void:
+	has_shield = true
+	shield_hp = amount
+	if not is_instance_valid(shield_sprite):
+		create_shield_sprite()
+	if shield_sprite:
+		shield_sprite.show()
+		shield_sprite.modulate = Color(0.2, 0.95, 1.0, 0.85)
+
+func create_shield_sprite() -> void:
+	if is_instance_valid(shield_sprite): return
+	shield_sprite = Sprite2D.new()
+	shield_sprite.name = "ShieldSprite"
+	var tex = load("res://extracted_assets/Textures/circle_1.png") as Texture2D
+	if tex:
+		shield_sprite.texture = tex
+		shield_sprite.scale = Vector2(1.8, 1.8)
+		shield_sprite.modulate = Color(0.2, 0.95, 1.0, 0.85)
+		shield_sprite.hide()
+		add_child(shield_sprite)
+
 func take_damage(amount: float) -> void:
 	if is_invulnerable or GameManager.is_game_over: return
-		
+	
+	if has_shield and shield_hp > 0.0:
+		shield_hp -= amount
+		if shield_sprite:
+			var tween = create_tween()
+			shield_sprite.modulate = Color(3.5, 3.5, 3.5, 1.0)
+			tween.tween_property(shield_sprite, "modulate", Color(0.2, 0.95, 1.0, 0.85), 0.1)
+		if AudioManager: AudioManager.play_sfx("powerup", -3.0, 1.5)
+		if shield_hp <= 0.0:
+			has_shield = false
+			if shield_sprite: shield_sprite.hide()
+		trigger_invulnerability(0.4)
+		return
+
 	GameManager.damage_player(amount)
 	trigger_invulnerability(1.8)
 	
@@ -265,6 +326,11 @@ func take_damage(amount: float) -> void:
 func trigger_invulnerability(duration: float) -> void:
 	is_invulnerable = true
 	invuln_timer = duration
+
+func trigger_revive_invulnerability(duration: float = 3.0) -> void:
+	show()
+	activate_shield(60.0)
+	trigger_invulnerability(duration)
 
 func handle_invulnerability(delta: float) -> void:
 	if is_invulnerable:
@@ -278,8 +344,25 @@ func handle_invulnerability(delta: float) -> void:
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("enemies"):
-		take_damage(25.0)
-		if area.has_method("take_damage"): area.take_damage(80.0)
+		var area_name = area.name.to_lower()
+		var crash_dmg: float = 45.0
+		if "boss" in area_name or "large" in area_name:
+			crash_dmg = 85.0
+		elif "medium" in area_name:
+			crash_dmg = 65.0
+		elif "fast" in area_name:
+			crash_dmg = 55.0
+		elif "gold" in area_name:
+			crash_dmg = 50.0
+			
+		take_damage(crash_dmg)
+		if area.has_method("take_damage"):
+			area.take_damage(120.0)
+			
+		var main_scene = get_tree().current_scene
+		if main_scene and main_scene.has_node("Camera2D"):
+			var cam = main_scene.get_node("Camera2D")
+			if cam.has_method("add_shake"): cam.add_shake(18.0)
 
 func _on_game_over() -> void:
 	if explosion_fx_scene:

@@ -1,118 +1,246 @@
-[gd_scene load_steps=3 format=3 uid="uid://chud001"]
+[gd_scene load_steps=9 format=3 uid="uid://chud001"]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://cgameover001" path="res://scenes/ui/game_over_dialog.tscn" id="2_gameover"]
+[ext_resource type="PackedScene" uid="uid://crevivedialog001" path="res://scenes/ui/revive_dialog.tscn" id="3_revive"]
+[ext_resource type="FontFile" uid="uid://cfont231" path="res://extracted_assets/Fonts/font_231.ttf" id="4_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_TopBar"]
+bg_color = Color(0.05, 0.08, 0.12, 0.88)
+border_width_bottom = 2
+border_color = Color(0.3, 0.85, 1, 0.8)
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_HPFill"]
+bg_color = Color(0.15, 0.9, 0.4, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_PhaseFill"]
+bg_color = Color(1, 0.8, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.95, 1, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_BossFill"]
+bg_color = Color(1, 0.2, 0.25, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.9, 0.2, 0.9)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_script")
 
-[node name="TopMargin" type="MarginContainer" parent="."]
+[node name="TopBarPanel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(0, 70)
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 80.0
+offset_bottom = 70.0
 grow_horizontal = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
+theme_override_styles/panel = SubResource("StyleBoxFlat_TopBar")
 
-[node name="HBox" type="HBoxContainer" parent="TopMargin"]
+[node name="Margin" type="MarginContainer" parent="TopBarPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="TopBarPanel/Margin"]
 layout_mode = 2
 alignment = 1
 
-[node name="VBoxLeft" type="VBoxContainer" parent="TopMargin/HBox"]
+[node name="VBoxLeft" type="VBoxContainer" parent="TopBarPanel/Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+alignment = 1
 
-[node name="ScoreLabel" type="Label" parent="TopMargin/HBox/VBoxLeft"]
+[node name="ScoreLabel" type="Label" parent="TopBarPanel/Margin/HBox/VBoxLeft"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 20
-text = "SCORE: 000000"
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+text = "MISSION 01 | SCORE: 000000"
 
-[node name="HighScoreLabel" type="Label" parent="TopMargin/HBox/VBoxLeft"]
+[node name="HBoxSub" type="HBoxContainer" parent="TopBarPanel/Margin/HBox/VBoxLeft"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
-text = "HIGH: 000000"
+theme_override_constants/separation = 12
 
-[node name="VBoxRight" type="VBoxContainer" parent="TopMargin/HBox"]
+[node name="HighScoreLabel" type="Label" parent="TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub"]
 layout_mode = 2
-alignment = 2
-
-[node name="WeaponLabel" type="Label" parent="TopMargin/HBox/VBoxRight"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 16
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+text = "BEST: 000000"
+
+[node name="GemsLabel" type="Label" parent="TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+text = "💎 GEMS: 50"
+
+[node name="VBoxRight" type="VBoxContainer" parent="TopBarPanel/Margin/HBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="WeaponLabel" type="Label" parent="TopBarPanel/Margin/HBox/VBoxRight"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 15
 text = "WEAPON LV.1"
 horizontal_alignment = 2
 
-[node name="BombLabel" type="Label" parent="TopMargin/HBox/VBoxRight"]
+[node name="BombLabel" type="Label" parent="TopBarPanel/Margin/HBox/VBoxRight"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.4, 0.3, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 14
-text = "BOMBS: 3"
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+text = "💣 BOMBS: 3 (SHIFT/K)"
 horizontal_alignment = 2
+
+[node name="PhaseBanner" type="Label" parent="."]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -140.0
+offset_right = 220.0
+offset_bottom = -90.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 7
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 20
+text = "⚡ PHASE 1: LIGHT FIGHTER RECON"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="BottomMargin" type="MarginContainer" parent="."]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -60.0
+offset_top = -65.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
 
-[node name="VBoxHP" type="VBoxContainer" parent="BottomMargin"]
+[node name="HBoxBottom" type="HBoxContainer" parent="BottomMargin"]
 layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
 
-[node name="HPTitle" type="Label" parent="BottomMargin/VBoxHP"]
+[node name="VBoxHP" type="VBoxContainer" parent="BottomMargin/HBoxBottom"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 1, 0.4, 1)
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="HPTitle" type="Label" parent="BottomMargin/HBoxBottom/VBoxHP"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.95, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 14
-text = "ARMOR HEALTH"
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 12
+text = "❤️ ARMOR HEALTH"
 
-[node name="HPBar" type="ProgressBar" parent="BottomMargin/VBoxHP"]
-custom_minimum_size = Vector2(0, 18)
+[node name="HPBar" type="ProgressBar" parent="BottomMargin/HBoxBottom/VBoxHP"]
+custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_HPFill")
 value = 100.0
+show_percentage = false
+
+[node name="VBoxPhase" type="VBoxContainer" parent="BottomMargin/HBoxBottom"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="PhaseTitle" type="Label" parent="BottomMargin/HBoxBottom/VBoxPhase"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 12
+text = "⚡ PHASE 1/3: RECON"
+horizontal_alignment = 2
+
+[node name="PhaseBar" type="ProgressBar" parent="BottomMargin/HBoxBottom/VBoxPhase"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+theme_override_styles/fill = SubResource("StyleBoxFlat_PhaseFill")
+value = 0.0
 show_percentage = false
 
 [node name="BossContainer" type="VBoxContainer" parent="."]
 visible = false
 anchors_preset = 10
 anchor_right = 1.0
-offset_top = 90.0
-offset_bottom = 130.0
+offset_top = 80.0
+offset_bottom = 125.0
 grow_horizontal = 2
+theme_override_constants/separation = 4
 
 [node name="BossTitle" type="Label" parent="BossContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.2, 0.2, 1)
+theme_override_colors/font_color = Color(1, 0.25, 0.25, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 16
-text = "WARNING: ENEMY FLAGSHIP"
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 15
+text = "⚠️ WARNING: ENEMY FLAGSHIP DETECTED ⚠️"
 horizontal_alignment = 1
 
 [node name="BossHPBar" type="ProgressBar" parent="BossContainer"]
-custom_minimum_size = Vector2(400, 16)
+custom_minimum_size = Vector2(420, 18)
 layout_mode = 2
 size_flags_horizontal = 4
+theme_override_styles/fill = SubResource("StyleBoxFlat_BossFill")
 value = 100.0
 show_percentage = false
+
+[node name="ReviveDialog" parent="." instance=ExtResource("3_revive")]
+visible = false
 
 [node name="GameOverDialog" parent="." instance=ExtResource("2_gameover")]
 visible = false

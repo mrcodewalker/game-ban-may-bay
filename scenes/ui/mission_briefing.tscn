@@ -1,19 +1,32 @@
-[gd_scene format=3 uid="uid://s53stjlp2qg3"]
+[gd_scene load_steps=6 format=3 uid="uid://s53stjlp2qg3"]
 
 [ext_resource type="Script" path="res://scripts/ui/mission_briefing.gd" id="1_script"]
 [ext_resource type="FontFile" uid="uid://cfont231" path="res://extracted_assets/Fonts/font_231.ttf" id="2_font"]
+[ext_resource type="Texture2D" uid="uid://c8sunrise001" path="res://extracted_assets/Textures/Airforce1943_sunrise.png" id="3_target_img"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
-bg_color = Color(0.06, 0.09, 0.14, 0.94)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_BriefingPanel"]
+bg_color = Color(0.06, 0.09, 0.14, 0.96)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
 border_color = Color(1, 0.85, 0.2, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_PhotoFrame"]
+bg_color = Color(0, 0, 0, 0.6)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.8, 0.2, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="MissionBriefing" type="Control"]
 layout_mode = 3
@@ -31,10 +44,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.82)
+color = Color(0, 0, 0, 0.85)
 
 [node name="Panel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(460, 360)
+custom_minimum_size = Vector2(460, 480)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -42,58 +55,80 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -230.0
-offset_top = -180.0
+offset_top = -240.0
 offset_right = 230.0
-offset_bottom = 180.0
+offset_bottom = 240.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+theme_override_styles/panel = SubResource("StyleBoxFlat_BriefingPanel")
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 alignment = 1
 
 [node name="HeaderLabel" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 20
-text = "COMMAND BRIEFING"
+text = "COMMAND TACTICAL BRIEFING"
 horizontal_alignment = 1
 
 [node name="MissionTitle" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 22
+theme_override_font_sizes/font_size = 20
 text = "MISSION 01: PACIFIC STRIKE"
 horizontal_alignment = 1
 
-[node name="BriefingText" type="Label" parent="Panel/VBox"]
-custom_minimum_size = Vector2(400, 80)
+[node name="HBoxPreview" type="PanelContainer" parent="Panel/VBox"]
+custom_minimum_size = Vector2(410, 150)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_PhotoFrame")
+
+[node name="TargetImage" type="TextureRect" parent="Panel/VBox/HBoxPreview"]
+custom_minimum_size = Vector2(400, 140)
+layout_mode = 2
+texture = ExtResource("3_target_img")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BriefingText" type="Label" parent="Panel/VBox"]
+custom_minimum_size = Vector2(410, 75)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 14
 text = "Enemy air armada detected over Pacific waters. Intercept enemy squadrons and eliminate Yamato Flying Fortress!"
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 2
 
 [node name="TargetLabel" type="Label" parent="Panel/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.35, 0.3, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 15
 text = "🎯 TARGET: YAMATO FORTRESS [HP: 2200]"
 horizontal_alignment = 1
 
 [node name="LaunchButton" type="Button" parent="Panel/VBox"]
-custom_minimum_size = Vector2(220, 52)
+custom_minimum_size = Vector2(230, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 17
 text = "🚀 LAUNCH MISSION"

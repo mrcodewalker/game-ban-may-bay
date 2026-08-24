@@ -1,0 +1,367 @@
+[gd_scene load_steps=5 format=3 uid="uid://cplaneshop001"]
+
+[ext_resource type="Script" path="res://scripts/ui/plane_shop.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://c512x512l001" path="res://extracted_assets/Textures/512x512 L_0.png" id="2_plane"]
+[ext_resource type="FontFile" uid="uid://cfont231" path="res://extracted_assets/Fonts/font_231.ttf" id="3_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_Panel"]
+bg_color = Color(0.06, 0.09, 0.14, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.3, 0.85, 1, 1)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+
+[node name="PlaneShop" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Panel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(440, 540)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -270.0
+offset_right = 220.0
+offset_bottom = 270.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_Panel")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="TopNavRow" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="BackButton" type="Button" parent="Panel/VBox/TopNavRow"]
+custom_minimum_size = Vector2(80, 36)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 13
+text = "⬅ BACK"
+
+[node name="Spacer" type="Control" parent="Panel/VBox/TopNavRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CoinsLabel" type="Label" parent="Panel/VBox/TopNavRow"]
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 15
+text = "💰 COINS: 0"
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 19
+text = "✈ AIR FORCE HANGAR & AMMO"
+horizontal_alignment = 1
+
+[node name="TabHBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="HangarTabBtn" type="Button" parent="Panel/VBox/TabHBox"]
+custom_minimum_size = Vector2(170, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "✈ HANGAR PLANES"
+
+[node name="LoadoutTabBtn" type="Button" parent="Panel/VBox/TabHBox"]
+custom_minimum_size = Vector2(170, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = "💣 PRE-GAME AMMO"
+
+[node name="HangarTab" type="VBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="HBoxPreview" type="HBoxContainer" parent="Panel/VBox/HangarTab"]
+layout_mode = 2
+alignment = 1
+
+[node name="PlaneTexture" type="TextureRect" parent="Panel/VBox/HangarTab/HBoxPreview"]
+custom_minimum_size = Vector2(130, 130)
+layout_mode = 2
+texture = ExtResource("2_plane")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBoxStats" type="VBoxContainer" parent="Panel/VBox/HangarTab/HBoxPreview"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="PlaneName" type="Label" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+text = "P-40 WARHAWK"
+
+[node name="PlaneDesc" type="Label" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats"]
+custom_minimum_size = Vector2(200, 36)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "Balanced WW2 Fighter. Dual vulcan cannons."
+autowrap_mode = 2
+
+[node name="HPHBox" type="HBoxContainer" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats/HPHBox"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.95, 0.4, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "ARMOR HP:"
+
+[node name="HPVal" type="Label" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats/HPHBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "100 HP"
+
+[node name="SpeedHBox" type="HBoxContainer" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats/SpeedHBox"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "MAX SPEED:"
+
+[node name="SpeedVal" type="Label" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats/SpeedHBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "500 KTS"
+
+[node name="WpnHBox" type="HBoxContainer" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats/WpnHBox"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "WEAPON:"
+
+[node name="WpnVal" type="Label" parent="Panel/VBox/HangarTab/HBoxPreview/VBoxStats/WpnHBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "VULCAN DUAL CANNON"
+
+[node name="HBoxNav" type="HBoxContainer" parent="Panel/VBox/HangarTab"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PrevBtn" type="Button" parent="Panel/VBox/HangarTab/HBoxNav"]
+custom_minimum_size = Vector2(50, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+text = "◀"
+
+[node name="BuyEquipBtn" type="Button" parent="Panel/VBox/HangarTab/HBoxNav"]
+custom_minimum_size = Vector2(210, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 15
+text = "✈ EQUIP FIGHTER"
+
+[node name="NextBtn" type="Button" parent="Panel/VBox/HangarTab/HBoxNav"]
+custom_minimum_size = Vector2(50, 42)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+text = "▶"
+
+[node name="LoadoutTab" type="VBoxContainer" parent="Panel/VBox"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="GridLoadout" type="VBoxContainer" parent="Panel/VBox/LoadoutTab"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CardMissile" type="PanelContainer" parent="Panel/VBox/LoadoutTab/GridLoadout"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/LoadoutTab/GridLoadout/CardMissile"]
+layout_mode = 2
+
+[node name="VBoxText" type="VBoxContainer" parent="Panel/VBox/LoadoutTab/GridLoadout/CardMissile/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/LoadoutTab/GridLoadout/CardMissile/HBox/VBoxText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.2, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = " 🚀 HOMING MISSILE PACK"
+
+[node name="Desc" type="Label" parent="Panel/VBox/LoadoutTab/GridLoadout/CardMissile/HBox/VBoxText"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 11
+text = " Start mission with auto-tracking homing missiles."
+
+[node name="BuyBtn" type="Button" parent="Panel/VBox/LoadoutTab/GridLoadout/CardMissile"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "BUY 💰 200"
+
+[node name="CardShield" type="PanelContainer" parent="Panel/VBox/LoadoutTab/GridLoadout"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/LoadoutTab/GridLoadout/CardShield"]
+layout_mode = 2
+
+[node name="VBoxText" type="VBoxContainer" parent="Panel/VBox/LoadoutTab/GridLoadout/CardShield/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/LoadoutTab/GridLoadout/CardShield/HBox/VBoxText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.95, 0.4, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = " 🛡️ ENERGY SHIELD BOOST"
+
+[node name="Desc" type="Label" parent="Panel/VBox/LoadoutTab/GridLoadout/CardShield/HBox/VBoxText"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 11
+text = " Start mission with +50 HP extra shield barrier."
+
+[node name="BuyBtn" type="Button" parent="Panel/VBox/LoadoutTab/GridLoadout/CardShield"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "BUY 💰 250"
+
+[node name="CardLaser" type="PanelContainer" parent="Panel/VBox/LoadoutTab/GridLoadout"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/LoadoutTab/GridLoadout/CardLaser"]
+layout_mode = 2
+
+[node name="VBoxText" type="VBoxContainer" parent="Panel/VBox/LoadoutTab/GridLoadout/CardLaser/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/LoadoutTab/GridLoadout/CardLaser/HBox/VBoxText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = " ⚡ LASER CANNON PACK"
+
+[node name="Desc" type="Label" parent="Panel/VBox/LoadoutTab/GridLoadout/CardLaser/HBox/VBoxText"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 11
+text = " Start mission equipped with continuous laser beam."
+
+[node name="BuyBtn" type="Button" parent="Panel/VBox/LoadoutTab/GridLoadout/CardLaser"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "BUY 💰 300"
+
+[node name="CardBomb" type="PanelContainer" parent="Panel/VBox/LoadoutTab/GridLoadout"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/LoadoutTab/GridLoadout/CardBomb"]
+layout_mode = 2
+
+[node name="VBoxText" type="VBoxContainer" parent="Panel/VBox/LoadoutTab/GridLoadout/CardBomb/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/LoadoutTab/GridLoadout/CardBomb/HBox/VBoxText"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.3, 1)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 14
+text = " 💣 NUKE BOMB PACK (+2 BOMBS)"
+
+[node name="Desc" type="Label" parent="Panel/VBox/LoadoutTab/GridLoadout/CardBomb/HBox/VBoxText"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 11
+text = " Start mission with +2 extra screen-clearing bombs."
+
+[node name="BuyBtn" type="Button" parent="Panel/VBox/LoadoutTab/GridLoadout/CardBomb"]
+custom_minimum_size = Vector2(100, 36)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 4
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 12
+text = "BUY 💰 350"

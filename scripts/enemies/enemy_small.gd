@@ -2,7 +2,7 @@ extends Area2D
 
 enum FlightPattern { ARC_LEFT_TO_RIGHT, ARC_RIGHT_TO_LEFT, S_CURVE, LOOP_DE_LOOP, DIVE_ATTACK }
 
-@export var max_hp: float = 30.0
+@export var max_hp: float = 35.0
 @export var score_value: int = 100
 @export var base_speed: float = 240.0
 @export var pattern: FlightPattern = FlightPattern.ARC_LEFT_TO_RIGHT

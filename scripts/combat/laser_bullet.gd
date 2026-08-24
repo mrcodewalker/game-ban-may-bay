@@ -1,7 +1,7 @@
 extends Area2D
 
 @export var speed: float = 1600.0
-@export var damage: float = 45.0
+@export var damage: float = 7.0
 
 var direction: Vector2 = Vector2.UP
 var hit_enemies: Array = []

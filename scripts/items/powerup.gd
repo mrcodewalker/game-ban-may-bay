@@ -1,6 +1,6 @@
 extends Area2D
 
-enum PowerUpType { POWER, LASER, MISSILE, SPREAD, BOMB, DOWNGRADE }
+enum PowerUpType { POWER, LASER, MISSILE, SPREAD, BOMB, DOWNGRADE, SHIELD }
 
 @export var type: PowerUpType = PowerUpType.POWER
 @export var speed: float = 120.0
@@ -34,6 +34,9 @@ func update_appearance() -> void:
 		PowerUpType.BOMB:
 			if label: label.text = "B"
 			if sprite: sprite.modulate = Color(0.95, 0.9, 0.2) # Gold Bomb
+		PowerUpType.SHIELD:
+			if label: label.text = "🛡️"
+			if sprite: sprite.modulate = Color(0.3, 0.95, 1.0) # Cyan Shield
 		PowerUpType.DOWNGRADE:
 			if label: label.text = "💀"
 			if sprite: sprite.modulate = Color(0.8, 0.1, 0.15) # Hazard Skull Red
@@ -76,6 +79,11 @@ func _on_area_entered(area: Area2D) -> void:
 			PowerUpType.BOMB:
 				GameManager.add_bomb(1)
 				text_popup = "+1 MEGA BOMB!"
+				if AudioManager: AudioManager.play_sfx("powerup")
+			PowerUpType.SHIELD:
+				if area.has_method("activate_shield"):
+					area.activate_shield(60.0)
+				text_popup = "ENERGY SHIELD ACTIVE! 🛡️"
 				if AudioManager: AudioManager.play_sfx("powerup")
 			PowerUpType.DOWNGRADE:
 				GameManager.downgrade_weapon()

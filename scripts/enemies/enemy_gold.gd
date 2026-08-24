@@ -1,6 +1,6 @@
 extends Area2D
 
-@export var max_hp: float = 40.0
+@export var max_hp: float = 65.0
 @export var score_value: int = 150
 @export var base_speed: float = 270.0
 @export var bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet.tscn")
