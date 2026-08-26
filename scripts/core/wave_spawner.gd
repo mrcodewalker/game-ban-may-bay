@@ -6,6 +6,9 @@ extends Node
 @export var enemy_medium_scene: PackedScene = preload("res://scenes/enemies/enemy_medium.tscn")
 @export var enemy_large_scene: PackedScene = preload("res://scenes/enemies/enemy_large.tscn")
 @export var boss_scene: PackedScene = preload("res://scenes/enemies/boss.tscn")
+@export var enemy_tower_scene: PackedScene = preload("res://scenes/enemies/enemy_tower.tscn")
+@export var princess_vip_scene: PackedScene = preload("res://scenes/items/princess_vip.tscn")
+@export var debuff_zone_scene: PackedScene = preload("res://scenes/combat/debuff_zone.tscn")
 
 var current_wave: int = 1
 var current_phase: int = 1
@@ -13,22 +16,25 @@ var wave_in_progress: bool = false
 var boss_spawned: bool = false
 var wave_timer: float = 0.0
 var continuous_timer: float = 0.0
+var tower_timer: float = 0.0
+var princess_timer: float = 0.0
+var debuff_timer: float = 0.0
+
 
 # Dynamic spawn interval calculation (accelerates as phases advance towards Boss!)
 func get_current_spawn_interval() -> float:
 	match current_phase:
-		1: return max(3.2, 4.0 - (wave_timer * 0.05))
-		2: return max(2.4, 3.2 - (wave_timer * 0.05))
-		3: return max(1.6, 2.4 - (wave_timer * 0.06))
-		_: return 2.0
+		1: return max(4.2, 5.2 - (wave_timer * 0.04))
+		2: return max(3.4, 4.2 - (wave_timer * 0.04))
+		3: return max(2.6, 3.4 - (wave_timer * 0.05))
+		_: return 3.0
 
-# Dynamic speed multiplier (enemies get faster and tougher across phases!)
 func get_phase_speed_mult() -> float:
 	match current_phase:
-		1: return 1.0
-		2: return 1.2
-		3: return 1.45
-		_: return 1.0
+		1: return 0.80
+		2: return 0.95
+		3: return 1.10
+		_: return 0.90
 
 func _ready() -> void:
 	start_wave(1)
@@ -40,7 +46,6 @@ func start_wave(wave_num: int) -> void:
 	wave_timer = 0.0
 	continuous_timer = 0.0
 	
-	# Determine Phase 1, 2, 3 or Boss
 	if wave_num in [1, 2]:
 		if current_phase != 1:
 			current_phase = 1
@@ -61,22 +66,17 @@ func start_wave(wave_num: int) -> void:
 		spawn_boss()
 		return
 		
-	# Initial wave salvo scaled by Phase
 	match current_phase:
 		1:
-			spawn_full_screen_sky_wall(4)
-			get_tree().create_timer(2.8).timeout.connect(func(): spawn_squadron_cross_pincer(4))
-			get_tree().create_timer(6.0).timeout.connect(func(): spawn_fast_jet_blitz(3))
+			spawn_full_screen_sky_wall(3)
+			get_tree().create_timer(3.8).timeout.connect(func(): spawn_squadron_cross_pincer(3))
 		2:
 			spawn_medium_bombers(2)
-			get_tree().create_timer(2.5).timeout.connect(func(): spawn_squadron_cross_pincer(6))
-			get_tree().create_timer(5.5).timeout.connect(func(): spawn_fast_jet_blitz(5))
-			get_tree().create_timer(8.0).timeout.connect(func(): spawn_squadron_gold_scurve(4))
+			get_tree().create_timer(3.5).timeout.connect(func(): spawn_squadron_cross_pincer(4))
 		3:
 			spawn_heavy_bomber_convoy()
-			get_tree().create_timer(3.0).timeout.connect(func(): spawn_medium_bombers(3))
-			get_tree().create_timer(6.0).timeout.connect(func(): spawn_full_screen_sky_wall(8))
-			get_tree().create_timer(9.0).timeout.connect(func(): spawn_fast_jet_blitz(6))
+			get_tree().create_timer(4.0).timeout.connect(func(): spawn_medium_bombers(2))
+
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over or boss_spawned:
@@ -105,38 +105,100 @@ func _process(delta: float) -> void:
 		continuous_timer = 0.0
 		spawn_phase_pack()
 
+	# Sky Force Feature Spawns
+	tower_timer += delta
+	if tower_timer >= 6.5:
+		tower_timer = 0.0
+		spawn_ground_tower()
+
+	princess_timer += delta
+	if princess_timer >= 45.0:
+		princess_timer = 0.0
+		spawn_princess_vip()
+
+
+
 	if wave_timer > 16.0:
 		var active_enemies = get_tree().get_nodes_in_group("enemies")
 		if active_enemies.size() <= 2:
 			wave_timer = 0.0
 			start_wave(current_wave + 1)
 
+func spawn_ground_tower() -> void:
+	var bg = get_node_or_null("../ScrollingBackground")
+	if bg and bg.has_method("spawn_island"):
+		bg.spawn_island(Vector2(randf_range(140.0, 380.0), -200.0))
+
+func spawn_tank_ground_assault() -> void:
+	var bg = get_node_or_null("../ScrollingBackground")
+	if bg and bg.has_method("spawn_island"):
+		bg.spawn_island(Vector2(160.0, -220.0))
+		bg.spawn_island(Vector2(360.0, -320.0))
+
+
+func spawn_princess_vip() -> void:
+	if princess_vip_scene and not GameManager.is_game_over:
+		var vip = princess_vip_scene.instantiate() as Area2D
+		var spawn_x = randf_range(80.0, 460.0)
+		vip.global_position = Vector2(spawn_x, -90.0)
+		get_parent().add_child(vip)
+
+func spawn_debuff_zone() -> void:
+	if debuff_zone_scene and not GameManager.is_game_over:
+		var zone = debuff_zone_scene.instantiate() as Area2D
+		var spawn_x = randf_range(120.0, 420.0)
+		zone.global_position = Vector2(spawn_x, -120.0)
+		get_parent().add_child(zone)
+
+
 func spawn_phase_pack() -> void:
 	if GameManager.is_game_over: return
 	match current_phase:
 		1:
-			var choice = randi() % 3
-			match choice:
-				0: spawn_full_screen_sky_wall(4)
-				1: spawn_squadron_cross_pincer(4)
-				2: spawn_fast_jet_blitz(3)
-		2:
 			var choice = randi() % 4
 			match choice:
-				0: spawn_medium_bombers(2)
-				1: spawn_squadron_gold_scurve(5)
-				2: spawn_squadron_cross_pincer(6)
+				0: spawn_v_formation_jets()
+				1: spawn_full_screen_sky_wall(5)
+				2: spawn_squadron_cross_pincer(4)
 				3: spawn_fast_jet_blitz(4)
-		3:
+		2:
 			var choice = randi() % 5
 			match choice:
-				0: spawn_heavy_bomber_convoy()
-				1: spawn_medium_bombers(3)
-				2: spawn_full_screen_sky_wall(7)
-				3: spawn_squadron_gold_scurve(6)
-				4: spawn_fast_jet_blitz(6)
+				0: spawn_tank_ground_assault()
+				1: spawn_medium_bombers(2)
+				2: spawn_squadron_gold_scurve(5)
+				3: spawn_squadron_cross_pincer(6)
+				4: spawn_fast_jet_blitz(5)
+		3:
+			var choice = randi() % 6
+			match choice:
+				0: spawn_v_formation_jets()
+				1: spawn_tank_ground_assault()
+				2: spawn_heavy_bomber_convoy()
+				3: spawn_medium_bombers(3)
+				4: spawn_full_screen_sky_wall(7)
+				5: spawn_squadron_gold_scurve(6)
+
+func spawn_v_formation_jets() -> void:
+	if not enemy_small_scene: return
+	var spd_mult = get_phase_speed_mult()
+	var offsets = [
+		Vector2(270, -90), # V-Lead Center
+		Vector2(210, -140), Vector2(330, -140), # Left & Right inner wingmen
+		Vector2(150, -190), Vector2(390, -190)  # Left & Right outer wingmen
+	]
+	for pos in offsets:
+		if GameManager.is_game_over: return
+		var enemy = enemy_small_scene.instantiate()
+		enemy.pattern = 4 # DIVE_ATTACK
+		if "base_speed" in enemy: enemy.base_speed *= spd_mult
+		enemy.global_position = pos
+		get_parent().add_child(enemy)
+
+
 
 func spawn_full_screen_sky_wall(count: int) -> void:
+
 	if not enemy_small_scene: return
 	var spd_mult = get_phase_speed_mult()
 	for i in range(count):

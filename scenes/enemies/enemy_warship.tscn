@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://da6hqd6lav22o"]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_warship.gd" id="1_script"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 32.0
+height = 180.0
+
+[node name="EnemyWarship" type="Area2D" groups=["enemies"]]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")

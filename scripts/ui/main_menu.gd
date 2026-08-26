@@ -117,13 +117,9 @@ func show_mission_board() -> void:
 func select_mission(idx: int) -> void:
 	if idx < 0 or idx >= 5: return
 	
-	# Check if unlocked
-	if not GameManager.map_unlocked[idx]:
-		if AudioManager: AudioManager.play_sfx("explosion", -8.0, 1.4)
-		return
-		
 	selected_mission_idx = idx
 	GameManager.current_map = idx + 1
+
 	
 	# Update red circles
 	for i in range(circle_indicators.size()):

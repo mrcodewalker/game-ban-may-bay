@@ -1,0 +1,836 @@
+{
+  "player_jets": [
+    {
+      "name": "player_jet_01.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_01.png",
+      "width": 357,
+      "height": 182,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "player_jet_02.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_02.png",
+      "width": 362,
+      "height": 180,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "player_jet_03.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_03.png",
+      "width": 362,
+      "height": 172,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "player_jet_04.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_04.png",
+      "width": 362,
+      "height": 192,
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "player_jet_05.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_05.png",
+      "width": 362,
+      "height": 207,
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "player_jet_06.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_06.png",
+      "width": 362,
+      "height": 102,
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "player_jet_07.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_07.png",
+      "width": 362,
+      "height": 133,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "player_jet_08.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_08.png",
+      "width": 362,
+      "height": 142,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "player_jet_09.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_09.png",
+      "width": 362,
+      "height": 139,
+      "row": 1,
+      "col": 2
+    },
+    {
+      "name": "player_jet_10.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_10.png",
+      "width": 362,
+      "height": 175,
+      "row": 1,
+      "col": 3
+    },
+    {
+      "name": "player_jet_11.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_11.png",
+      "width": 362,
+      "height": 107,
+      "row": 1,
+      "col": 4
+    },
+    {
+      "name": "player_jet_12.png",
+      "path": "extracted_assets/AI/cut_assets/player_jets/player_jet_12.png",
+      "width": 354,
+      "height": 137,
+      "row": 1,
+      "col": 5
+    }
+  ],
+  "pet_jets": [
+    {
+      "name": "pet_jet_01.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_01.png",
+      "width": 267,
+      "height": 108,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "pet_jet_02.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_02.png",
+      "width": 271,
+      "height": 103,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "pet_jet_03.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_03.png",
+      "width": 287,
+      "height": 102,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "pet_jet_04.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_04.png",
+      "width": 323,
+      "height": 106,
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "pet_jet_05.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_05.png",
+      "width": 275,
+      "height": 102,
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "pet_jet_06.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_06.png",
+      "width": 293,
+      "height": 102,
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "pet_jet_07.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_07.png",
+      "width": 333,
+      "height": 141,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "pet_jet_08.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_08.png",
+      "width": 362,
+      "height": 139,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "pet_jet_09.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_09.png",
+      "width": 318,
+      "height": 139,
+      "row": 1,
+      "col": 2
+    },
+    {
+      "name": "pet_jet_10.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_10.png",
+      "width": 357,
+      "height": 143,
+      "row": 1,
+      "col": 3
+    },
+    {
+      "name": "pet_jet_11.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_11.png",
+      "width": 323,
+      "height": 149,
+      "row": 1,
+      "col": 4
+    },
+    {
+      "name": "pet_jet_12.png",
+      "path": "extracted_assets/AI/cut_assets/pet_jets/pet_jet_12.png",
+      "width": 319,
+      "height": 148,
+      "row": 1,
+      "col": 5
+    }
+  ],
+  "enemies": [
+    {
+      "name": "enemy_01.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_01.png",
+      "width": 347,
+      "height": 267,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "enemy_02.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_02.png",
+      "width": 362,
+      "height": 255,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "enemy_03.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_03.png",
+      "width": 362,
+      "height": 287,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "enemy_04.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_04.png",
+      "width": 362,
+      "height": 285,
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "enemy_05.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_05.png",
+      "width": 362,
+      "height": 272,
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "enemy_06.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_06.png",
+      "width": 354,
+      "height": 281,
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "enemy_07.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_07.png",
+      "width": 351,
+      "height": 216,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "enemy_08.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_08.png",
+      "width": 362,
+      "height": 227,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "enemy_09.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_09.png",
+      "width": 362,
+      "height": 245,
+      "row": 1,
+      "col": 2
+    },
+    {
+      "name": "enemy_10.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_10.png",
+      "width": 362,
+      "height": 227,
+      "row": 1,
+      "col": 3
+    },
+    {
+      "name": "enemy_11.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_11.png",
+      "width": 362,
+      "height": 236,
+      "row": 1,
+      "col": 4
+    },
+    {
+      "name": "enemy_12.png",
+      "path": "extracted_assets/AI/cut_assets/enemies/enemy_12.png",
+      "width": 356,
+      "height": 217,
+      "row": 1,
+      "col": 5
+    }
+  ],
+  "towers": [
+    {
+      "name": "tower_01.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_01.png",
+      "width": 344,
+      "height": 124,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "tower_02.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_02.png",
+      "width": 362,
+      "height": 150,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "tower_03.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_03.png",
+      "width": 362,
+      "height": 184,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "tower_04.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_04.png",
+      "width": 362,
+      "height": 161,
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "tower_05.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_05.png",
+      "width": 362,
+      "height": 215,
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "tower_06.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_06.png",
+      "width": 303,
+      "height": 149,
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "tower_07.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_07.png",
+      "width": 332,
+      "height": 125,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "tower_08.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_08.png",
+      "width": 362,
+      "height": 123,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "tower_09.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_09.png",
+      "width": 362,
+      "height": 128,
+      "row": 1,
+      "col": 2
+    },
+    {
+      "name": "tower_10.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_10.png",
+      "width": 362,
+      "height": 128,
+      "row": 1,
+      "col": 3
+    },
+    {
+      "name": "tower_11.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_11.png",
+      "width": 362,
+      "height": 128,
+      "row": 1,
+      "col": 4
+    },
+    {
+      "name": "tower_12.png",
+      "path": "extracted_assets/AI/cut_assets/towers/tower_12.png",
+      "width": 343,
+      "height": 128,
+      "row": 1,
+      "col": 5
+    }
+  ],
+  "bullets": [
+    {
+      "name": "bullet_01.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_01.png",
+      "width": 308,
+      "height": 131,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "bullet_02.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_02.png",
+      "width": 310,
+      "height": 208,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "bullet_03.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_03.png",
+      "width": 337,
+      "height": 289,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "bullet_04.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_04.png",
+      "width": 362,
+      "height": 288,
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "bullet_05.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_05.png",
+      "width": 362,
+      "height": 207,
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "bullet_06.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_06.png",
+      "width": 328,
+      "height": 153,
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "bullet_07.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_07.png",
+      "width": 324,
+      "height": 158,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "bullet_08.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_08.png",
+      "width": 348,
+      "height": 217,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "bullet_09.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_09.png",
+      "width": 322,
+      "height": 264,
+      "row": 1,
+      "col": 2
+    },
+    {
+      "name": "bullet_10.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_10.png",
+      "width": 339,
+      "height": 224,
+      "row": 1,
+      "col": 3
+    },
+    {
+      "name": "bullet_11.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_11.png",
+      "width": 362,
+      "height": 198,
+      "row": 1,
+      "col": 4
+    },
+    {
+      "name": "bullet_12.png",
+      "path": "extracted_assets/AI/cut_assets/bullets/bullet_12.png",
+      "width": 320,
+      "height": 170,
+      "row": 1,
+      "col": 5
+    }
+  ],
+  "powerups": [
+    {
+      "name": "powerup_01.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_01.png",
+      "width": 362,
+      "height": 189,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "powerup_02.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_02.png",
+      "width": 362,
+      "height": 151,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "powerup_03.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_03.png",
+      "width": 362,
+      "height": 155,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "powerup_04.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_04.png",
+      "width": 362,
+      "height": 186,
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "powerup_05.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_05.png",
+      "width": 362,
+      "height": 148,
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "powerup_06.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_06.png",
+      "width": 345,
+      "height": 172,
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "powerup_07.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_07.png",
+      "width": 362,
+      "height": 173,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "powerup_08.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_08.png",
+      "width": 362,
+      "height": 170,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "powerup_09.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_09.png",
+      "width": 362,
+      "height": 170,
+      "row": 1,
+      "col": 2
+    },
+    {
+      "name": "powerup_10.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_10.png",
+      "width": 362,
+      "height": 164,
+      "row": 1,
+      "col": 3
+    },
+    {
+      "name": "powerup_11.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_11.png",
+      "width": 362,
+      "height": 174,
+      "row": 1,
+      "col": 4
+    },
+    {
+      "name": "powerup_12.png",
+      "path": "extracted_assets/AI/cut_assets/powerups/powerup_12.png",
+      "width": 344,
+      "height": 184,
+      "row": 1,
+      "col": 5
+    }
+  ],
+  "princess": [
+    {
+      "name": "princess_01.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_01.png",
+      "width": 345,
+      "height": 362,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "princess_02.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_02.png",
+      "width": 362,
+      "height": 362,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "princess_03.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_03.png",
+      "width": 343,
+      "height": 362,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "princess_04.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_04.png",
+      "width": 362,
+      "height": 362,
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "princess_05.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_05.png",
+      "width": 362,
+      "height": 269,
+      "row": 0,
+      "col": 4
+    },
+    {
+      "name": "princess_06.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_06.png",
+      "width": 330,
+      "height": 236,
+      "row": 0,
+      "col": 5
+    },
+    {
+      "name": "princess_07.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_07.png",
+      "width": 343,
+      "height": 244,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "princess_08.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_08.png",
+      "width": 362,
+      "height": 251,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "princess_09.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_09.png",
+      "width": 341,
+      "height": 255,
+      "row": 1,
+      "col": 2
+    },
+    {
+      "name": "princess_10.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_10.png",
+      "width": 362,
+      "height": 255,
+      "row": 1,
+      "col": 3
+    },
+    {
+      "name": "princess_11.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_11.png",
+      "width": 362,
+      "height": 266,
+      "row": 1,
+      "col": 4
+    },
+    {
+      "name": "princess_12.png",
+      "path": "extracted_assets/AI/cut_assets/princess/princess_12.png",
+      "width": 343,
+      "height": 223,
+      "row": 1,
+      "col": 5
+    }
+  ],
+  "effects": [
+    {
+      "name": "effect_01.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_01.png",
+      "width": 432,
+      "height": 262,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "effect_02.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_02.png",
+      "width": 455,
+      "height": 268,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "effect_03.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_03.png",
+      "width": 449,
+      "height": 272,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "effect_04.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_04.png",
+      "width": 416,
+      "height": 269,
+      "row": 0,
+      "col": 3
+    },
+    {
+      "name": "effect_05.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_05.png",
+      "width": 428,
+      "height": 288,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "effect_06.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_06.png",
+      "width": 455,
+      "height": 288,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "effect_07.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_07.png",
+      "width": 455,
+      "height": 288,
+      "row": 1,
+      "col": 2
+    },
+    {
+      "name": "effect_08.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_08.png",
+      "width": 416,
+      "height": 288,
+      "row": 1,
+      "col": 3
+    },
+    {
+      "name": "effect_09.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_09.png",
+      "width": 442,
+      "height": 256,
+      "row": 2,
+      "col": 0
+    },
+    {
+      "name": "effect_10.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_10.png",
+      "width": 455,
+      "height": 254,
+      "row": 2,
+      "col": 1
+    },
+    {
+      "name": "effect_11.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_11.png",
+      "width": 455,
+      "height": 272,
+      "row": 2,
+      "col": 2
+    },
+    {
+      "name": "effect_12.png",
+      "path": "extracted_assets/AI/cut_assets/effects/effect_12.png",
+      "width": 413,
+      "height": 274,
+      "row": 2,
+      "col": 3
+    }
+  ],
+  "debuff_zones": [
+    {
+      "name": "debuff_zone_01.png",
+      "path": "extracted_assets/AI/cut_assets/debuff_zones/debuff_zone_01.png",
+      "width": 481,
+      "height": 418,
+      "row": 0,
+      "col": 0
+    },
+    {
+      "name": "debuff_zone_02.png",
+      "path": "extracted_assets/AI/cut_assets/debuff_zones/debuff_zone_02.png",
+      "width": 512,
+      "height": 410,
+      "row": 0,
+      "col": 1
+    },
+    {
+      "name": "debuff_zone_03.png",
+      "path": "extracted_assets/AI/cut_assets/debuff_zones/debuff_zone_03.png",
+      "width": 489,
+      "height": 424,
+      "row": 0,
+      "col": 2
+    },
+    {
+      "name": "debuff_zone_04.png",
+      "path": "extracted_assets/AI/cut_assets/debuff_zones/debuff_zone_04.png",
+      "width": 483,
+      "height": 441,
+      "row": 1,
+      "col": 0
+    },
+    {
+      "name": "debuff_zone_05.png",
+      "path": "extracted_assets/AI/cut_assets/debuff_zones/debuff_zone_05.png",
+      "width": 512,
+      "height": 420,
+      "row": 1,
+      "col": 1
+    },
+    {
+      "name": "debuff_zone_06.png",
+      "path": "extracted_assets/AI/cut_assets/debuff_zones/debuff_zone_06.png",
+      "width": 475,
+      "height": 437,
+      "row": 1,
+      "col": 2
+    }
+  ]
+}

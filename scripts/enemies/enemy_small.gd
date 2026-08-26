@@ -2,7 +2,10 @@ extends Area2D
 
 enum FlightPattern { ARC_LEFT_TO_RIGHT, ARC_RIGHT_TO_LEFT, S_CURVE, LOOP_DE_LOOP, DIVE_ATTACK }
 
-@export var max_hp: float = 35.0
+@export var max_hp: float = 30.0
+
+
+
 @export var score_value: int = 100
 @export var base_speed: float = 240.0
 @export var pattern: FlightPattern = FlightPattern.ARC_LEFT_TO_RIGHT
@@ -27,6 +30,18 @@ func _ready() -> void:
 	start_pos = position
 	area_entered.connect(_on_area_entered)
 	shoot_timer = randf_range(1.0, 2.2)
+	
+	var tex_path = "res://extracted_assets/AI/cut_assets/enemies/jet1.png"
+	if ResourceLoader.exists(tex_path) and sprite:
+		var tex = load(tex_path) as Texture2D
+		if tex:
+			sprite.texture = tex
+			var sc = 125.0 / float(max(1, tex.get_width()))
+
+
+
+
+			sprite.scale = Vector2(sc, sc)
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over:
@@ -38,8 +53,9 @@ func _process(delta: float) -> void:
 	position += velocity * delta
 	
 	if velocity.length_squared() > 10.0 and sprite:
-		var target_angle = velocity.angle() - (PI / 2.0)
+		var target_angle = velocity.angle() + (PI / 2.0)
 		sprite.rotation = lerp_angle(sprite.rotation, target_angle, 14.0 * delta)
+
 		
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
@@ -116,7 +132,10 @@ func die() -> void:
 		AudioManager.play_sfx("explosion", -3.0)
 		
 	GameManager.register_kill(global_position)
+	if GameManager.has_method("register_jet_kill"):
+		GameManager.register_jet_kill()
 	GameManager.add_score(score_value)
+
 	
 	# Spawn Explosion FX
 	if explosion_fx_scene:

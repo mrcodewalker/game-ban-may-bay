@@ -42,25 +42,25 @@ func apply_map_theme() -> void:
 	
 	match map_id:
 		1:
-			# Pacific Strike: Crystal Clear Blue Water
+			# Pacific Strike: Tropical Azure Ocean
 			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
 			tint_color = Color(1.0, 1.0, 1.0)
 		2:
-			# Sunrise Archipelago: Warm Golden Morning Sea
+			# Sunrise Archipelago: Golden Dawn Sea
 			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
-			tint_color = Color(1.22, 0.96, 0.72)
+			tint_color = Color(1.35, 0.95, 0.65)
 		3:
-			# Dogfight Thunderstorm: Deep Dark Stormy Blue Water
+			# Dogfight Thunderstorm: Deep Dark Stormy Indigo Sea
 			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_Lontano_5.png")
-			tint_color = Color(0.68, 0.74, 0.95)
+			tint_color = Color(0.55, 0.65, 0.95)
 		4:
-			# Sunset Bay Assault: Rich Crimson Sunset Sea
+			# Sunset Bay Assault: Glowing Crimson Sunset Sea
 			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png")
-			tint_color = Color(1.28, 0.76, 0.58)
+			tint_color = Color(1.38, 0.68, 0.55)
 		5:
-			# Final Fortress Assault: Dark Abyss Deep Water
+			# Dreadnought HQ Assault: Midnight Cyber Steel Sea
 			bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_Lontano_5.png")
-			tint_color = Color(0.55, 0.78, 0.82)
+			tint_color = Color(0.40, 0.52, 0.72)
 			
 	if ocean_sprite1 and ocean_sprite2:
 		if bg_tex:
@@ -69,12 +69,17 @@ func apply_map_theme() -> void:
 		ocean_sprite1.modulate = tint_color
 		ocean_sprite2.modulate = tint_color
 
+
 func populate_initial_environment() -> void:
 	for i in range(4):
 		spawn_island(Vector2(randf_range(60, 480), randf_range(50, 900)))
 		
 	for i in range(4):
 		spawn_cloud(Vector2(randf_range(-40, 580), randf_range(0, 960)))
+
+var tank_spawn_timer: float = 5.0
+var warship_spawn_timer: float = 10.0
+var rescue_zone_spawn_timer: float = 7.0
 
 func _process(delta: float) -> void:
 	$OceanParallax.scroll_base_offset.y += scroll_speed * delta
@@ -97,23 +102,67 @@ func _process(delta: float) -> void:
 	# Environment timers
 	island_spawn_timer -= delta
 	if island_spawn_timer <= 0.0:
-		spawn_island(Vector2(randf_range(40, 500), -350))
-		island_spawn_timer = randf_range(5.0, 9.0)
+		spawn_island(Vector2(randf_range(80, 460), -350))
+		island_spawn_timer = randf_range(5.0, 8.5)
 
 	cloud_spawn_timer -= delta
 	if cloud_spawn_timer <= 0.0:
 		spawn_cloud(Vector2(randf_range(-100, 600), -280))
 		cloud_spawn_timer = randf_range(3.5, 6.0)
 
+
+var last_tank_spawn_time: float = -10.0
+var last_tower_spawn_time: float = -10.0
+
+func can_spawn_tank() -> bool:
+	var cur_time = Time.get_ticks_msec() * 0.001
+	if cur_time - last_tank_spawn_time < 5.0:
+		return false
+	var active_tanks = get_tree().get_nodes_in_group("enemy_tanks").size()
+	return active_tanks < 2
+
+func can_spawn_tower() -> bool:
+	var cur_time = Time.get_ticks_msec() * 0.001
+	if cur_time - last_tower_spawn_time < 10.0:
+		return false
+	var active_towers = get_tree().get_nodes_in_group("enemy_towers").size()
+	return active_towers < 2
+
 func spawn_island(pos: Vector2) -> void:
 	if island_textures.size() == 0 or not island_container: return
 	var island = Sprite2D.new()
 	island.texture = island_textures[randi() % island_textures.size()]
 	island.position = pos
-	var base_scale = randf_range(0.45, 0.75)
+	var base_scale = randf_range(0.60, 0.88)
 	island.scale = Vector2(base_scale, base_scale)
 	island.rotation = randf_range(0, TAU)
 	island_container.add_child(island)
+
+	# 100% EXCLUSIVE: Ground Defenses ONLY spawn attached directly to island landmasses!
+	# Strictly capped: Max 2 Tanks & Max 2 Towers on screen, Tank cooldown = 5.0s, Tower cooldown = 10.0s!
+	var cur_time = Time.get_ticks_msec() * 0.001
+	if can_spawn_tank() and randf() < 0.60:
+		last_tank_spawn_time = cur_time
+		var tank_scene = load("res://scenes/enemies/enemy_tank.tscn") as PackedScene
+		if tank_scene:
+			var tank = tank_scene.instantiate() as Area2D
+			tank.global_position = pos + Vector2(randf_range(-30, 30), randf_range(-30, 30))
+			get_parent().call_deferred("add_child", tank)
+	elif can_spawn_tower() and randf() < 0.60:
+		last_tower_spawn_time = cur_time
+		var tower_scene = load("res://scenes/enemies/enemy_tower.tscn") as PackedScene
+		if tower_scene:
+			var tower = tower_scene.instantiate() as Area2D
+			tower.global_position = pos + Vector2(randf_range(-25, 25), randf_range(-25, 25))
+			get_parent().call_deferred("add_child", tower)
+	elif randf() < 0.35:
+		var rescue_script = load("res://scripts/items/princess_rescue_zone.gd")
+		if rescue_script:
+			var zone = Area2D.new()
+			zone.script = rescue_script
+			zone.global_position = pos
+			get_parent().call_deferred("add_child", zone)
+
 
 func spawn_cloud(pos: Vector2) -> void:
 	if cloud_textures.size() == 0 or not cloud_container: return
@@ -127,3 +176,20 @@ func spawn_cloud(pos: Vector2) -> void:
 	cloud.set_meta("speed", scroll_speed * randf_range(1.2, 1.4))
 	cloud.set_meta("drift", randf_range(-8.0, 8.0))
 	cloud_container.add_child(cloud)
+
+func spawn_warship() -> void:
+	var ship_scene_path = "res://scenes/enemies/enemy_warship.tscn"
+	if ResourceLoader.exists(ship_scene_path):
+		var ship_scene = load(ship_scene_path) as PackedScene
+		if ship_scene:
+			var ship = ship_scene.instantiate()
+			ship.position = Vector2(randf_range(80, 460), -200)
+			get_parent().add_child(ship)
+			return
+	# Fallback
+	var ship_script = load("res://scripts/enemies/enemy_warship.gd")
+	if ship_script:
+		var ship = Area2D.new()
+		ship.script = ship_script
+		ship.position = Vector2(randf_range(80, 460), -200)
+		get_parent().add_child(ship)

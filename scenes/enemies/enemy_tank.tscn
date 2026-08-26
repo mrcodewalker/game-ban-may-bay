@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://cenemytank001"]
+
+[ext_resource type="Script" path="res://scripts/enemies/enemy_tank.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
+size = Vector2(55, 65)
+
+[node name="EnemyTank" type="Area2D" groups=["enemies"]]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_1")

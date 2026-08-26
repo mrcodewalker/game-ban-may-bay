@@ -28,6 +28,9 @@ func _ready() -> void:
 		GameManager.boss_health_updated.connect(_on_boss_health_updated)
 		GameManager.phase_changed.connect(_on_phase_changed)
 		GameManager.wave_progress_updated.connect(_on_wave_progress_updated)
+		GameManager.princess_rescued.connect(_on_princess_rescued)
+		if GameManager.has_signal("mission_tasks_updated"):
+			GameManager.mission_tasks_updated.connect(_on_mission_tasks_updated)
 		GameManager.game_over_triggered.connect(_on_game_over)
 		GameManager.game_won_triggered.connect(_on_game_won)
 		
@@ -37,7 +40,13 @@ func _ready() -> void:
 		_on_player_health_updated(GameManager.player_hp, GameManager.player_max_hp)
 		_on_player_bombs_updated(GameManager.player_bombs)
 		_on_weapon_level_updated(GameManager.current_weapon_level)
+		_on_princess_rescued(GameManager.princesses_rescued_in_run, GameManager.target_princesses_count)
 		_on_boss_health_updated(0, 100, false)
+		
+		setup_task_panel()
+		if GameManager.has_method("emit_mission_tasks"):
+			GameManager.emit_mission_tasks()
+
 		
 	if game_over_panel: game_over_panel.hide()
 	if revive_panel:
@@ -68,7 +77,83 @@ func _on_player_bombs_updated(bombs: int) -> void:
 
 func _on_weapon_level_updated(level: int) -> void:
 	if weapon_label:
-		weapon_label.text = "🔫 WEAPON LV.%d" % level
+		weapon_label.text = "🔫 WEAPON LV.%d | 👑 %d/%d" % [level, GameManager.princesses_rescued_in_run, GameManager.target_princesses_count]
+
+func _on_princess_rescued(total: int, target: int) -> void:
+	if weapon_label:
+		weapon_label.text = "🔫 WEAPON LV.%d | 👑 %d/%d" % [GameManager.current_weapon_level, total, target]
+	if total > 0:
+		show_big_rescue_banner()
+
+
+func show_big_rescue_banner() -> void:
+	var center_ctrl = Control.new()
+	center_ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center_ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(center_ctrl)
+	
+	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(400, 110)
+	panel.set_anchors_preset(Control.PRESET_CENTER)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	panel.position = Vector2(-200, -55)
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.08, 0.16, 0.92)
+	style.border_color = Color(1.0, 0.85, 0.2, 0.95)
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(14)
+	style.shadow_color = Color(1.0, 0.8, 0.1, 0.4)
+	style.shadow_size = 12
+	panel.add_theme_stylebox_override("panel", style)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	panel.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 6)
+	margin.add_child(vbox)
+	
+	# Main Big Title
+	var title = Label.new()
+	title.text = "👑 GIẢI CỨU THÀNH CÔNG! 👑"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.2))
+	title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
+	title.add_theme_constant_override("outline_size", 10)
+	title.add_theme_font_size_override("font_size", 24)
+	vbox.add_child(title)
+	
+	# Subtitle
+	var sub = Label.new()
+	sub.text = "✨ VIP PRINCESS RESCUED • +5,000 PT & 🛡️ KHIÊN ✨"
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub.add_theme_color_override("font_color", Color(0.3, 1.0, 0.6))
+	sub.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
+	sub.add_theme_constant_override("outline_size", 5)
+	sub.add_theme_font_size_override("font_size", 13)
+	vbox.add_child(sub)
+	
+	center_ctrl.add_child(panel)
+	
+	# Scale bounce entry & float fade out animation centered on pivot
+	panel.pivot_offset = Vector2(200, 55)
+	panel.scale = Vector2(0.2, 0.2)
+	
+	var tween = center_ctrl.create_tween()
+	tween.tween_property(panel, "scale", Vector2(1.2, 1.2), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.15)
+	tween.tween_interval(1.8)
+	tween.parallel().tween_property(panel, "position:y", panel.position.y - 80.0, 0.6)
+	tween.parallel().tween_property(panel, "modulate:a", 0.0, 0.6)
+	tween.tween_callback(center_ctrl.queue_free)
+
 
 func _on_boss_health_updated(current: float, max_hp: float, is_visible: bool) -> void:
 	if boss_container:
@@ -116,3 +201,77 @@ func _on_game_won(stars: int, coins_earned: int) -> void:
 		if game_over_panel.has_method("set_title"):
 			game_over_panel.set_title("MISSION ACCOMPLISHED!", stars, coins_earned)
 		game_over_panel.show()
+
+var task_panel: PanelContainer = null
+var lbl_vip: Label = null
+var lbl_jets: Label = null
+var lbl_tanks: Label = null
+var lbl_towers: Label = null
+
+func setup_task_panel() -> void:
+	if is_instance_valid(task_panel): return
+	
+	task_panel = PanelContainer.new()
+	task_panel.position = Vector2(16, 78)
+	task_panel.custom_minimum_size = Vector2(215, 115)
+	
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.08, 0.14, 0.85)
+	style.border_color = Color(0.2, 0.8, 1.0, 0.75)
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(8)
+	task_panel.add_theme_stylebox_override("panel", style)
+	
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	task_panel.add_child(margin)
+	
+	var vbox = VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 2)
+	margin.add_child(vbox)
+	
+	var header = Label.new()
+	header.text = "📋 NHIỆM VỤ MÀN CHƠI"
+	header.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
+	header.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	header.add_theme_constant_override("outline_size", 4)
+	header.add_theme_font_size_override("font_size", 12)
+	vbox.add_child(header)
+	
+	lbl_vip = create_task_label(vbox, "👑 Cứu Công chúa: 0/3")
+	lbl_jets = create_task_label(vbox, "🛩️ Tiêu diệt Máy bay: 0/20")
+	lbl_tanks = create_task_label(vbox, "🚜 Tiêu diệt Xe tăng: 0/6")
+	lbl_towers = create_task_label(vbox, "🏰 Phá Tháp pháo: 0/4")
+	
+	add_child(task_panel)
+
+func create_task_label(parent: Control, text_val: String) -> Label:
+	var l = Label.new()
+	l.text = text_val
+	l.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
+	l.add_theme_color_override("font_outline_color", Color(0, 0, 0))
+	l.add_theme_constant_override("outline_size", 3)
+	l.add_theme_font_size_override("font_size", 11)
+	parent.add_child(l)
+	return l
+
+func _on_mission_tasks_updated(vip: int, target_vip: int, jets: int, target_jets: int, tanks: int, target_tanks: int, towers: int, target_towers: int) -> void:
+	if not is_instance_valid(task_panel):
+		setup_task_panel()
+		
+	update_task_item(lbl_vip, "👑 Cứu Công chúa", vip, target_vip)
+	update_task_item(lbl_jets, "🛩️ Tiêu diệt Máy bay", jets, target_jets)
+	update_task_item(lbl_tanks, "🚜 Tiêu diệt Xe tăng", tanks, target_tanks)
+	update_task_item(lbl_towers, "🏰 Phá Tháp pháo", towers, target_towers)
+
+func update_task_item(lbl: Label, title: String, current: int, target: int) -> void:
+	if not is_instance_valid(lbl): return
+	if current >= target:
+		lbl.text = "[✓] %s: %d/%d (XONG!)" % [title, current, target]
+		lbl.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4))
+	else:
+		lbl.text = "▪ %s: %d/%d" % [title, current, target]
+		lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))

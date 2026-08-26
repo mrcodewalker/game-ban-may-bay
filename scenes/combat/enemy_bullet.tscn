@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://ccircle001" path="res://extracted_assets/Textures/circle.png" id="2_texture"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
-radius = 11.0
+radius = 14.0
 
 [node name="EnemyBullet" type="Area2D" groups=["enemy_bullets"]]
 collision_layer = 8
@@ -13,17 +13,17 @@ script = ExtResource("1_script")
 
 [node name="OutlineSprite" type="Sprite2D" parent="."]
 modulate = Color(0, 0, 0, 0.9)
-scale = Vector2(0.48, 0.48)
+scale = Vector2(0.65, 0.65)
 texture = ExtResource("2_texture")
 
 [node name="GlowSprite" type="Sprite2D" parent="."]
 modulate = Color(3.5, 0.3, 0.2, 0.95)
-scale = Vector2(0.42, 0.42)
+scale = Vector2(0.58, 0.58)
 texture = ExtResource("2_texture")
 
 [node name="CoreSprite" type="Sprite2D" parent="."]
-modulate = Color(1, 0.95, 0.8, 1)
-scale = Vector2(0.2, 0.2)
+modulate = Color(1, 0.95, 0.7, 1)
+scale = Vector2(0.28, 0.28)
 texture = ExtResource("2_texture")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

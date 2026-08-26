@@ -1,6 +1,6 @@
 extends Area2D
 
-@export var max_hp: float = 65.0
+@export var max_hp: float = 70.0
 @export var score_value: int = 150
 @export var base_speed: float = 270.0
 @export var bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet.tscn")
@@ -18,6 +18,19 @@ func _ready() -> void:
 	add_to_group("enemies")
 	hp = max_hp * GameManager.get_enemy_hp_mult()
 	area_entered.connect(_on_area_entered)
+	
+	var tex_path = "res://extracted_assets/AI/cut_assets/enemies/helicopter.png"
+	if ResourceLoader.exists(tex_path) and sprite:
+		var tex = load(tex_path) as Texture2D
+		if tex:
+			sprite.texture = tex
+			var sc = 140.0 / float(max(1, tex.get_width()))
+
+
+
+
+			sprite.scale = Vector2(sc, sc)
+
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over: return

@@ -1,6 +1,9 @@
 extends Area2D
 
-@export var max_hp: float = 240.0
+@export var max_hp: float = 220.0
+
+
+
 @export var score_value: int = 500
 @export var speed: float = 120.0
 
@@ -23,6 +26,14 @@ func _ready() -> void:
 	hp = max_hp * GameManager.get_enemy_hp_mult()
 	phase_offset = randf_range(0.0, TAU)
 	area_entered.connect(_on_area_entered)
+	
+	var col = randi() % 6
+	var atlas = AIAtlasLoader.get_atlas("enemy.png", 1, col, 2, 6)
+	if atlas and sprite:
+		sprite.texture = atlas
+		sprite.scale = Vector2(0.42, 0.42)
+
+
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over:
@@ -80,7 +91,10 @@ func die() -> void:
 		AudioManager.play_sfx("explosion_heavy")
 		
 	GameManager.register_kill(global_position)
+	if GameManager.has_method("register_jet_kill"):
+		GameManager.register_jet_kill()
 	GameManager.add_score(score_value)
+
 	
 	if explosion_fx_scene:
 		for i in range(2):
