@@ -21,7 +21,7 @@ var turret_sprite: Sprite2D = null
 var tank_type: int = 0
 
 func _ready() -> void:
-	z_index = -5
+	z_index = 3 # On top of island terrain graphics
 	add_to_group("enemies")
 	# CRITICAL: Set correct collision layer so player bullets (mask=4) can hit us
 	collision_layer = 4
@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		fire_anti_air_shell()
-		shoot_timer = randf_range(2.0, 3.2)
+		shoot_timer = randf_range(0.6, 1.2) if GameManager.is_hard_mode() else randf_range(2.0, 3.2)
 
 func find_player() -> void:
 	if is_instance_valid(target_player): return
@@ -138,7 +138,8 @@ func fire_anti_air_shell() -> void:
 	var bullet = bullet_scene.instantiate()
 	bullet.global_position = global_position + fire_dir * 32.0
 	if "direction" in bullet: bullet.direction = fire_dir
-	if "speed" in bullet: bullet.speed = 480.0 * GameManager.get_bullet_speed_mult()
+	if "speed" in bullet: bullet.speed = (580.0 if GameManager.is_hard_mode() else 480.0) * GameManager.get_bullet_speed_mult()
+	if "damage" in bullet: bullet.damage = 55.0 if GameManager.is_hard_mode() else 25.0
 
 	if bullet.has_node("Sprite2D"):
 		var sp = bullet.get_node("Sprite2D") as Sprite2D

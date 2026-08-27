@@ -90,7 +90,8 @@ func _on_area_entered(area: Area2D) -> void:
 	if not hit_enemies.has(area) and (area.is_in_group("enemies") or area.is_in_group("enemy_towers") or area.is_in_group("enemy_tanks") or area.is_in_group("ground_units") or area.has_method("take_damage")):
 		hit_enemies.append(area)
 		if area.has_method("take_damage"):
-			area.take_damage(damage)
+			var dmg = damage * GameManager.get_player_damage_mult()
+			area.take_damage(dmg)
 			
 		create_thunder_hit_effect()
 		chain_lightning_impact(area.global_position)
@@ -117,9 +118,10 @@ func create_thunder_hit_effect() -> void:
 
 func chain_lightning_impact(pos: Vector2) -> void:
 	# Damage nearby enemies with electric splash
+	var splash_dmg = damage * 0.5 * GameManager.get_player_damage_mult()
 	for other in get_tree().get_nodes_in_group("enemies"):
 		if other != null and is_instance_valid(other) and not hit_enemies.has(other):
 			if other.global_position.distance_to(pos) <= 120.0:
 				hit_enemies.append(other)
 				if other.has_method("take_damage"):
-					other.take_damage(damage * 0.5)
+					other.take_damage(splash_dmg)

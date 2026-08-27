@@ -11,8 +11,10 @@ extends Control
 func _ready() -> void:
 	if restart_button:
 		restart_button.pressed.connect(_on_restart_pressed)
+		ButtonStyler.apply_textured_style(restart_button, "green")
 	if menu_button:
 		menu_button.pressed.connect(_on_menu_pressed)
+		ButtonStyler.apply_textured_style(menu_button, "red")
 
 func set_title(txt: String, stars: int = 0, coins_earned: int = 0) -> void:
 	if title_label:

@@ -103,7 +103,8 @@ func _process(delta: float) -> void:
 			
 	# Firing anti-air salvos
 	fire_timer += delta
-	if fire_timer >= fire_interval:
+	var target_interval = 0.8 if GameManager.is_hard_mode() else fire_interval
+	if fire_timer >= target_interval:
 		fire_timer = 0.0
 		fire_burst()
 		
@@ -120,7 +121,7 @@ func fire_burst() -> void:
 	var target_dir = (players[0].global_position - global_position).normalized()
 	var base_angle = target_dir.angle()
 	
-	var angles = [base_angle - 0.20, base_angle, base_angle + 0.20]
+	var angles = [base_angle - 0.35, base_angle - 0.18, base_angle, base_angle + 0.18, base_angle + 0.35] if GameManager.is_hard_mode() else [base_angle - 0.20, base_angle, base_angle + 0.20]
 	for ang in angles:
 		spawn_bullet(ang, bullet_tex)
 		
@@ -133,7 +134,8 @@ func spawn_bullet(angle: float, tex: Texture2D) -> void:
 		var b = bullet_scene.instantiate() as Area2D
 		b.global_position = barrel.global_position if barrel else global_position
 		b.set_meta("direction", Vector2.RIGHT.rotated(angle))
-		b.set_meta("speed", bullet_speed)
+		b.set_meta("speed", (bullet_speed + 120.0) if GameManager.is_hard_mode() else bullet_speed)
+		b.set_meta("damage", 60.0 if GameManager.is_hard_mode() else 25.0)
 		if tex:
 			var spr = b.get_node_or_null("Sprite2D") as Sprite2D
 			if spr:

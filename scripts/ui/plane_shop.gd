@@ -36,6 +36,13 @@ func _ready() -> void:
 	if next_jet_btn: next_jet_btn.pressed.connect(_on_next_clicked)
 	if buy_equip_jet_btn: buy_equip_jet_btn.pressed.connect(_on_action_clicked)
 	
+	if back_btn: ButtonStyler.apply_textured_style(back_btn, "red")
+	if buy_equip_jet_btn: ButtonStyler.apply_textured_style(buy_equip_jet_btn, "green")
+	if prev_jet_btn: ButtonStyler.apply_textured_style(prev_jet_btn, "default")
+	if next_jet_btn: ButtonStyler.apply_textured_style(next_jet_btn, "default")
+	if tab_jets_btn: ButtonStyler.apply_textured_style(tab_jets_btn, "purple")
+	if tab_pets_btn: ButtonStyler.apply_textured_style(tab_pets_btn, "purple")
+
 	if tab_jets_btn:
 		tab_jets_btn.text = "✈️ PLAYER JETS"
 		tab_jets_btn.pressed.connect(show_jets_tab)

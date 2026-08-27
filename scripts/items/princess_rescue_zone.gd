@@ -252,7 +252,7 @@ func complete_rescue() -> void:
 		if GameManager.has_method("register_princess_rescue"):
 			GameManager.register_princess_rescue()
 
-	spawn_popup_text("✨ PRINCESS RESCUED! +5,000 PT & 🛡️ SHIELD! ✨")
+	spawn_popup_text("✨ PRINCESS RESCUED! +5,000 PT & 🛡️ 3S SHIELD! ✨")
 
 	if tex_success.size() > 0:
 		sprite.texture = tex_success[0]

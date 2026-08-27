@@ -21,6 +21,9 @@ var takeoff_timer: float = 0.0
 var has_shield: bool = false
 var shield_hp: float = 0.0
 var shield_node: Node2D = null  # Custom draw-based shield
+var active_shield_timer: float = 0.0
+var pregame_shield_timer: float = 0.0
+var pregame_weapon_timer: float = 0.0
 
 var current_weapon_type: WeaponType = WeaponType.VULCAN
 var active_laser_beam: Area2D = null
@@ -47,7 +50,7 @@ func _ready() -> void:
 	GameManager.player_revived.connect(func(): trigger_revive_invulnerability(3.0))
 	
 	var jet_data = GameManager.get_jet_data(GameManager.selected_player_jet)
-	move_speed = 520.0
+	move_speed = 520.0 * GameManager.get_hive_speed_mult()
 	
 	# Set player jet sprite texture
 	var jet_file = jet_data.get("file", "jet1.png") as String
@@ -68,6 +71,41 @@ func _ready() -> void:
 	# Apply starting weapon configured for this jet
 	var raw_type = jet_data.get("weapon_type", 0) as int
 	current_weapon_type = raw_type as WeaponType
+
+	# Apply Pre-Game Consumable PowerUp Buffs (bought with Gems before match)
+	if GameManager.pregame_buffs.get("starting_shield", false):
+		activate_shield(120.0)
+		pregame_shield_timer = 4.0
+
+	if GameManager.pregame_buffs.get("laser_cannon", false):
+		current_weapon_type = WeaponType.LASER
+		spawn_pickup_text("⚡ LASER BEAM EQUIPPED!")
+	elif GameManager.pregame_buffs.get("spread_cannon", false):
+		current_weapon_type = WeaponType.SPREAD
+		spawn_pickup_text("💥 SPREAD CANNON EQUIPPED!")
+	elif GameManager.pregame_buffs.get("thunder_cannon", false):
+		current_weapon_type = WeaponType.THUNDER
+		spawn_pickup_text("⚡ THUNDER CANNON EQUIPPED!")
+
+	if GameManager.pregame_buffs.get("bullet_up", false):
+		GameManager.upgrade_weapon()
+
+	if GameManager.pregame_buffs.get("speed_boost", false):
+		activate_speed_boost(4.0)
+
+	if GameManager.pregame_buffs.get("mega_bomb", false):
+		GameManager.add_bomb(2)
+		spawn_pickup_text("💣 +2 MEGA BOMBS!")
+
+	if GameManager.pregame_buffs.get("pet_jet", false):
+		GameManager.loadout_pet_jets = true
+		spawn_pickup_text("🛩️ WINGMAN PET JET DEPLOYED!")
+
+	if GameManager.pregame_buffs.get("magnet", false):
+		GameManager.activate_star_magnet(4.0)
+
+	# Clear consumable pregame buffs after applying
+	GameManager.clear_pregame_buffs()
 
 	# Instantiate Equipped Pet Jets
 	setup_pet_jets()
@@ -156,6 +194,22 @@ func set_weapon_type(w_type: int) -> void:
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over: return
+
+	# Process active shield 3.0s expiration timer
+	if active_shield_timer > 0.0:
+		active_shield_timer -= delta
+		if active_shield_timer <= 0.0 and has_shield:
+			has_shield = false
+			if is_instance_valid(shield_node):
+				shield_node.hide()
+			spawn_pickup_text("🛡️ SHIELD EXPIRED (3S)")
+
+	if pregame_weapon_timer > 0.0:
+		pregame_weapon_timer -= delta
+		if pregame_weapon_timer <= 0.0:
+			GameManager.current_weapon_level = 1
+			GameManager.weapon_level_updated.emit(1)
+			spawn_pickup_text("⚡ MAX WEAPON EXPIRED")
 		
 	if prop_sprite: prop_sprite.rotation += 50.0 * delta
 	if is_instance_valid(shield_node) and shield_node.visible:
@@ -279,13 +333,14 @@ func fire_continuous_laser() -> void:
 		AudioManager.play_sfx("shoot", -7.0, 1.3)
 
 func get_fire_rate() -> float:
+	var base_rate = 0.14
 	match current_weapon_type:
-		WeaponType.VULCAN: return 0.12 - (GameManager.current_weapon_level * 0.01)
-		WeaponType.LASER: return 0.13 - (GameManager.current_weapon_level * 0.01)
-		WeaponType.MISSILE: return 0.22 - (GameManager.current_weapon_level * 0.015)
-		WeaponType.SPREAD: return 0.15 - (GameManager.current_weapon_level * 0.01)
-		WeaponType.THUNDER: return 0.13 - (GameManager.current_weapon_level * 0.01)
-		_: return 0.14
+		WeaponType.VULCAN: base_rate = 0.12 - (GameManager.current_weapon_level * 0.01)
+		WeaponType.LASER: base_rate = 0.13 - (GameManager.current_weapon_level * 0.01)
+		WeaponType.MISSILE: base_rate = 0.22 - (GameManager.current_weapon_level * 0.015)
+		WeaponType.SPREAD: base_rate = 0.15 - (GameManager.current_weapon_level * 0.01)
+		WeaponType.THUNDER: base_rate = 0.13 - (GameManager.current_weapon_level * 0.01)
+	return max(0.04, base_rate / GameManager.get_hive_fire_rate_mult())
 
 func shoot_bullets() -> void:
 	var level = GameManager.current_weapon_level
@@ -375,6 +430,17 @@ func spawn_bullet(scene: PackedScene, pos: Vector2, dir: Vector2) -> void:
 	var bullet = scene.instantiate()
 	bullet.global_position = pos
 	if "direction" in bullet: bullet.direction = dir
+	
+	# Apply Ant Hive Cannon Physical Damage & Crit Multipliers
+	var dmg_mult = GameManager.get_hive_damage_mult()
+	var is_crit = randf() < GameManager.get_hive_crit_chance()
+	if is_crit:
+		dmg_mult *= 2.0
+		spawn_pickup_text("🎯 CRITICAL!")
+		
+	if "damage" in bullet:
+		bullet.damage *= dmg_mult
+		
 	get_parent().add_child(bullet)
 
 func handle_weapon_shortcut_keys() -> void:
@@ -414,9 +480,10 @@ func create_bomb_flash() -> void:
 		b.queue_free()
 
 # ── Shield is drawn entirely with code – no atlas sprites needed ──
-func activate_shield(amount: float = 80.0) -> void:
+func activate_shield(amount: float = 120.0) -> void:
 	has_shield = true
 	shield_hp = amount
+	active_shield_timer = 3.0 # ALL energy shields in the game last strictly 3.0 seconds!
 	if not is_instance_valid(shield_node):
 		create_shield_node()
 	if shield_node:
@@ -426,6 +493,7 @@ func activate_shield(amount: float = 80.0) -> void:
 	var tween = create_tween()
 	shield_node.modulate = Color(2.5, 2.5, 2.5, 1.0)
 	tween.tween_property(shield_node, "modulate", Color(1, 1, 1, 1), 0.3)
+	spawn_pickup_text("🛡️ 3S SHIELD PROTECTED!")
 
 func create_shield_node() -> void:
 	if is_instance_valid(shield_node): return
@@ -498,8 +566,14 @@ class ShieldDrawNode extends Node2D:
 		draw_colored_polygon(pts, color)
 
 func take_damage(amount: float) -> void:
-	if is_invulnerable or GameManager.is_game_over: return
+	if GameManager.is_game_over: return
 	
+	# Ant Hive Dodge / Evasion chance
+	if randf() < GameManager.get_hive_dodge_chance():
+		spawn_pickup_text("🌀 DODGED!")
+		trigger_hit_flash(0.15)
+		return
+
 	if has_shield and shield_hp > 0.0:
 		shield_hp -= amount
 		# Flash shield white on hit
@@ -517,14 +591,18 @@ func take_damage(amount: float) -> void:
 				shield_node.modulate = Color(3.0, 1.0, 0.2, 1.0)
 				break_tween.tween_property(shield_node, "modulate:a", 0.0, 0.35)
 				break_tween.tween_callback(shield_node.hide)
-		trigger_invulnerability(0.4)
+		trigger_hit_flash(0.15)
 		return
 
+	# INSTANT DAMAGE: Deduct HP immediately on every hit!
 	GameManager.damage_player(amount)
-	trigger_invulnerability(1.8)
+	trigger_hit_flash(0.20)
 	
-	if sprite: sprite.modulate = Color(3.0, 0.3, 0.3)
 	if AudioManager: AudioManager.play_sfx("explosion", 0.0, 1.1)
+
+func trigger_hit_flash(duration: float = 0.15) -> void:
+	invuln_timer = duration
+	if sprite: sprite.modulate = Color(3.0, 0.3, 0.3, 1.0)
 
 func trigger_invulnerability(duration: float) -> void:
 	is_invulnerable = true
@@ -536,9 +614,8 @@ func trigger_revive_invulnerability(duration: float = 3.0) -> void:
 	trigger_invulnerability(duration)
 
 func handle_invulnerability(delta: float) -> void:
-	if is_invulnerable:
+	if invuln_timer > 0.0:
 		invuln_timer -= delta
-		if sprite: sprite.visible = fmod(invuln_timer, 0.16) > 0.08
 		if invuln_timer <= 0.0:
 			is_invulnerable = false
 			if sprite:
@@ -558,6 +635,9 @@ func _on_area_entered(area: Area2D) -> void:
 		elif "gold" in area_name:
 			crash_dmg = 80.0
 			
+		# Apply Ant Hive Collision Damage Reduction
+		var reduction = GameManager.get_hive_collision_reduction()
+		crash_dmg *= max(0.2, 1.0 - reduction)
 		take_damage(crash_dmg)
 		if area.has_method("take_damage"):
 			area.take_damage(350.0)
@@ -569,8 +649,27 @@ func _on_area_entered(area: Area2D) -> void:
 			if cam.has_method("add_shake"): cam.add_shake(18.0)
 
 func _on_game_over() -> void:
+	# Check Pre-Game Free Revive Buff
+	if GameManager.pregame_buffs.get("free_revive", false):
+		GameManager.pregame_buffs["free_revive"] = false
+		spawn_pickup_text("💖 FREE REVIVE ACTIVATED!")
+		GameManager.revive_player()
+		return
+
 	if explosion_fx_scene:
 		var exp = explosion_fx_scene.instantiate()
 		exp.global_position = global_position
 		get_parent().add_child(exp)
 	hide()
+
+func spawn_pickup_text(msg: String) -> void:
+	var pop_scene = load("res://scenes/effects/score_popup.tscn")
+	if pop_scene:
+		var pop = pop_scene.instantiate()
+		pop.global_position = global_position
+		pop.setup(0, msg)
+		var main_scene = get_tree().current_scene
+		if main_scene:
+			main_scene.add_child(pop)
+		elif get_parent():
+			get_parent().add_child(pop)

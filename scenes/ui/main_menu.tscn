@@ -148,6 +148,14 @@ theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 18
 text = "✈ HANGAR & SHOP"
 
+[node name="HiveUpgradeButton" type="Button" parent="MainPanel/VBox"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 18
+text = "⚡ UPGRADE"
+
 [node name="OptionsButton" type="Button" parent="MainPanel/VBox"]
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
@@ -454,22 +462,40 @@ horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="ImagesShopBtn" type="Button" parent="MissionBoardPanel/CorkBoard"]
-custom_minimum_size = Vector2(110, 48)
+custom_minimum_size = Vector2(120, 44)
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -140.0
-offset_top = 60.0
-offset_right = -30.0
-offset_bottom = 108.0
+offset_left = -150.0
+offset_top = 55.0
+offset_right = -20.0
+offset_bottom = 99.0
 grow_horizontal = 0
 theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 5
 theme_override_fonts/font = ExtResource("4_font")
-theme_override_font_sizes/font_size = 15
-text = "IMAGES / SHOP"
+theme_override_font_sizes/font_size = 14
+text = "HANGAR & SHOP"
+
+[node name="PregameBuffBtn" type="Button" parent="MissionBoardPanel/CorkBoard"]
+custom_minimum_size = Vector2(130, 46)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -150.0
+offset_top = 108.0
+offset_right = -20.0
+offset_bottom = 154.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 14
+text = "⚡ BUFF SHOP (4s)"
 
 [node name="ExitBoardBtn" type="Button" parent="MissionBoardPanel/CorkBoard"]
 custom_minimum_size = Vector2(110, 48)
@@ -510,9 +536,46 @@ theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 20
 text = "🚀 ENGAGE"
 
+[node name="DiffContainer" type="HBoxContainer" parent="MissionBoardPanel/CorkBoard"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -310.0
+offset_top = -175.0
+offset_right = -40.0
+offset_bottom = -135.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 8
+alignment = 2
+
+[node name="DiffLabel" type="Label" parent="MissionBoardPanel/CorkBoard/DiffContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 12
+text = "DIFFICULTY:"
+
+[node name="NormalBtn" type="Button" parent="MissionBoardPanel/CorkBoard/DiffContainer"]
+custom_minimum_size = Vector2(95, 36)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 12
+text = "NORMAL"
+
+[node name="HardBtn" type="Button" parent="MissionBoardPanel/CorkBoard/DiffContainer"]
+custom_minimum_size = Vector2(95, 36)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 12
+text = "🔥 HARD"
+
 [node name="SettingsPanel" type="PanelContainer" parent="."]
 visible = false
-custom_minimum_size = Vector2(440, 280)
+custom_minimum_size = Vector2(440, 260)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -520,9 +583,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -220.0
-offset_top = -140.0
+offset_top = -130.0
 offset_right = 220.0
-offset_bottom = 140.0
+offset_bottom = 130.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -536,16 +599,74 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 20
-text = "AUDIO & SETTINGS"
+text = "🔊 AUDIO SETTINGS"
 horizontal_alignment = 1
 
-[node name="BackButton" type="Button" parent="SettingsPanel"]
-custom_minimum_size = Vector2(90, 36)
+[node name="BgmRow" type="HBoxContainer" parent="SettingsPanel/VBox"]
 layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 0
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="SettingsPanel/VBox/BgmRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+text = "🎵 BGM MUSIC:"
+
+[node name="BgmSlider" type="HSlider" parent="SettingsPanel/VBox/BgmRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 80.0
+
+[node name="BgmVal" type="Label" parent="SettingsPanel/VBox/BgmRow"]
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+text = "80%"
+
+[node name="SfxRow" type="HBoxContainer" parent="SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Label" type="Label" parent="SettingsPanel/VBox/SfxRow"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+text = "💥 SFX SOUNDS:"
+
+[node name="SfxSlider" type="HSlider" parent="SettingsPanel/VBox/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 80.0
+
+[node name="SfxVal" type="Label" parent="SettingsPanel/VBox/SfxRow"]
+custom_minimum_size = Vector2(44, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 13
+text = "80%"
+
+[node name="MuteCheckBox" type="CheckBox" parent="SettingsPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_fonts/font = ExtResource("4_font")
 theme_override_font_sizes/font_size = 14
+text = "🔇 MUTE ALL AUDIO"
+
+[node name="BackButton" type="Button" parent="SettingsPanel/VBox"]
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 15
 text = "⬅ BACK"
 
 [node name="ControlsPanel" type="PanelContainer" parent="."]

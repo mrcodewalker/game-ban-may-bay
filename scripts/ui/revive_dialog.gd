@@ -13,8 +13,12 @@ var is_active: bool = false
 var gem_cost: int = 10
 
 func _ready() -> void:
-	if revive_button: revive_button.pressed.connect(_on_revive_pressed)
-	if giveup_button: giveup_button.pressed.connect(_on_giveup_pressed)
+	if revive_button:
+		revive_button.pressed.connect(_on_revive_pressed)
+		ButtonStyler.apply_textured_style(revive_button, "green")
+	if giveup_button:
+		giveup_button.pressed.connect(_on_giveup_pressed)
+		ButtonStyler.apply_textured_style(giveup_button, "red")
 	update_gems_display()
 	hide()
 

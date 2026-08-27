@@ -1,0 +1,189 @@
+[gd_scene load_steps=3 format=3 uid="uid://canthiveupgrade001"]
+
+[ext_resource type="Script" path="res://scripts/ui/ant_hive_upgrade.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://cfont231" path="res://extracted_assets/Fonts/font_231.ttf" id="2_font"]
+
+[node name="AntHiveUpgrade" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.04, 0.08, 0.94)
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TopRow" type="HBoxContainer" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/VBox/TopRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "⚡ TECH TREE UPGRADES"
+
+[node name="GemsLabel" type="Label" parent="Panel/VBox/TopRow"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "💎 GEMS: 20"
+
+[node name="BackBtn" type="Button" parent="Panel/VBox/TopRow"]
+custom_minimum_size = Vector2(44, 40)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "✖"
+
+[node name="SubTitle" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "SELECT CONNECTED TECH NODES TO UPGRADE PERMANENT COMBAT STATS"
+horizontal_alignment = 1
+
+[node name="GraphViewport" type="Control" parent="Panel/VBox"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="GraphContainer" type="Control" parent="Panel/VBox/GraphViewport"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanOverlay" type="Control" parent="Panel/VBox/GraphViewport"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PanLeftBtn" type="Button" parent="Panel/VBox/GraphViewport/PanOverlay"]
+custom_minimum_size = Vector2(44, 48)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 12.0
+offset_top = -24.0
+offset_right = 56.0
+offset_bottom = 24.0
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "◀"
+
+[node name="PanRightBtn" type="Button" parent="Panel/VBox/GraphViewport/PanOverlay"]
+custom_minimum_size = Vector2(44, 48)
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -56.0
+offset_top = -24.0
+offset_right = -12.0
+offset_bottom = 24.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "▶"
+
+[node name="PanCenterBtn" type="Button" parent="Panel/VBox/GraphViewport/PanOverlay"]
+custom_minimum_size = Vector2(85, 36)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -100.0
+offset_top = 10.0
+offset_right = -15.0
+offset_bottom = 46.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 13
+text = "🎯 CENTER"
+
+[node name="DetailPanel" type="PanelContainer" parent="Panel/VBox"]
+custom_minimum_size = Vector2(0, 115)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/DetailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="IconLabel" type="Label" parent="Panel/VBox/DetailPanel/HBox"]
+custom_minimum_size = Vector2(64, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "⚡"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBoxInfo" type="VBoxContainer" parent="Panel/VBox/DetailPanel/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox/DetailPanel/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "Node Name"
+
+[node name="DescLabel" type="Label" parent="Panel/VBox/DetailPanel/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "Node description stats..."
+autowrap_mode = 2
+
+[node name="LevelLabel" type="Label" parent="Panel/VBox/DetailPanel/HBox/VBoxInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "LEVEL: 0 / 10"
+
+[node name="UpgradeBtn" type="Button" parent="Panel/VBox/DetailPanel/HBox"]
+custom_minimum_size = Vector2(140, 52)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
+text = "UPGRADE 3 💎"

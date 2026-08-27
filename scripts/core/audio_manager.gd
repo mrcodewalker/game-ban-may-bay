@@ -6,6 +6,10 @@ var max_sfx_channels: int = 8
 
 var sound_streams: Dictionary = {}
 
+var bgm_volume_scale: float = 1.0
+var sfx_volume_scale: float = 1.0
+var is_muted: bool = false
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -20,6 +24,22 @@ func _ready() -> void:
 		sfx_players.append(p)
 		
 	load_audio_resources()
+
+func set_bgm_volume_linear(val: float) -> void:
+	bgm_volume_scale = clamp(val, 0.0, 1.0)
+	if bgm_volume_scale <= 0.001:
+		bgm_player.volume_db = -80.0
+	else:
+		bgm_player.volume_db = linear_to_db(bgm_volume_scale)
+
+func set_sfx_volume_linear(val: float) -> void:
+	sfx_volume_scale = clamp(val, 0.0, 1.0)
+
+func set_muted(muted: bool) -> void:
+	is_muted = muted
+	var master_bus = AudioServer.get_bus_index("Master")
+	if master_bus >= 0:
+		AudioServer.set_bus_mute(master_bus, muted)
 
 func load_audio_resources() -> void:
 	var audio_files = {
@@ -52,19 +72,20 @@ func stop_bgm() -> void:
 	bgm_player.stop()
 
 func play_sfx(key: String, volume_db: float = 0.0, pitch: float = 1.0) -> void:
-	if not sound_streams.has(key):
+	if not sound_streams.has(key) or sfx_volume_scale <= 0.001:
 		return
 	
+	var final_db = volume_db + linear_to_db(sfx_volume_scale)
 	for p in sfx_players:
 		if not p.playing:
 			p.stream = sound_streams[key]
-			p.volume_db = volume_db
+			p.volume_db = final_db
 			p.pitch_scale = pitch
 			p.play()
 			return
 			
 	# If all channels busy, use the first channel
 	sfx_players[0].stream = sound_streams[key]
-	sfx_players[0].volume_db = volume_db
+	sfx_players[0].volume_db = final_db
 	sfx_players[0].pitch_scale = pitch
 	sfx_players[0].play()

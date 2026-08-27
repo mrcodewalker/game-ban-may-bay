@@ -75,6 +75,239 @@ var map_unlocked: Array = [true, true, true, true, true]
 var map_stars: Array = [0, 0, 0, 0, 0]
 var map_high_scores: Array = [0, 0, 0, 0, 0]
 
+# Pre-game Consumable Buffs (bought with Gems before starting a run)
+var pregame_buffs: Dictionary = {
+	"starting_shield": false, # 2 Gems
+	"laser_cannon": false,    # 4 Gems
+	"spread_cannon": false,   # 3 Gems
+	"thunder_cannon": false,  # 4 Gems
+	"bullet_up": false,       # 3 Gems
+	"speed_boost": false,     # 2 Gems
+	"mega_bomb": false,       # 3 Gems
+	"pet_jet": false,         # 4 Gems
+	"magnet": false           # 2 Gems
+}
+
+const PREGAME_BUFF_CATALOG: Dictionary = {
+	"starting_shield": {
+		"name": "ENERGY SHIELD",
+		"type_tag": "3S SHIELD",
+		"desc": "Deploys 120 HP Energy Shield for 3 seconds at takeoff",
+		"price": 2,
+		"icon": "🛡️",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/shield.png"
+	},
+	"laser_cannon": {
+		"name": "LASER BEAM CANNON",
+		"type_tag": "WEAPON TYPE",
+		"desc": "Starts battle equipped with continuous High-Tech Laser Beam Cannon",
+		"price": 4,
+		"icon": "⚡",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/power-up.png"
+	},
+	"spread_cannon": {
+		"name": "SPREAD CANNON",
+		"type_tag": "WEAPON TYPE",
+		"desc": "Starts battle equipped with 5-Way Wide Spread Blast Cannon",
+		"price": 3,
+		"icon": "💥",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/spread-bullet.png"
+	},
+	"thunder_cannon": {
+		"name": "THUNDER CANNON",
+		"type_tag": "WEAPON TYPE",
+		"desc": "Starts battle equipped with Chain Lightning Thunder Cannon",
+		"price": 4,
+		"icon": "⚡",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/thunder-bullet.png"
+	},
+	"bullet_up": {
+		"name": "WEAPON UPGRADE (+1 LV)",
+		"type_tag": "WEAPON LEVEL",
+		"desc": "Starts battle with main weapon pre-upgraded by +1 Level",
+		"price": 3,
+		"icon": "🔫",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/increase-1-bullet-more.png"
+	},
+	"speed_boost": {
+		"name": "SPEED BOOST (4S)",
+		"type_tag": "4S SPEED",
+		"desc": "Supercharges jet velocity for 4 seconds at takeoff",
+		"price": 2,
+		"icon": "🏎️",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/speed-more.png"
+	},
+	"mega_bomb": {
+		"name": "MEGA BOMB (+2)",
+		"type_tag": "+2 BOMBS",
+		"desc": "Adds +2 starting Mega Bombs directly to inventory",
+		"price": 3,
+		"icon": "💣",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/bomb-decrease-hp-can-fire-bullet.png"
+	},
+	"pet_jet": {
+		"name": "PET JET SUPPORT",
+		"type_tag": "WINGMAN",
+		"desc": "Summons 1 automatic Wingman Pet Jet for support during the run",
+		"price": 4,
+		"icon": "🛩️",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/hire-pet-jet.png"
+	},
+	"magnet": {
+		"name": "GEM MAGNET (4S)",
+		"type_tag": "4S MAGNET",
+		"desc": "Attracts all gems and coins for 4 seconds at takeoff",
+		"price": 2,
+		"icon": "🧲",
+		"icon_tex": "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/attract-coin.png"
+	}
+}
+
+# Ant Hive Permanent Stat Upgrades (saved to user cfg)
+var ant_hive_levels: Dictionary = {
+	"core": 1,
+	"max_hp": 0,
+	"damage": 0,
+	"armor": 0,
+	"fire_rate": 0,
+	"magnet": 0,
+	"crit": 0,
+	"dodge": 0,
+	"move_speed": 0,
+	"gem_bonus": 0,
+	"buff_duration": 0,
+	"start_bombs": 0
+}
+
+const ANT_HIVE_NODES: Dictionary = {
+	"core": {
+		"name": "ANT HIVE CORE",
+		"desc": "Central hive command node. Unlocks adjacent stat branches.",
+		"icon": "🐜",
+		"max_lvl": 1,
+		"cost_per_lvl": 0,
+		"parents": [],
+		"pos": Vector2(0, 0)
+	},
+	"max_hp": {
+		"name": "MAX HEALTH BOOST",
+		"desc": "Increases max hit points (+15 HP per level)",
+		"icon": "❤️",
+		"max_lvl": 10,
+		"cost_per_lvl": 3,
+		"parents": ["core"],
+		"pos": Vector2(-120, -70)
+	},
+	"damage": {
+		"name": "PHYSICAL DAMAGE",
+		"desc": "Increases primary bullet damage (+10% per level)",
+		"icon": "⚔️",
+		"max_lvl": 10,
+		"cost_per_lvl": 4,
+		"parents": ["core"],
+		"pos": Vector2(120, -70)
+	},
+	"armor": {
+		"name": "CRASH ARMOR",
+		"desc": "Reduces collision damage taken (-8% per level)",
+		"icon": "🛡️",
+		"max_lvl": 8,
+		"cost_per_lvl": 3,
+		"parents": ["core"],
+		"pos": Vector2(-120, 70)
+	},
+	"fire_rate": {
+		"name": "FIRE RATE BOOST",
+		"desc": "Increases cannon firing speed (+6% per level)",
+		"icon": "⚡",
+		"max_lvl": 8,
+		"cost_per_lvl": 4,
+		"parents": ["core"],
+		"pos": Vector2(120, 70)
+	},
+	"move_speed": {
+		"name": "FLIGHT SPEED",
+		"desc": "Increases jet flight speed (+7% per level)",
+		"icon": "🏎️",
+		"max_lvl": 5,
+		"cost_per_lvl": 3,
+		"parents": ["max_hp"],
+		"pos": Vector2(-230, -130)
+	},
+	"crit": {
+		"name": "CRITICAL CHANCE",
+		"desc": "Chance to deal 200% Critical Strike damage (+5% per level)",
+		"icon": "🎯",
+		"max_lvl": 6,
+		"cost_per_lvl": 5,
+		"parents": ["damage"],
+		"pos": Vector2(230, -130)
+	},
+	"start_bombs": {
+		"name": "STARTING BOMBS",
+		"desc": "Adds extra bombs at run start (+1 bomb per level)",
+		"icon": "💣",
+		"max_lvl": 3,
+		"cost_per_lvl": 6,
+		"parents": ["armor"],
+		"pos": Vector2(-230, 130)
+	},
+	"magnet": {
+		"name": "MAGNET RADIUS",
+		"desc": "Expands item collection distance (+40px per level)",
+		"icon": "🧲",
+		"max_lvl": 6,
+		"cost_per_lvl": 2,
+		"parents": ["fire_rate"],
+		"pos": Vector2(230, 130)
+	},
+	"dodge": {
+		"name": "EVASION / DODGE",
+		"desc": "Chance to completely dodge enemy bullets (+4% per level)",
+		"icon": "🌀",
+		"max_lvl": 5,
+		"cost_per_lvl": 5,
+		"parents": ["move_speed", "start_bombs"],
+		"pos": Vector2(-310, 0)
+	},
+	"gem_bonus": {
+		"name": "GEM DROP BONUS",
+		"desc": "Increases chance for extra gem drops (+15% per level)",
+		"icon": "💎",
+		"max_lvl": 5,
+		"cost_per_lvl": 4,
+		"parents": ["crit", "magnet"],
+		"pos": Vector2(310, 0)
+	},
+	"buff_duration": {
+		"name": "BUFF DURATION",
+		"desc": "Increases duration of dropped powerup items (+25% per level)",
+		"icon": "⏱️",
+		"max_lvl": 5,
+		"cost_per_lvl": 3,
+		"parents": ["max_hp", "damage"],
+		"pos": Vector2(0, -180)
+	},
+	"upcoming_01": {
+		"name": "❓ CLASSIFIED TECH I",
+		"desc": "Classified Prototype Technology. Coming soon in next update!",
+		"icon": "❓",
+		"max_lvl": 0,
+		"cost_per_lvl": 0,
+		"parents": ["max_hp", "buff_duration"],
+		"pos": Vector2(-100, -250)
+	},
+	"upcoming_02": {
+		"name": "❓ CLASSIFIED TECH II",
+		"desc": "Classified Prototype Technology. Coming soon in next update!",
+		"icon": "❓",
+		"max_lvl": 0,
+		"cost_per_lvl": 0,
+		"parents": ["damage", "buff_duration"],
+		"pos": Vector2(100, -250)
+	}
+}
+
 const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet1.png",
@@ -207,6 +440,8 @@ func save_user_data() -> void:
 	cfg.set_value("player", "coins", coins)
 	cfg.set_value("player", "gems", gems)
 	cfg.set_value("player", "high_score", high_score)
+	cfg.set_value("player", "ant_hive_levels", ant_hive_levels)
+	cfg.set_value("player", "pregame_buffs", pregame_buffs)
 	cfg.save("user://player_save.cfg")
 
 func load_user_data() -> void:
@@ -221,6 +456,12 @@ func load_user_data() -> void:
 		coins = cfg.get_value("player", "coins", 0)
 		gems = cfg.get_value("player", "gems", 20)
 		high_score = cfg.get_value("player", "high_score", 0)
+		var saved_hive = cfg.get_value("player", "ant_hive_levels", {})
+		for k in saved_hive.keys():
+			ant_hive_levels[k] = saved_hive[k]
+		var saved_buffs = cfg.get_value("player", "pregame_buffs", {})
+		for k in saved_buffs.keys():
+			pregame_buffs[k] = saved_buffs[k]
 
 func reset_game() -> void:
 	reset_game_state()
@@ -268,11 +509,18 @@ func reset_game_state() -> void:
 			target_vip_count = 3
 	
 	var jet_data = get_jet_data(selected_player_jet)
-	player_max_hp = jet_data.get("hp", 120.0)
+	player_max_hp = jet_data.get("hp", 120.0) + get_hive_hp_bonus()
 	player_hp = player_max_hp
 	
-	player_bombs = 3
-	current_weapon_level = 1
+	var bomb_bonus = 2 if (pregame_buffs.get("mega_bomb", false) or pregame_buffs.get("extra_bombs", false)) else 0
+	player_bombs = 3 + get_hive_start_bombs_bonus() + bomb_bonus
+	
+	if pregame_buffs.get("bullet_up", false):
+		current_weapon_level = 2
+	elif pregame_buffs.get("max_weapon", false):
+		current_weapon_level = 4
+	else:
+		current_weapon_level = 1
 	is_game_over = false
 	is_boss_active = false
 	
@@ -296,6 +544,12 @@ func get_pet_data(file_name: String) -> Dictionary:
 
 func is_hard_mode() -> bool:
 	return current_difficulty == Difficulty.HARD
+
+func get_player_damage_mult() -> float:
+	return 0.70 if is_hard_mode() else 1.0
+
+func get_enemy_damage_mult() -> float:
+	return 2.2 if is_hard_mode() else 1.0
 
 func use_gems(amount: int) -> bool:
 	if gems >= amount:
@@ -466,8 +720,85 @@ func get_enemy_hp_mult() -> float:
 	match current_difficulty:
 		Difficulty.EASY: base_mult = 0.75
 		Difficulty.NORMAL: base_mult = 0.90
-		Difficulty.HARD: base_mult = 1.30
+		Difficulty.HARD: base_mult = 1.60
 		_: base_mult = 1.0
 	# Map 1: 1.0x, Map 2: 1.35x, Map 3: 1.70x, Map 4: 2.15x, Map 5: 2.70x HP!
 	var map_scale = 1.0 + float(current_map - 1) * 0.35
 	return base_mult * map_scale
+
+# ── Ant Hive Stat Calculations ──
+func get_hive_hp_bonus() -> float:
+	return float(ant_hive_levels.get("max_hp", 0)) * 15.0
+
+func get_hive_damage_mult() -> float:
+	return 1.0 + float(ant_hive_levels.get("damage", 0)) * 0.10
+
+func get_hive_collision_reduction() -> float:
+	return float(ant_hive_levels.get("armor", 0)) * 0.08
+
+func get_hive_fire_rate_mult() -> float:
+	return 1.0 + float(ant_hive_levels.get("fire_rate", 0)) * 0.06
+
+func get_hive_magnet_bonus() -> float:
+	return float(ant_hive_levels.get("magnet", 0)) * 40.0
+
+func get_hive_crit_chance() -> float:
+	return float(ant_hive_levels.get("crit", 0)) * 0.05
+
+func get_hive_dodge_chance() -> float:
+	return float(ant_hive_levels.get("dodge", 0)) * 0.04
+
+func get_hive_speed_mult() -> float:
+	return 1.0 + float(ant_hive_levels.get("move_speed", 0)) * 0.07
+
+func get_hive_gem_drop_mult() -> float:
+	return 1.0 + float(ant_hive_levels.get("gem_bonus", 0)) * 0.15
+
+func get_hive_buff_duration_mult() -> float:
+	return 1.0 + float(ant_hive_levels.get("buff_duration", 0)) * 0.25
+
+func get_hive_start_bombs_bonus() -> int:
+	return ant_hive_levels.get("start_bombs", 0) as int
+
+func is_hive_node_unlocked(node_key: String) -> bool:
+	if not ANT_HIVE_NODES.has(node_key): return false
+	var parents = ANT_HIVE_NODES[node_key]["parents"] as Array
+	if parents.size() == 0: return true
+	for p in parents:
+		if ant_hive_levels.get(p, 0) > 0:
+			return true
+	return false
+
+func upgrade_hive_node(node_key: String) -> bool:
+	if not ANT_HIVE_NODES.has(node_key): return false
+	if not is_hive_node_unlocked(node_key): return false
+	var data = ANT_HIVE_NODES[node_key]
+	var max_lvl = data["max_lvl"] as int
+	var cur_lvl = ant_hive_levels.get(node_key, 0) as int
+	if cur_lvl >= max_lvl: return false
+	var cost = data["cost_per_lvl"] as int
+	if use_gems(cost):
+		ant_hive_levels[node_key] = cur_lvl + 1
+		save_user_data()
+		return true
+	return false
+
+# ── Pre-Game Buff Helpers ──
+func buy_pregame_buff(buff_key: String) -> bool:
+	if not PREGAME_BUFF_CATALOG.has(buff_key): return false
+	# Cannot refund or re-buy if already owned for next run!
+	if pregame_buffs.get(buff_key, false): return false
+
+	var price = PREGAME_BUFF_CATALOG[buff_key]["price"] as int
+	if use_gems(price):
+		pregame_buffs[buff_key] = true
+		save_user_data()
+		return true
+	return false
+
+func toggle_pregame_buff(buff_key: String) -> bool:
+	return buy_pregame_buff(buff_key)
+
+func clear_pregame_buffs() -> void:
+	for k in pregame_buffs.keys():
+		pregame_buffs[k] = false
