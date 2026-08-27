@@ -28,7 +28,7 @@ var current_jet_idx: int = 0
 var current_pet_idx: int = 0
 var is_pet_tab: bool = false
 
-const WPN_NAMES: Array[String] = ["VULCAN DUAL CANNON", "CONTINUOUS LASER BEAM", "HOMING MISSILES", "3-WAY SPREAD CANNON"]
+const WPN_NAMES: Array[String] = ["VULCAN DUAL CANNON", "THUNDER STRIKE CANNON", "HOMING MISSILES", "3-WAY SPREAD CANNON"]
 
 func _ready() -> void:
 	if back_btn: back_btn.pressed.connect(_on_back_pressed)

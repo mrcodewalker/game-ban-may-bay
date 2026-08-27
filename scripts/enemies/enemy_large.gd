@@ -27,11 +27,16 @@ func _ready() -> void:
 	phase_offset = randf_range(0.0, TAU)
 	area_entered.connect(_on_area_entered)
 	
-	var col = randi() % 6
-	var atlas = AIAtlasLoader.get_atlas("enemy.png", 1, col, 2, 6)
-	if atlas and sprite:
-		sprite.texture = atlas
-		sprite.scale = Vector2(0.42, 0.42)
+	var base_cut = "res://extracted_assets/AI/cut_assets/enemies/"
+	var enemy_files = ["ufo.png", "helicopter.png", "jet2.png"]
+	var tex_path = base_cut + enemy_files[randi() % enemy_files.size()]
+	if ResourceLoader.exists(tex_path) and sprite:
+		var tex = load(tex_path) as Texture2D
+		if tex:
+			sprite.texture = tex
+			var sc = 185.0 / float(max(1, tex.get_width()))
+			sprite.scale = Vector2(sc, sc)
+			sprite.modulate = Color(1.3, 0.88, 0.88) # Heavy fortress red tint
 
 
 
@@ -119,7 +124,7 @@ func die() -> void:
 	if powerup_scene:
 		var item = powerup_scene.instantiate()
 		item.global_position = global_position
-		item.type = randi() % 5
+		item.type = randi() % 11
 		get_parent().call_deferred("add_child", item)
 		
 	queue_free()

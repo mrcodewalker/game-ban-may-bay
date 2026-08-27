@@ -86,17 +86,15 @@ func setup_visuals() -> void:
 
 
 func _load_fallback_atlas() -> void:
-	var path = "res://extracted_assets/AI/xe-tang.png"
+	var path = "res://extracted_assets/AI/cut_assets/enemies/tank 1.png"
 	if not ResourceLoader.exists(path): return
 	var tex = load(path) as Texture2D
-
-	# Body from row 2 (gold tank) – distinct region from turret
-	var body_atlas = AtlasTexture.new()
-	body_atlas.atlas = tex
-	# Gold tank body: row 2, col 1 (x=10, y=165, w=115, h=150)
-	body_atlas.region = Rect2(10, 165, 90, 130)
-	tank_body_sprite.texture = body_atlas
-	shadow_sprite.texture = body_atlas
+	if tex:
+		tank_body_sprite.texture = tex
+		shadow_sprite.texture = tex
+		var sc = 140.0 / float(max(1, tex.get_width()))
+		tank_body_sprite.scale = Vector2(sc, sc)
+		shadow_sprite.scale = Vector2(sc, sc)
 
 	# Turret-only from row 2 col 5 (turret separated from chassis)
 	var turret_atlas = AtlasTexture.new()

@@ -67,8 +67,8 @@ var max_weapon_level: int = 4
 var is_game_over: bool = false
 var is_boss_active: bool = false
 
-# Player Weapon Damage Upgrades (0: Vulcan, 1: Laser, 2: Missile, 3: Spread)
-var weapon_damage_levels: Dictionary = { 0: 1, 1: 1, 2: 1, 3: 1 }
+# Player Weapon Damage Upgrades (0: Vulcan, 1: Laser, 2: Missile, 3: Spread, 4: Thunder)
+var weapon_damage_levels: Dictionary = { 0: 1, 1: 1, 2: 1, 3: 1, 4: 1 }
 
 # Persistent Save Data across 5 Maps
 var map_unlocked: Array = [true, true, true, true, true]
@@ -88,8 +88,8 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet2.png",
 		"name": "PHANTOM STRIKER",
-		"desc": "Advanced Energy Interceptor. Starting Weapon: Continuous Laser Beam.",
-		"weapon_type": 1, # Laser
+		"desc": "Advanced Energy Interceptor. Starting Weapon: Thunder Strike Cannon.",
+		"weapon_type": 1, # Thunder Strike
 		"price_stars": 300,
 		"price_gems": 10,
 		"hp": 130.0
@@ -115,8 +115,8 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet5.png",
 		"name": "SOLAR FLARE",
-		"desc": "Solar Energy Jet. Supercharged Laser Beam and solar shield.",
-		"weapon_type": 1, # Laser
+		"desc": "Solar Energy Jet. Supercharged Thunder Strike Cannon and solar shield.",
+		"weapon_type": 1, # Thunder Strike
 		"price_stars": 1200,
 		"price_gems": 35,
 		"hp": 170.0
@@ -327,15 +327,31 @@ func damage_player(amount: float) -> void:
 func update_boss_health(cur_hp: float, m_hp: float, is_vis: bool) -> void:
 	boss_health_updated.emit(cur_hp, m_hp, is_vis)
 
+var is_overcharged: bool = false
+var overcharge_timer: float = 0.0
+
+func _process(delta: float) -> void:
+	if is_overcharged:
+		overcharge_timer -= delta
+		if overcharge_timer <= 0.0:
+			is_overcharged = false
+
 func activate_star_magnet(_duration: float = 10.0) -> void:
 	pass
+
+func activate_overcharge_boost(duration: float = 10.0) -> void:
+	is_overcharged = true
+	overcharge_timer = duration
 
 func emit_mission_tasks() -> void:
 	emit_mission_update()
 
 func get_weapon_damage_mult(type_idx: int) -> float:
 	var lvl = weapon_damage_levels.get(type_idx, 1) as int
-	return 1.0 + float(lvl - 1) * 0.25
+	var mult = 1.0 + float(lvl - 1) * 0.25
+	if is_overcharged:
+		mult *= 1.5
+	return mult
 
 func upgrade_weapon_damage_type(type_idx: int) -> bool:
 	var current_lvl = weapon_damage_levels.get(type_idx, 1) as int
@@ -361,6 +377,16 @@ func add_star(amount: int = 1) -> void:
 	coins_earned_in_run += amount
 	coins_updated.emit(coins)
 	save_user_data()
+
+func add_coins_bonus(amount: int = 200) -> void:
+	coins += amount
+	coins_earned_in_run += amount
+	coins_updated.emit(coins)
+	save_user_data()
+
+func add_stars_bonus(amount: int = 100) -> void:
+	add_score(amount * 10)
+	add_star(amount)
 
 func add_gem(amount: int = 1) -> void:
 	gems += amount

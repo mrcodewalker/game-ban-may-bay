@@ -1,20 +1,20 @@
 extends Area2D
 
 enum PowerUpType {
-	POWER,      # suc-manh.png ➔ Weapon Level +1
-	LASER,      # dan-laser.png ➔ Laser Beam Cannon
-	MISSILE,    # ban-ra-5-qua-ten-lua.png ➔ 5x Homing Missiles
-	SPREAD,     # dan-mui-ten.png ➔ Spread Arrow Cannon
-	SHIELD,     # khien-suc-manh.png ➔ Energy Shield Active
-	HEAL,       # hoi-mau.png ➔ Restore HP
-	MAGNET,     # nam-cham-hut-tien.png ➔ Star Magnet 10s
-	PET_JET,    # trieu-hoi-pet-jet.png ➔ Summon Wingman Pet Jet
-	SAFE_ZONE,  # 10-s-tiep-khong-co-quai.png ➔ 10s Safe Zone
-	TELEPORT,   # dich-chuyen-tuc-thoi-sang-vi-tri-khac.png ➔ Teleport Dodge
-	RANDOM      # ngau-nhien-dan.png ➔ Random Weapon Swap
+	BULLET_UP,    # increase-1-bullet-more.png
+	THUNDER,      # thunder-bullet.png
+	SPREAD,       # spread-bullet.png
+	SHIELD,       # shield.png
+	SPEED_BOOST,  # speed-more.png
+	MEGA_BOMB,    # bomb-decrease-hp-can-fire-bullet.png
+	PET_JET,      # hire-pet-jet.png
+	MAGNET,       # attract-coin.png
+	OVERCHARGE,   # power-up.png
+	COIN,         # coin.png
+	STAR          # star.png
 }
 
-@export var type: PowerUpType = PowerUpType.POWER
+@export var type: PowerUpType = PowerUpType.BULLET_UP
 @export var speed: float = 120.0
 
 var time_passed: float = 0.0
@@ -22,52 +22,72 @@ var time_passed: float = 0.0
 @onready var label: Label = $Label if has_node("Label") else null
 @onready var sprite: Sprite2D = $Sprite2D if has_node("Sprite2D") else null
 
+var glow_node: Node2D = null
+
 func _ready() -> void:
 	z_index = 6
 	area_entered.connect(_on_area_entered)
+	
+	# Create glowing aura border node behind sprite
+	create_glow_border_node()
+
 	if not sprite:
 		sprite = Sprite2D.new()
 		add_child(sprite)
 	update_appearance()
 
+func create_glow_border_node() -> void:
+	if is_instance_valid(glow_node): return
+	var g = PowerUpGlowNode.new()
+	g.name = "GlowBorderNode"
+	g.z_index = -1
+	g.powerup_ref = self
+	add_child(g)
+	glow_node = g
+
 func update_appearance() -> void:
 	if not is_inside_tree() or not sprite:
 		return
 		
-	var base_p = "res://extracted_assets/AI/cut_assets/powerups/"
+	var base_trimmed = "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/"
 	var file_name = ""
 	match type:
-		PowerUpType.POWER: file_name = "suc-manh.png"
-		PowerUpType.LASER: file_name = "dan-laser.png"
-		PowerUpType.MISSILE: file_name = "ban-ra-5-qua-ten-lua.png"
-		PowerUpType.SPREAD: file_name = "dan-mui-ten.png"
-		PowerUpType.SHIELD: file_name = "khien-suc-manh.png"
-		PowerUpType.HEAL: file_name = "hoi-mau.png"
-		PowerUpType.MAGNET: file_name = "nam-cham-hut-tien.png"
-		PowerUpType.PET_JET: file_name = "trieu-hoi-pet-jet.png"
-		PowerUpType.SAFE_ZONE: file_name = "10-s-tiep-khong-co-quai.png"
-		PowerUpType.TELEPORT: file_name = "dich-chuyen-tuc-thoi-sang-vi-tri-khac.png"
-		PowerUpType.RANDOM: file_name = "ngau-nhien-dan.png"
+		PowerUpType.BULLET_UP: file_name = "increase-1-bullet-more.png"
+		PowerUpType.THUNDER: file_name = "thunder-bullet.png"
+		PowerUpType.SPREAD: file_name = "spread-bullet.png"
+		PowerUpType.SHIELD: file_name = "shield.png"
+		PowerUpType.SPEED_BOOST: file_name = "speed-more.png"
+		PowerUpType.MEGA_BOMB: file_name = "bomb-decrease-hp-can-fire-bullet.png"
+		PowerUpType.PET_JET: file_name = "hire-pet-jet.png"
+		PowerUpType.MAGNET: file_name = "attract-coin.png"
+		PowerUpType.OVERCHARGE: file_name = "power-up.png"
+		PowerUpType.COIN: file_name = "coin.png"
+		PowerUpType.STAR: file_name = "star.png"
 		
-	var full_path = base_p + file_name
+	var full_path = base_trimmed + file_name
 	if ResourceLoader.exists(full_path):
 		var tex = load(full_path) as Texture2D
 		if tex:
 			sprite.texture = tex
-			var sc = 55.0 / float(max(1, tex.get_width()))
+			var max_dim = float(max(tex.get_width(), tex.get_height()))
+			var sc = 72.0 / max(1.0, max_dim) # Increased size from 56 to 72
 			sprite.scale = Vector2(sc, sc)
-			sprite.modulate = Color.WHITE
+			sprite.modulate = Color(1.15, 1.15, 1.15, 1.0)
 			if label: label.hide()
 			return
-			
-	# Fallback to AIAtlasLoader power-up.png sheet
-	var item_idx = int(type)
-	var atlas = AIAtlasLoader.get_atlas("power-up.png", item_idx / 6, item_idx % 6, 2, 6)
-	if atlas:
-		sprite.texture = atlas
-		sprite.scale = Vector2(0.26, 0.26)
-		sprite.modulate = Color.WHITE
-		if label: label.hide()
+
+	# Fallback to numbered files if named files missing
+	var fallback_file = "powerup_%02d.png" % (int(type) + 1)
+	if ResourceLoader.exists(base_trimmed + fallback_file):
+		var tex = load(base_trimmed + fallback_file) as Texture2D
+		if tex:
+			sprite.texture = tex
+			var max_dim = float(max(tex.get_width(), tex.get_height()))
+			var sc = 72.0 / max(1.0, max_dim)
+			sprite.scale = Vector2(sc, sc)
+			sprite.modulate = Color(1.15, 1.15, 1.15, 1.0)
+			if label: label.hide()
+			return
 
 func _process(delta: float) -> void:
 	time_passed += delta
@@ -75,69 +95,91 @@ func _process(delta: float) -> void:
 	position.x += sin(time_passed * 4.5) * 1.8
 	
 	if sprite and sprite.texture:
-		var pulse = 1.0 + sin(time_passed * 6.0) * 0.10
-		var base_sc = 55.0 / float(max(1, sprite.texture.get_width()))
+		var pulse = 1.0 + sin(time_passed * 5.0) * 0.12
+		var max_dim = float(max(sprite.texture.get_width(), sprite.texture.get_height()))
+		var base_sc = 72.0 / max(1.0, max_dim)
 		sprite.scale = Vector2(base_sc, base_sc) * pulse
+		
+	if is_instance_valid(glow_node):
+		glow_node.queue_redraw()
 	
 	if position.y > 1080:
 		queue_free()
+
+func get_theme_glow_color() -> Color:
+	match type:
+		PowerUpType.BULLET_UP, PowerUpType.OVERCHARGE:
+			return Color(1.0, 0.75, 0.1, 0.85) # Gold Amber Glow
+		PowerUpType.THUNDER, PowerUpType.SPEED_BOOST:
+			return Color(0.1, 0.85, 1.0, 0.85) # Electric Cyan Glow
+		PowerUpType.SHIELD, PowerUpType.MAGNET:
+			return Color(0.2, 0.95, 1.0, 0.85) # Plasma Shield Cyan
+		PowerUpType.MEGA_BOMB:
+			return Color(1.0, 0.22, 0.22, 0.90) # Crimson Nuke Red
+		PowerUpType.PET_JET, PowerUpType.SPREAD:
+			return Color(0.2, 1.0, 0.5, 0.85) # Emerald Green
+		PowerUpType.COIN, PowerUpType.STAR:
+			return Color(1.0, 0.88, 0.2, 0.88) # Golden Coin Yellow
+		_:
+			return Color(0.3, 0.9, 1.0, 0.85)
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player"):
 		var text_popup = ""
 		match type:
-			PowerUpType.POWER:
+			PowerUpType.BULLET_UP:
 				GameManager.upgrade_weapon()
-				text_popup = "⚡ WEAPON LEVEL UP! ⚡"
+				text_popup = "⚡ WEAPON LEVEL UP (+1 BULLET)! ⚡"
 				if AudioManager: AudioManager.play_sfx("powerup")
-			PowerUpType.LASER:
+			PowerUpType.THUNDER:
 				if area.has_method("set_weapon_type"):
-					area.set_weapon_type(1) # LASER
-				text_popup = "🔥 LASER BEAM ACTIVE! 🔥"
-				if AudioManager: AudioManager.play_sfx("powerup")
-			PowerUpType.MISSILE:
-				if area.has_method("launch_pickup_homing_missile"):
-					area.launch_pickup_homing_missile()
-				text_popup = "🚀 5-MISSILE BARRAGE! 🚀"
+					area.set_weapon_type(1) # THUNDER STRIKE
+				text_popup = "⚡ THUNDER STRIKE CANNON ACTIVE! ⚡"
 				if AudioManager: AudioManager.play_sfx("powerup")
 			PowerUpType.SPREAD:
 				if area.has_method("set_weapon_type"):
 					area.set_weapon_type(3) # SPREAD
-				text_popup = "💥 SPREAD CANNON ACTIVE! 💥"
+				text_popup = "💥 3-WAY SPREAD CANNON ACTIVE! 💥"
 				if AudioManager: AudioManager.play_sfx("powerup")
 			PowerUpType.SHIELD:
 				if area.has_method("activate_shield"):
-					area.activate_shield(80.0)
-				text_popup = "🛡️ ENERGY SHIELD ACTIVE! 🛡️"
+					area.activate_shield(100.0)
+				text_popup = "🛡️ PLASMA ENERGY SHIELD ACTIVE! 🛡️"
 				if AudioManager: AudioManager.play_sfx("powerup")
-			PowerUpType.HEAL:
-				if area.has_method("heal"):
-					area.heal(100.0)
-				text_popup = "❤️ HP REPAIRED +100! ❤️"
+			PowerUpType.SPEED_BOOST:
+				if area.has_method("activate_speed_boost"):
+					area.activate_speed_boost(12.0)
+				text_popup = "🏎️ JET SPEED BOOST +25%! 🏎️"
 				if AudioManager: AudioManager.play_sfx("powerup")
-			PowerUpType.MAGNET:
-				if GameManager.has_method("activate_star_magnet"):
-					GameManager.activate_star_magnet(10.0)
-				text_popup = "🧲 STAR MAGNET ACTIVE! 🧲"
+			PowerUpType.MEGA_BOMB:
+				if area.has_method("trigger_mega_bomb"):
+					area.trigger_mega_bomb()
+				text_popup = "💣 TACTICAL NUKE BOMB STRIKE! 💣"
 				if AudioManager: AudioManager.play_sfx("powerup")
 			PowerUpType.PET_JET:
 				if area.has_method("spawn_pet_jets"):
 					area.spawn_pet_jets()
 				text_popup = "🛩️ WINGMAN PET JET JOINED! 🛩️"
 				if AudioManager: AudioManager.play_sfx("powerup")
-			PowerUpType.SAFE_ZONE:
-				text_popup = "⏱️ 10S SAFE ZONE! ⏱️"
+			PowerUpType.MAGNET:
+				if GameManager.has_method("activate_star_magnet"):
+					GameManager.activate_star_magnet(12.0)
+				text_popup = "🧲 STAR & COIN MAGNET ACTIVE! 🧲"
 				if AudioManager: AudioManager.play_sfx("powerup")
-			PowerUpType.TELEPORT:
-				if area.has_method("trigger_invulnerability"):
-					area.trigger_invulnerability(3.0)
-				text_popup = "✨ WARP DODGE INVULNERABLE! ✨"
+			PowerUpType.OVERCHARGE:
+				if GameManager.has_method("activate_overcharge_boost"):
+					GameManager.activate_overcharge_boost(10.0)
+				text_popup = "🔥 SUPERCHARGED OVERDRIVE 150% DAMAGE! 🔥"
 				if AudioManager: AudioManager.play_sfx("powerup")
-			PowerUpType.RANDOM:
-				var random_type = (randi() % 3) + 1
-				if area.has_method("set_weapon_type"):
-					area.set_weapon_type(random_type)
-				text_popup = "🎲 RANDOM WEAPON SWAP! 🎲"
+			PowerUpType.COIN:
+				if GameManager.has_method("add_coins_bonus"):
+					GameManager.add_coins_bonus(200)
+				text_popup = "💰 GOLD COIN BONUS +200! 💰"
+				if AudioManager: AudioManager.play_sfx("powerup")
+			PowerUpType.STAR:
+				if GameManager.has_method("add_stars_bonus"):
+					GameManager.add_stars_bonus(100)
+				text_popup = "⭐ STAR SCORE BONUS +100! ⭐"
 				if AudioManager: AudioManager.play_sfx("powerup")
 				
 		spawn_pickup_text(text_popup)
@@ -150,3 +192,40 @@ func spawn_pickup_text(msg: String) -> void:
 		pop.global_position = global_position
 		pop.setup(0, msg)
 		get_parent().add_child(pop)
+
+# Custom Draw Node for glowing border outline & spinning aura ring
+class PowerUpGlowNode extends Node2D:
+	var powerup_ref: Area2D = null
+
+	func _draw() -> void:
+		if not is_instance_valid(powerup_ref): return
+		var t = Time.get_ticks_msec() * 0.001
+		var pulse = 1.0 + sin(t * 4.5) * 0.08
+		var r = 42.0 * pulse
+		var base_col = powerup_ref.get_theme_glow_color()
+		
+		# 1. Soft outer aura bloom
+		_draw_circle_filled(Vector2.ZERO, r + 14.0, Color(base_col.r, base_col.g, base_col.b, 0.12))
+		_draw_circle_filled(Vector2.ZERO, r + 6.0, Color(base_col.r, base_col.g, base_col.b, 0.22))
+		
+		# 2. Outer glowing border ring
+		draw_arc(Vector2.ZERO, r + 2.0, 0, TAU, 48, Color(base_col.r, base_col.g, base_col.b, 0.90), 3.0)
+		
+		# 3. Inner sharp white highlight ring
+		draw_arc(Vector2.ZERO, r - 2.0, 0, TAU, 36, Color(1.0, 1.0, 1.0, 0.50), 1.5)
+
+		# 4. Rotating energy spokes (spinning hexagon ring)
+		var rot = t * 1.5
+		var seg_count = 6
+		for i in range(seg_count):
+			var a_start = rot + (float(i) / seg_count) * TAU
+			var a_end = a_start + TAU / (seg_count * 2.2)
+			draw_arc(Vector2.ZERO, r + 5.0, a_start, a_end, 8, Color(1.0, 1.0, 1.0, 0.85), 2.5)
+
+	func _draw_circle_filled(center: Vector2, radius: float, color: Color) -> void:
+		var pts = PackedVector2Array()
+		var segs = 36
+		for i in range(segs + 1):
+			var a = (float(i) / segs) * TAU
+			pts.append(center + Vector2(cos(a) * radius, sin(a) * radius))
+		draw_colored_polygon(pts, color)

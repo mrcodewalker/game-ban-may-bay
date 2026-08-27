@@ -1,6 +1,6 @@
 extends Area2D
 
-enum WeaponType { VULCAN, LASER, MISSILE, SPREAD }
+enum WeaponType { VULCAN, LASER, MISSILE, SPREAD, THUNDER }
 
 @export var move_speed: float = 500.0
 
@@ -8,6 +8,7 @@ enum WeaponType { VULCAN, LASER, MISSILE, SPREAD }
 @export var laser_beam_scene: PackedScene = preload("res://scenes/combat/laser_beam.tscn")
 @export var missile_bullet_scene: PackedScene = preload("res://scenes/combat/homing_missile.tscn")
 @export var spread_bullet_scene: PackedScene = preload("res://scenes/combat/spread_bullet.tscn")
+@export var thunder_bullet_scene: PackedScene = preload("res://scenes/combat/thunder_bullet.tscn")
 @export var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
 
 var is_invulnerable: bool = false
@@ -110,17 +111,26 @@ func setup_pet_jets() -> void:
 	trigger_invulnerability(2.5)
 
 func spawn_pet_jets() -> void:
-	var pet_scene = load("res://scenes/player/pet_jet.tscn") as PackedScene
-	if pet_scene:
-		var pet_left = pet_scene.instantiate() as Area2D
-		pet_left.set("side_offset", -65.0)
-		pet_left.set("player_ref", self)
-		get_parent().call_deferred("add_child", pet_left)
-		
-		var pet_right = pet_scene.instantiate() as Area2D
-		pet_right.set("side_offset", 65.0)
-		pet_right.player_ref = self
-		get_parent().call_deferred("add_child", pet_right)
+	for c in get_children():
+		if c.has_method("fire_support_bullet"):
+			c.queue_free()
+
+	var PetJetScript = load("res://scripts/player/pet_jet.gd")
+	if not PetJetScript: return
+
+	var pet_l = Node2D.new()
+	pet_l.set_script(PetJetScript)
+	pet_l.set("slot_side", -1.0)
+	pet_l.set("pet_filename", GameManager.equipped_left_pet if GameManager.equipped_left_pet != "" else "pet-jet-1.png")
+	pet_l.set("pet_level", 2)
+	add_child(pet_l)
+
+	var pet_r = Node2D.new()
+	pet_r.set_script(PetJetScript)
+	pet_r.set("slot_side", 1.0)
+	pet_r.set("pet_filename", GameManager.equipped_right_pet if GameManager.equipped_right_pet != "" else "pet-jet-2.png")
+	pet_r.set("pet_level", 2)
+	add_child(pet_r)
 
 
 func load_banking_textures() -> void:
@@ -161,6 +171,21 @@ func _process(delta: float) -> void:
 	handle_bomb_input()
 	handle_invulnerability(delta)
 
+var is_speed_boosted: bool = false
+var speed_boost_timer: float = 0.0
+
+func activate_speed_boost(duration: float = 12.0) -> void:
+	is_speed_boosted = true
+	speed_boost_timer = duration
+
+func trigger_mega_bomb() -> void:
+	if AudioManager: AudioManager.play_sfx("explosion_heavy")
+	create_bomb_flash()
+	var main_scene = get_tree().current_scene
+	if main_scene and main_scene.has_node("Camera2D"):
+		var cam = main_scene.get_node("Camera2D")
+		if cam.has_method("add_shake"): cam.add_shake(22.0)
+
 func handle_takeoff(delta: float) -> void:
 	takeoff_timer += delta
 	position.y -= 135.0 * delta
@@ -168,14 +193,21 @@ func handle_takeoff(delta: float) -> void:
 		is_taking_off = false
 
 func handle_movement(delta: float) -> void:
+	if is_speed_boosted:
+		speed_boost_timer -= delta
+		if speed_boost_timer <= 0.0:
+			is_speed_boosted = false
+
+	var effective_speed = move_speed * (1.25 if is_speed_boosted else 1.0)
 	var move_dir = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if move_dir != Vector2.ZERO:
-		position += move_dir * move_speed * delta
+		position += move_dir * effective_speed * delta
 		
 	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		var mouse_pos = get_global_mouse_position()
 		var dir_to_mouse = (mouse_pos - position)
-		position = position.lerp(mouse_pos, 22.0 * delta)
+		var lerp_spd = 28.0 if is_speed_boosted else 22.0
+		position = position.lerp(mouse_pos, lerp_spd * delta)
 		if abs(dir_to_mouse.x) > 6.0: move_dir.x = sign(dir_to_mouse.x)
 
 	update_banking_sprite(move_dir.x)
@@ -212,13 +244,10 @@ func handle_shooting(delta: float) -> void:
 	var is_firing = Input.is_action_pressed("shoot") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	
 	if is_firing:
-		if current_weapon_type == WeaponType.LASER:
-			fire_continuous_laser()
-		else:
-			var fire_rate = get_fire_rate()
-			if fire_timer <= 0.0:
-				shoot_bullets()
-				fire_timer = fire_rate
+		var fire_rate = get_fire_rate()
+		if fire_timer <= 0.0:
+			shoot_bullets()
+			fire_timer = fire_rate
 
 func launch_pickup_homing_missile() -> void:
 	launch_5_rocket_salvo()
@@ -252,8 +281,10 @@ func fire_continuous_laser() -> void:
 func get_fire_rate() -> float:
 	match current_weapon_type:
 		WeaponType.VULCAN: return 0.12 - (GameManager.current_weapon_level * 0.01)
+		WeaponType.LASER: return 0.13 - (GameManager.current_weapon_level * 0.01)
 		WeaponType.MISSILE: return 0.22 - (GameManager.current_weapon_level * 0.015)
 		WeaponType.SPREAD: return 0.15 - (GameManager.current_weapon_level * 0.01)
+		WeaponType.THUNDER: return 0.13 - (GameManager.current_weapon_level * 0.01)
 		_: return 0.14
 
 func shoot_bullets() -> void:
@@ -261,13 +292,36 @@ func shoot_bullets() -> void:
 	if AudioManager:
 		match current_weapon_type:
 			WeaponType.VULCAN: AudioManager.play_sfx("shoot", -6.0, randf_range(0.96, 1.04))
+			WeaponType.LASER, WeaponType.THUNDER: AudioManager.play_sfx("shoot", -4.0, 1.25)
 			WeaponType.MISSILE: AudioManager.play_sfx("shoot", -5.0, 0.85)
 			WeaponType.SPREAD: AudioManager.play_sfx("shoot", -5.0, 1.1)
 
 	match current_weapon_type:
 		WeaponType.VULCAN: shoot_vulcan(level)
+		WeaponType.LASER, WeaponType.THUNDER: shoot_thunder(level)
 		WeaponType.MISSILE: shoot_missile(level)
 		WeaponType.SPREAD: shoot_spread(level)
+
+func shoot_thunder(level: int) -> void:
+	if not thunder_bullet_scene: return
+	match level:
+		1:
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(-16, -30), Vector2.UP)
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(16, -30), Vector2.UP)
+		2:
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(-28, -25), Vector2(-0.15, -0.98).normalized())
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(0, -35), Vector2.UP)
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(28, -25), Vector2(0.15, -0.98).normalized())
+		3:
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(-36, -20), Vector2(-0.25, -0.96).normalized())
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(-12, -35), Vector2.UP)
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(12, -35), Vector2.UP)
+			spawn_bullet(thunder_bullet_scene, global_position + Vector2(36, -20), Vector2(0.25, -0.96).normalized())
+		_:
+			for offset_x in [-40, -24, -8, 8, 24, 40]:
+				var angle = offset_x * 0.5
+				var dir = Vector2.UP.rotated(deg_to_rad(angle))
+				spawn_bullet(thunder_bullet_scene, global_position + Vector2(offset_x, -30), dir)
 
 func shoot_vulcan(level: int) -> void:
 	if not vulcan_bullet_scene: return
@@ -328,6 +382,7 @@ func handle_weapon_shortcut_keys() -> void:
 	if Input.is_key_pressed(KEY_2): set_weapon_type(1) # Laser
 	if Input.is_key_pressed(KEY_3): upgrade_homing_missile() # Upgrade Missile
 	if Input.is_key_pressed(KEY_4): set_weapon_type(3) # Spread
+	if Input.is_key_pressed(KEY_5): set_weapon_type(4) # Thunder
 
 func handle_bomb_input() -> void:
 	if Input.is_action_just_pressed("bomb"):

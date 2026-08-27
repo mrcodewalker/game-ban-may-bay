@@ -28,7 +28,7 @@ func _ready() -> void:
 			var scale_x = 64.0 / float(max(1, tex.get_width()))
 			var scale_y = 320.0 / float(max(1, tex.get_height()))
 			sprite.scale = Vector2(scale_x, scale_y)
-			sprite.modulate = Color.WHITE
+			sprite.modulate = Color(1.1, 1.2, 1.5, 1.0)
 	add_child(sprite)
 
 func _process(delta: float) -> void:
