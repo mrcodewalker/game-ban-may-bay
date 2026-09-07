@@ -1,0 +1,451 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/task1/task1_main.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/task1/object_a.tscn" id="2_object_a"]
+[ext_resource type="PackedScene" path="res://scenes/task1/object_b.tscn" id="3_object_b"]
+[ext_resource type="Texture2D" path="res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png" id="4_ocean"]
+[ext_resource type="FontFile" path="res://extracted_assets/Fonts/font_231.ttf" id="5_font"]
+
+[node name="Task1Main" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Background" type="CanvasLayer" parent="."]
+layer = -10
+
+[node name="OceanTexture" type="TextureRect" parent="Background"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_ocean")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="ObjectA" parent="." instance=ExtResource("2_object_a")]
+position = Vector2(60, 480)
+
+[node name="ObjectB" parent="." instance=ExtResource("3_object_b")]
+position = Vector2(480, 480)
+
+[node name="SFXShoot" type="AudioStreamPlayer" parent="."]
+volume_db = -4.0
+
+[node name="SFXHit" type="AudioStreamPlayer" parent="."]
+volume_db = -2.0
+
+[node name="SFXWarp" type="AudioStreamPlayer" parent="."]
+volume_db = -3.0
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="RootControl" type="Control" parent="HUD"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TopPanel" type="PanelContainer" parent="HUD/RootControl"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 165.0
+grow_horizontal = 2
+
+[node name="Margin" type="MarginContainer" parent="HUD/RootControl/TopPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="HUD/RootControl/TopPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LblTitle" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 15
+text = "✈ TASK 1: CHUYỂN ĐỘNG & BẮN ĐỐI TƯỢNG"
+horizontal_alignment = 1
+
+[node name="LblSizeInfo" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 12
+text = "Kích thước A: 80x80 | B: 80x80 (Bằng nhau)"
+horizontal_alignment = 1
+
+[node name="CoordsRow" type="HBoxContainer" parent="HUD/RootControl/TopPanel/Margin/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="LblCoordsA" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox/CoordsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "A: (X: 60, Y: 480)"
+horizontal_alignment = 1
+
+[node name="LblCoordsB" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox/CoordsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "B: (X: 480, Y: 480)"
+horizontal_alignment = 1
+
+[node name="StatsRow" type="HBoxContainer" parent="HUD/RootControl/TopPanel/Margin/VBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="LblStatsShots" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox/StatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "Bắn C: 0"
+horizontal_alignment = 1
+
+[node name="LblStatsRespawns" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox/StatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.9, 0.3, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "Hồi sinh B: 0"
+horizontal_alignment = 1
+
+[node name="LblStatsHits" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox/StatsRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.3, 1, 0.8, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "Trúng B: 0"
+horizontal_alignment = 1
+
+[node name="LblEventLog" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "» Chạm màn hình/Click chuột để bắn Đối tượng C"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="SettingsPanel" type="PanelContainer" parent="HUD/RootControl"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 175.0
+offset_right = -10.0
+offset_bottom = 350.0
+grow_horizontal = 2
+
+[node name="Margin" type="MarginContainer" parent="HUD/RootControl/SettingsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="HUD/RootControl/SettingsPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Row1" type="HBoxContainer" parent="HUD/RootControl/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LblMode" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/Row1"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "Vị trí:"
+
+[node name="OptMode" type="OptionButton" parent="HUD/RootControl/SettingsPanel/Margin/VBox/Row1"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+
+[node name="BtnReset" type="Button" parent="HUD/RootControl/SettingsPanel/Margin/VBox/Row1"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(70, 26)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "🔄 Reset"
+
+[node name="Row2" type="HBoxContainer" parent="HUD/RootControl/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LblC" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/Row2"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "Loại C:"
+
+[node name="OptProjType" type="OptionButton" parent="HUD/RootControl/SettingsPanel/Margin/VBox/Row2"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+
+[node name="ChkAimMouse" type="CheckBox" parent="HUD/RootControl/SettingsPanel/Margin/VBox/Row2"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "Nhắm chuột"
+
+[node name="Row3" type="HBoxContainer" parent="HUD/RootControl/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LblB" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/Row3"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+text = "Hướng B:"
+
+[node name="OptBPattern" type="OptionButton" parent="HUD/RootControl/SettingsPanel/Margin/VBox/Row3"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 11
+
+[node name="SpeedRowA" type="HBoxContainer" parent="HUD/RootControl/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowA"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "Tốc độ A:"
+
+[node name="SliderSpeedA" type="HSlider" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowA"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 100.0
+max_value = 600.0
+value = 320.0
+
+[node name="LblValSpeedA" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowA"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(55, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "320 px/s"
+horizontal_alignment = 2
+
+[node name="SpeedRowB" type="HBoxContainer" parent="HUD/RootControl/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowB"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "Tốc độ B:"
+
+[node name="SliderSpeedB" type="HSlider" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowB"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 50.0
+max_value = 450.0
+value = 180.0
+
+[node name="LblValSpeedB" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowB"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(55, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "180 px/s"
+horizontal_alignment = 2
+
+[node name="SpeedRowC" type="HBoxContainer" parent="HUD/RootControl/SettingsPanel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Lbl" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowC"]
+custom_minimum_size = Vector2(75, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "Tốc độ C:"
+
+[node name="SliderSpeedC" type="HSlider" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowC"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+min_value = 300.0
+max_value = 1500.0
+value = 750.0
+
+[node name="LblValSpeedC" type="Label" parent="HUD/RootControl/SettingsPanel/Margin/VBox/SpeedRowC"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(55, 0)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 10
+text = "750 px/s"
+horizontal_alignment = 2
+
+[node name="TouchControls" type="Control" parent="HUD/RootControl"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -180.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="DPadContainer" type="Control" parent="HUD/RootControl/TouchControls"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -170.0
+offset_right = 170.0
+offset_bottom = -20.0
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="BtnUp" type="Button" parent="HUD/RootControl/TouchControls/DPadContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(46, 46)
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -23.0
+offset_right = 23.0
+offset_bottom = 46.0
+grow_horizontal = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 18
+text = "▲"
+
+[node name="BtnDown" type="Button" parent="HUD/RootControl/TouchControls/DPadContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(46, 46)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -23.0
+offset_top = -46.0
+offset_right = 23.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 18
+text = "▼"
+
+[node name="BtnLeft" type="Button" parent="HUD/RootControl/TouchControls/DPadContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(46, 46)
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -23.0
+offset_right = 46.0
+offset_bottom = 23.0
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 18
+text = "◀"
+
+[node name="BtnRight" type="Button" parent="HUD/RootControl/TouchControls/DPadContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(46, 46)
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -46.0
+offset_top = -23.0
+offset_bottom = 23.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 18
+text = "▶"
+
+[node name="BtnFire" type="Button" parent="HUD/RootControl/TouchControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(110, 110)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -130.0
+offset_top = -145.0
+offset_right = -20.0
+offset_bottom = -35.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.95, 0.3, 1)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 16
+text = "🔥 BẮN C\n(Space/Tap)"
+
+[node name="LblHelp" type="Label" parent="HUD/RootControl/TouchControls"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -25.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 0.7)
+theme_override_fonts/font = ExtResource("5_font")
+theme_override_font_sizes/font_size = 9
+text = "WASD/Mũi tên/D-pad: Di chuyển | Chạm/Click bất kỳ: Bắn C"
+horizontal_alignment = 1
