@@ -17,11 +17,10 @@ signal projectile_fired(projectile)
 
 var object_c_scene: PackedScene = preload("res://scenes/task1/object_c.tscn")
 var virtual_input_vector: Vector2 = Vector2.ZERO
-var is_dragging: bool = false
-var drag_offset: Vector2 = Vector2.ZERO
-var target_rotation: float = 0.0
+var base_rotation: float = 0.0 # 0 rad = facing UP
+var current_mode: String = "vertical_bottom"
 var shoot_cooldown: float = 0.0
-var min_shoot_interval: float = 0.12 # Max fire rate limit
+var min_shoot_interval: float = 0.12
 
 # Boundary limits for 540x960 screen
 var min_bounds: Vector2 = Vector2(40, 40)
@@ -33,18 +32,36 @@ func _ready() -> void:
 	apply_size()
 
 func set_spawn_mode(mode: String, screen_size: Vector2 = Vector2(540, 960)) -> void:
-	if mode == "horizontal":
-		# Chính giữa biên trái
-		position = Vector2(object_size.x * 0.7, screen_size.y * 0.5)
-		rotation_degrees = 90.0 # Quay mặt sang phải
-	elif mode == "vertical":
-		# Chính giữa biên trên
-		position = Vector2(screen_size.x * 0.5, object_size.y * 0.7)
-		rotation_degrees = 180.0 # Quay mặt xuống dưới
-	elif mode == "vertical_bottom":
-		# Chính giữa biên dưới
-		position = Vector2(screen_size.x * 0.5, screen_size.y - object_size.y * 0.7)
-		rotation_degrees = 0.0 # Quay mặt lên trên
+	current_mode = mode
+	if mode == "vertical_bottom" or mode == "vertical":
+		# MẶC ĐỊNH: Đối tượng A ở chính giữa biên dưới, quay mặt LÊN TRÊN (đối đầu B ở trên)
+		position = Vector2(screen_size.x * 0.5, screen_size.y - object_size.y * 1.0)
+		base_rotation = 0.0 # Hướng lên trên
+		rotation = 0.0
+		if particles:
+			particles.direction = Vector2(0, 1)
+		if muzzle:
+			muzzle.position = Vector2(0, -38)
+	elif mode == "vertical_top":
+		# Đối tượng A ở chính giữa biên trên, quay mặt XUỐNG DƯỚI (đối đầu B ở dưới)
+		position = Vector2(screen_size.x * 0.5, object_size.y * 1.0)
+		base_rotation = PI # Hướng xuống dưới
+		rotation = PI
+		if particles:
+			particles.direction = Vector2(0, -1)
+		if muzzle:
+			muzzle.position = Vector2(0, 38)
+	elif mode == "horizontal":
+		# Đối tượng A ở chính giữa biên trái, quay mặt SANG PHẢI (đối đầu B ở phải)
+		position = Vector2(object_size.x * 0.9, screen_size.y * 0.5)
+		base_rotation = PI * 0.5 # Hướng sang phải
+		rotation = PI * 0.5
+		if particles:
+			particles.direction = Vector2(-1, 0)
+		if muzzle:
+			muzzle.position = Vector2(38, 0)
+			
+	apply_size()
 
 func apply_size() -> void:
 	if sprite and sprite.texture:
@@ -67,15 +84,20 @@ func _process(delta: float) -> void:
 	var move_vec = get_movement_vector()
 	if move_vec != Vector2.ZERO:
 		position += move_vec * speed * delta
-		# Smooth tilt / rotation feedback
-		var target_angle = 0.0
-		if rotation_degrees == 90.0 or rotation_degrees == -90.0:
-			# In horizontal mode: tilt up/down
-			target_angle = deg_to_rad(90.0) + (move_vec.y * 0.15)
+		
+		# Smooth banking tilt relative to base_rotation
+		var tilt_angle = 0.0
+		if current_mode == "horizontal":
+			tilt_angle = base_rotation + (move_vec.y * 0.2)
+		elif current_mode == "vertical_top":
+			tilt_angle = base_rotation - (move_vec.x * 0.2)
 		else:
-			# In vertical mode: tilt left/right
-			target_angle = (move_vec.x * 0.15)
-		rotation = lerp_angle(rotation, target_angle, 10.0 * delta)
+			tilt_angle = base_rotation + (move_vec.x * 0.2)
+			
+		rotation = lerp_angle(rotation, tilt_angle, 12.0 * delta)
+	else:
+		# Return to base rotation when idle
+		rotation = lerp_angle(rotation, base_rotation, 10.0 * delta)
 	
 	# Clamp inside screen play area
 	position.x = clamp(position.x, min_bounds.x, max_bounds.x)
@@ -115,21 +137,19 @@ func shoot(target_point: Vector2 = Vector2.ZERO) -> Area2D:
 	projectile.global_position = spawn_pos
 	
 	# Determine firing direction
-	var fire_dir = Vector2.RIGHT
+	var fire_dir = Vector2.UP
 	if aim_mode == "towards_pointer" and target_point != Vector2.ZERO:
 		fire_dir = (target_point - spawn_pos).normalized()
 	else:
-		# Shoot according to current facing rotation or mode
-		fire_dir = Vector2.UP.rotated(rotation)
-		if fire_dir == Vector2.ZERO:
-			fire_dir = Vector2.RIGHT
+		# Bắn thẳng theo hướng mũi máy bay (đối đầu với B)
+		fire_dir = Vector2.UP.rotated(base_rotation)
 			
 	projectile.setup(current_projectile_type, fire_dir, projectile_speed)
 	
 	get_parent().add_child(projectile)
 	projectile_fired.emit(projectile)
 	
-	# Small recoil / flash feedback
+	# Recoil animation
 	var tw = create_tween()
 	tw.tween_property(sprite, "scale", sprite.scale * 1.15, 0.04)
 	tw.tween_property(sprite, "scale", sprite.scale, 0.06)

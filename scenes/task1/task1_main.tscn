@@ -23,10 +23,10 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="ObjectA" parent="." instance=ExtResource("2_object_a")]
-position = Vector2(60, 480)
+position = Vector2(270, 840)
 
 [node name="ObjectB" parent="." instance=ExtResource("3_object_b")]
-position = Vector2(480, 480)
+position = Vector2(270, 100)
 
 [node name="SFXShoot" type="AudioStreamPlayer" parent="."]
 volume_db = -4.0
@@ -99,7 +99,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.5, 1, 0.5, 1)
 theme_override_fonts/font = ExtResource("5_font")
 theme_override_font_sizes/font_size = 11
-text = "A: (X: 60, Y: 480)"
+text = "A: (X: 270, Y: 840)"
 horizontal_alignment = 1
 
 [node name="LblCoordsB" type="Label" parent="HUD/RootControl/TopPanel/Margin/VBox/CoordsRow"]
@@ -109,7 +109,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.45, 0.45, 1)
 theme_override_fonts/font = ExtResource("5_font")
 theme_override_font_sizes/font_size = 11
-text = "B: (X: 480, Y: 480)"
+text = "B: (X: 270, Y: 100)"
 horizontal_alignment = 1
 
 [node name="StatsRow" type="HBoxContainer" parent="HUD/RootControl/TopPanel/Margin/VBox"]
@@ -151,7 +151,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
 theme_override_fonts/font = ExtResource("5_font")
 theme_override_font_sizes/font_size = 10
-text = "» Chạm màn hình/Click chuột để bắn Đối tượng C"
+text = "» Đối đầu dọc: A ở dưới (bắn lên), B ở trên (bay xuống)"
 horizontal_alignment = 1
 autowrap_mode = 2
 

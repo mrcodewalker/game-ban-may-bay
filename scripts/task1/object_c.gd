@@ -3,7 +3,7 @@ extends Area2D
 signal hit_target(target)
 
 @export var speed: float = 750.0
-@export var direction: Vector2 = Vector2.RIGHT
+@export var direction: Vector2 = Vector2.UP
 @export var projectile_type: String = "bullet" # "bullet", "missile", "lightning", "fireball", "bomb"
 @export var damage: float = 100.0
 
@@ -35,7 +35,7 @@ func apply_type_style() -> void:
 		
 	match projectile_type:
 		"bullet":
-			_load_sprite_texture("res://extracted_assets/sprites/sky_bullet_green_a.png", Vector2(40, 20), Color(0.8, 1.0, 0.4, 1.0))
+			_load_sprite_texture("res://extracted_assets/sprites/sky_bullet_green_a.png", Vector2(24, 48), Color(0.8, 1.0, 0.4, 1.0))
 			if particles:
 				particles.color = Color(0.4, 1.0, 0.5, 0.8)
 				particles.amount = 8
@@ -43,7 +43,7 @@ func apply_type_style() -> void:
 				particles.initial_velocity_min = 20.0
 				particles.initial_velocity_max = 50.0
 		"missile":
-			_load_sprite_texture("res://extracted_assets/sprites/sky_bullet_rocket_b.png", Vector2(48, 24), Color(1.0, 0.9, 0.9, 1.0))
+			_load_sprite_texture("res://extracted_assets/sprites/sky_bullet_rocket_b.png", Vector2(28, 52), Color(1.0, 0.9, 0.9, 1.0))
 			if particles:
 				particles.color = Color(1.0, 0.5, 0.1, 0.9)
 				particles.amount = 16
@@ -51,7 +51,7 @@ func apply_type_style() -> void:
 				particles.scale_amount_min = 3.0
 				particles.scale_amount_max = 6.0
 		"lightning":
-			_load_sprite_texture("res://extracted_assets/sprites/enemy_bullet_bar_a.png", Vector2(50, 16), Color(0.3, 0.9, 1.2, 1.0))
+			_load_sprite_texture("res://extracted_assets/sprites/enemy_bullet_bar_a.png", Vector2(20, 54), Color(0.3, 0.9, 1.2, 1.0))
 			if particles:
 				particles.color = Color(0.3, 0.8, 1.0, 1.0)
 				particles.amount = 14
@@ -90,13 +90,13 @@ func _process(delta: float) -> void:
 	# Move in direction
 	position += direction * speed * delta
 	
-	# Update visual orientation
+	# Update visual orientation (vertical assets need + PI/2)
 	if projectile_type == "bomb":
-		sprite.rotation += 8.0 * delta
+		rotation += 8.0 * delta
 	elif direction != Vector2.ZERO:
-		sprite.rotation = direction.angle()
+		rotation = direction.angle() + (PI / 2.0)
 		if particles:
-			particles.direction = -direction
+			particles.direction = Vector2(0, 1) # Behind bullet
 			
 	# Check screen bounds (Godot viewport: 540x960)
 	if position.x < -100 or position.x > 640 or position.y < -100 or position.y > 1060:

@@ -14,15 +14,11 @@ signal destroyed()
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 var screen_size: Vector2 = Vector2(540, 960)
-var current_mode: String = "horizontal" # "horizontal", "vertical"
+var current_mode: String = "vertical" # "vertical" (B at top, moving down), "vertical_top" (B at bottom, moving up), "horizontal"
 var time_elapsed: float = 0.0
 var respawn_count: int = 0
 var hit_count: int = 0
-
-# Movement direction
-var current_velocity: Vector2 = Vector2.ZERO
-var patrol_timer: float = 0.0
-var patrol_dir_idx: int = 0
+var base_rotation: float = PI
 
 func _ready() -> void:
 	z_index = 6
@@ -35,14 +31,27 @@ func set_spawn_mode(mode: String, p_screen_size: Vector2 = Vector2(540, 960)) ->
 	screen_size = p_screen_size
 	time_elapsed = 0.0
 	
-	if mode == "horizontal":
-		# Ban đầu ở chính giữa biên phải
-		position = Vector2(screen_size.x - object_size.x * 0.7, screen_size.y * 0.5)
-		rotation_degrees = -90.0 # Quay mặt sang trái
-	elif mode == "vertical":
-		# Ban đầu ở chính giữa biên dưới
-		position = Vector2(screen_size.x * 0.5, screen_size.y - object_size.y * 0.7)
-		rotation_degrees = 0.0 # Quay mặt lên trên
+	if mode == "vertical" or mode == "vertical_bottom":
+		# MẶC ĐỊNH: B ở chính giữa biên trên, quay mặt XUỐNG DƯỚI (đối đầu trực diện A ở dưới)
+		position = Vector2(screen_size.x * 0.5, object_size.y * 1.0)
+		base_rotation = PI # 180 độ - quay mặt xuống dưới
+		rotation = PI
+		if particles:
+			particles.direction = Vector2(0, -1)
+	elif mode == "vertical_top":
+		# B ở chính giữa biên dưới, quay mặt LÊN TRÊN (đối đầu A ở trên)
+		position = Vector2(screen_size.x * 0.5, screen_size.y - object_size.y * 1.0)
+		base_rotation = 0.0 # 0 độ - quay mặt lên trên
+		rotation = 0.0
+		if particles:
+			particles.direction = Vector2(0, 1)
+	elif mode == "horizontal":
+		# B ở chính giữa biên phải, quay mặt SANG TRÁI (đối đầu A ở trái)
+		position = Vector2(screen_size.x - object_size.x * 0.9, screen_size.y * 0.5)
+		base_rotation = -PI * 0.5 # -90 độ - quay mặt sang trái
+		rotation = -PI * 0.5
+		if particles:
+			particles.direction = Vector2(1, 0)
 		
 	apply_size()
 
@@ -57,11 +66,18 @@ func apply_size() -> void:
 
 func _process(delta: float) -> void:
 	time_elapsed += delta
-	patrol_timer += delta
 	
 	# Execute movement based on mode and pattern
 	var move_vec = calculate_movement(delta)
 	position += move_vec * speed * delta
+	
+	# Banking tilt according to horizontal oscillation
+	if current_mode == "vertical" or current_mode == "vertical_bottom":
+		rotation = lerp_angle(rotation, base_rotation - (move_vec.x * 0.2), 10.0 * delta)
+	elif current_mode == "vertical_top":
+		rotation = lerp_angle(rotation, base_rotation + (move_vec.x * 0.2), 10.0 * delta)
+	elif current_mode == "horizontal":
+		rotation = lerp_angle(rotation, base_rotation + (move_vec.y * 0.2), 10.0 * delta)
 	
 	# Check border collision & trigger random respawn at opposite border
 	check_border_collision()
@@ -69,58 +85,79 @@ func _process(delta: float) -> void:
 func calculate_movement(delta: float) -> Vector2:
 	var vec = Vector2.ZERO
 	
-	if current_mode == "horizontal":
-		# Main direction is Left (-X)
+	if current_mode == "vertical" or current_mode == "vertical_bottom":
+		# Hướng chính: Bay Xuống (+Y) về phía người chơi
+		match move_pattern:
+			"straight":
+				vec = Vector2.DOWN
+			"wave":
+				# Bay xuống kết hợp lượn sóng Trái - Phải mượt mà
+				var wave_x = sin(time_elapsed * 3.0) * 0.9
+				vec = Vector2(wave_x, 1.0).normalized()
+			"zigzag":
+				var wave_x = 1.0 if int(time_elapsed * 1.8) % 2 == 0 else -1.0
+				vec = Vector2(wave_x * 0.7, 0.8).normalized()
+			"patrol_4way":
+				# Tuần tra 4 hướng: Xuống, Phải, Xuống, Trái
+				var step = int(time_elapsed * 1.5) % 4
+				match step:
+					0: vec = Vector2.DOWN
+					1: vec = Vector2.RIGHT
+					2: vec = Vector2.DOWN
+					3: vec = Vector2.LEFT
+	elif current_mode == "vertical_top":
+		# Hướng chính: Bay Lên (-Y)
+		match move_pattern:
+			"straight":
+				vec = Vector2.UP
+			"wave":
+				var wave_x = sin(time_elapsed * 3.0) * 0.9
+				vec = Vector2(wave_x, -1.0).normalized()
+			"zigzag":
+				var wave_x = 1.0 if int(time_elapsed * 1.8) % 2 == 0 else -1.0
+				vec = Vector2(wave_x * 0.7, -0.8).normalized()
+			"patrol_4way":
+				var step = int(time_elapsed * 1.5) % 4
+				match step:
+					0: vec = Vector2.UP
+					1: vec = Vector2.LEFT
+					2: vec = Vector2.UP
+					3: vec = Vector2.RIGHT
+	else:
+		# Hướng chính: Bay Sang Trái (-X)
 		match move_pattern:
 			"straight":
 				vec = Vector2.LEFT
 			"wave":
-				# Move left while waving Up and Down smoothly
 				var wave_y = sin(time_elapsed * 3.5) * 0.8
 				vec = Vector2(-1.0, wave_y).normalized()
 			"zigzag":
 				var wave_y = 1.0 if int(time_elapsed * 2.0) % 2 == 0 else -1.0
 				vec = Vector2(-0.8, wave_y * 0.6).normalized()
 			"patrol_4way":
-				# Cycles through Left, Down, Left, Up
 				var step = int(time_elapsed * 1.5) % 4
 				match step:
 					0: vec = Vector2.LEFT
 					1: vec = Vector2.DOWN
 					2: vec = Vector2.LEFT
 					3: vec = Vector2.UP
-	else:
-		# Main direction is Up (-Y)
-		match move_pattern:
-			"straight":
-				vec = Vector2.UP
-			"wave":
-				# Move up while waving Left and Right smoothly
-				var wave_x = sin(time_elapsed * 3.5) * 0.8
-				vec = Vector2(wave_x, -1.0).normalized()
-			"zigzag":
-				var wave_x = 1.0 if int(time_elapsed * 2.0) % 2 == 0 else -1.0
-				vec = Vector2(wave_x * 0.6, -0.8).normalized()
-			"patrol_4way":
-				var step = int(time_elapsed * 1.5) % 4
-				match step:
-					0: vec = Vector2.UP
-					1: vec = Vector2.RIGHT
-					2: vec = Vector2.UP
-					3: vec = Vector2.LEFT
 					
 	return vec
 
 func check_border_collision() -> void:
-	var margin = object_size.x * 0.5
+	var margin = object_size.y * 0.5
 	
-	if current_mode == "horizontal":
-		# Khi chạm vào biên trái (left border)
-		if position.x <= margin:
+	if current_mode == "vertical" or current_mode == "vertical_bottom":
+		# Khi B bay xuống chạm vào biên dưới (bottom border)
+		if position.y >= screen_size.y - margin - 20.0:
 			respawn_at_opposite_border()
-	elif current_mode == "vertical":
-		# Khi chạm vào biên trên (top border)
-		if position.y <= margin:
+	elif current_mode == "vertical_top":
+		# Khi B bay lên chạm vào biên trên (top border)
+		if position.y <= margin + 20.0:
+			respawn_at_opposite_border()
+	elif current_mode == "horizontal":
+		# Khi B bay sang trái chạm vào biên trái (left border)
+		if position.x <= margin + 10.0:
 			respawn_at_opposite_border()
 
 func respawn_at_opposite_border() -> void:
@@ -128,25 +165,30 @@ func respawn_at_opposite_border() -> void:
 	var margin = object_size.x * 0.7
 	var new_pos = Vector2.ZERO
 	
-	if current_mode == "horizontal":
-		# Xuất hiện trở lại ở biên phải, vị trí Y ngẫu nhiên
+	if current_mode == "vertical" or current_mode == "vertical_bottom":
+		# Xuất hiện trở lại ở BIÊN TRÊN (Top border), hoành độ X ngẫu nhiên
+		var min_x = 50.0 + margin
+		var max_x = screen_size.x - 50.0 - margin
+		var rand_x = randf_range(min_x, max_x)
+		new_pos = Vector2(rand_x, object_size.y * 1.0)
+	elif current_mode == "vertical_top":
+		# Xuất hiện trở lại ở BIÊN DƯỚI (Bottom border), hoành độ X ngẫu nhiên
+		var min_x = 50.0 + margin
+		var max_x = screen_size.x - 50.0 - margin
+		var rand_x = randf_range(min_x, max_x)
+		new_pos = Vector2(rand_x, screen_size.y - object_size.y * 1.0)
+	elif current_mode == "horizontal":
+		# Xuất hiện trở lại ở BIÊN PHẢI (Right border), tung độ Y ngẫu nhiên
 		var min_y = 60.0 + margin
 		var max_y = screen_size.y - 120.0 - margin
 		var rand_y = randf_range(min_y, max_y)
 		new_pos = Vector2(screen_size.x - margin, rand_y)
-	elif current_mode == "vertical":
-		# Xuất hiện trở lại ở biên dưới, vị trí X ngẫu nhiên
-		var min_x = 40.0 + margin
-		var max_x = screen_size.x - 40.0 - margin
-		var rand_x = randf_range(min_x, max_x)
-		new_pos = Vector2(rand_x, screen_size.y - margin)
 		
 	# Play warp animation
 	play_respawn_animation(new_pos)
 	border_reached.emit(new_pos)
 
 func play_respawn_animation(new_pos: Vector2) -> void:
-	# Fade/shrink at current position
 	var tw = create_tween()
 	tw.tween_property(self, "scale", Vector2(0.1, 0.1), 0.1)
 	tw.tween_callback(func():
@@ -159,10 +201,7 @@ func take_hit(source: Area2D = null) -> void:
 	hit_count += 1
 	hit_received.emit(100.0)
 	
-	# Spawn explosion effect
 	create_hit_explosion()
-	
-	# Respawn after hit
 	respawn_at_opposite_border()
 	destroyed.emit()
 

@@ -58,19 +58,20 @@ func _ready() -> void:
 	# Setup UI Option dropdowns
 	setup_ui_options()
 	
-	# Initial spawn alignment
-	set_alignment_mode("horizontal")
+	# Initial spawn alignment: Vertical Head-to-Head (A at bottom facing UP, B at top facing DOWN)
+	set_alignment_mode("vertical")
 	
 	# Setup audio streams if available
 	_setup_audio()
 	
-	log_event("Trò chơi sẵn sàng! Nhấn chuột/chạm màn hình để bắn Đối tượng C.")
+	log_event("Trò chơi sẵn sàng! Đối đầu dọc: A ở dưới (bắn lên), B ở trên (bay xuống).")
 
 func setup_ui_options() -> void:
 	if opt_mode:
 		opt_mode.clear()
-		opt_mode.add_item("Ngang (Biên Trái - Biên Phải)", 0)
-		opt_mode.add_item("Dọc (Biên Trên - Biên Dưới)", 1)
+		opt_mode.add_item("1. Dọc: A ở Dưới - B ở Trên (Đối đầu)", 0)
+		opt_mode.add_item("2. Dọc: A ở Trên - B ở Dưới", 1)
+		opt_mode.add_item("3. Ngang: A ở Trái - B ở Phải", 2)
 		opt_mode.item_selected.connect(_on_mode_selected)
 		
 	if opt_proj_type:
@@ -148,11 +149,19 @@ func set_alignment_mode(mode: String) -> void:
 		object_a.set_spawn_mode(mode, screen_size)
 	if object_b:
 		object_b.set_spawn_mode(mode, screen_size)
-	log_event("Đã đổi sang chế độ: " + ("Ngang (Trái - Phải)" if mode == "horizontal" else "Dọc (Trên - Dưới)"))
+	
+	var mode_name = "Dọc: A ở Dưới - B ở Trên"
+	if mode == "vertical_top":
+		mode_name = "Dọc: A ở Trên - B ở Dưới"
+	elif mode == "horizontal":
+		mode_name = "Ngang: A ở Trái - B ở Phải"
+	log_event("Đã đổi chế độ: " + mode_name)
 
 func _on_mode_selected(idx: int) -> void:
-	var mode = "horizontal" if idx == 0 else "vertical"
-	set_alignment_mode(mode)
+	match idx:
+		0: set_alignment_mode("vertical")
+		1: set_alignment_mode("vertical_top")
+		2: set_alignment_mode("horizontal")
 
 func _on_proj_type_selected(idx: int) -> void:
 	var types = ["bullet", "missile", "lightning", "fireball", "bomb"]
@@ -169,12 +178,11 @@ func _on_b_pattern_selected(idx: int) -> void:
 	log_event("Đã đổi chuyển động của B: " + selected_pat)
 
 func _on_btn_reset_pressed() -> void:
-	var mode = "horizontal" if (opt_mode and opt_mode.selected == 0) else "vertical"
-	set_alignment_mode(mode)
+	var sel = opt_mode.selected if opt_mode else 0
+	_on_mode_selected(sel)
 	log_event("Đã đưa Đối tượng A & B về vị trí biên xuất hiện ban đầu!")
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Handle Touch screen tap or Mouse click on AVD
 	if event is InputEventScreenTouch and event.is_pressed():
 		if object_a:
 			object_a.shoot(event.position)
@@ -195,7 +203,6 @@ func _process(delta: float) -> void:
 	if object_a:
 		object_a.set_virtual_input(v_vec.normalized())
 
-	# Update Realtime HUD labels
 	update_hud()
 
 func update_hud() -> void:
@@ -209,7 +216,7 @@ func update_hud() -> void:
 			int(object_b.object_size.x), int(object_b.object_size.y)
 		]
 	if lbl_stats_shots:
-		lbl_stats_shots.text = "Số lần bắn C: %d" % shot_count
+		lbl_stats_shots.text = "Bắn C: %d" % shot_count
 	if lbl_stats_respawns:
 		lbl_stats_respawns.text = "B chạm biên & hồi sinh: %d" % respawn_count
 	if lbl_stats_hits:
