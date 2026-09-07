@@ -15,7 +15,7 @@ func _ready() -> void:
 	if not has_node("CollisionShape2D"):
 		var col = CollisionShape2D.new()
 		var rect = RectangleShape2D.new()
-		rect.size = Vector2(55.0, 300.0)
+		rect.size = Vector2(35.0, 200.0)
 		col.shape = rect
 		add_child(col)
 	
@@ -25,8 +25,8 @@ func _ready() -> void:
 		var tex = load(tex_path) as Texture2D
 		if tex:
 			sprite.texture = tex
-			var scale_x = 64.0 / float(max(1, tex.get_width()))
-			var scale_y = 320.0 / float(max(1, tex.get_height()))
+			var scale_x = 42.0 / float(max(1, tex.get_width()))
+			var scale_y = 210.0 / float(max(1, tex.get_height()))
 			sprite.scale = Vector2(scale_x, scale_y)
 			sprite.modulate = Color(1.1, 1.2, 1.5, 1.0)
 	add_child(sprite)

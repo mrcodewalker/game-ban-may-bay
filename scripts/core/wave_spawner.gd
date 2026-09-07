@@ -22,11 +22,27 @@ var debuff_timer: float = 0.0
 
 
 # Dynamic spawn interval calculation (accelerates as phases advance towards Boss!)
+func get_max_active_enemies() -> int:
+	match current_wave:
+		1:
+			return 1 if wave_timer < 8.0 else 2
+		2:
+			return 3
+		3:
+			return 4
+		4:
+			return 5
+		_:
+			return 6
+
 func get_current_spawn_interval() -> float:
 	match current_phase:
-		1: return max(4.2, 5.2 - (wave_timer * 0.04))
-		2: return max(3.4, 4.2 - (wave_timer * 0.04))
-		3: return max(2.6, 3.4 - (wave_timer * 0.05))
+		1:
+			if current_wave == 1:
+				return max(2.5, 3.8 - (wave_timer * 0.04))
+			return max(3.5, 4.5 - (wave_timer * 0.04))
+		2: return max(3.0, 3.8 - (wave_timer * 0.04))
+		3: return max(2.4, 3.0 - (wave_timer * 0.05))
 		_: return 3.0
 
 func get_phase_speed_mult() -> float:
@@ -68,8 +84,11 @@ func start_wave(wave_num: int) -> void:
 		
 	match current_phase:
 		1:
-			spawn_full_screen_sky_wall(3)
-			get_tree().create_timer(3.8).timeout.connect(func(): spawn_squadron_cross_pincer(3))
+			if wave_num == 1:
+				spawn_single_jet()
+			else:
+				spawn_full_screen_sky_wall(2)
+				get_tree().create_timer(3.8).timeout.connect(func(): spawn_squadron_cross_pincer(3))
 		2:
 			spawn_medium_bombers(2)
 			get_tree().create_timer(3.5).timeout.connect(func(): spawn_squadron_cross_pincer(4))
@@ -116,8 +135,6 @@ func _process(delta: float) -> void:
 		princess_timer = 0.0
 		spawn_princess_vip()
 
-
-
 	if wave_timer > 16.0:
 		var active_enemies = get_tree().get_nodes_in_group("enemies")
 		if active_enemies.size() <= 2:
@@ -135,7 +152,6 @@ func spawn_tank_ground_assault() -> void:
 		bg.spawn_island(Vector2(160.0, -220.0))
 		bg.spawn_island(Vector2(360.0, -320.0))
 
-
 func spawn_princess_vip() -> void:
 	if princess_vip_scene and not GameManager.is_game_over:
 		var vip = princess_vip_scene.instantiate() as Area2D
@@ -150,25 +166,80 @@ func spawn_debuff_zone() -> void:
 		zone.global_position = Vector2(spawn_x, -120.0)
 		get_parent().add_child(zone)
 
+func is_pos_overlapping_rescue_zone(spawn_x: float, margin: float = 130.0) -> bool:
+	var rescue_zones = get_tree().get_nodes_in_group("rescue_zones")
+	for zone in rescue_zones:
+		if is_instance_valid(zone) and zone.global_position.y < 700.0:
+			if abs(spawn_x - zone.global_position.x) < margin:
+				return true
+	return false
+
+func get_safe_spawn_x(min_x: float = 80.0, max_x: float = 460.0, margin: float = 130.0) -> float:
+	for _attempt in range(12):
+		var cand_x = randf_range(min_x, max_x)
+		if not is_pos_overlapping_rescue_zone(cand_x, margin):
+			return cand_x
+			
+	var rescue_zones = get_tree().get_nodes_in_group("rescue_zones")
+	for zone in rescue_zones:
+		if is_instance_valid(zone) and zone.global_position.y < 700.0:
+			var z_x = zone.global_position.x
+			if z_x > 270.0:
+				return randf_range(min_x, max(min_x + 20.0, z_x - margin))
+			else:
+				return randf_range(min(max_x - 20.0, z_x + margin), max_x)
+	return randf_range(min_x, max_x)
+
+func spawn_single_jet() -> void:
+	if GameManager.is_game_over: return
+	var active_count = get_tree().get_nodes_in_group("enemies").size()
+	if active_count >= get_max_active_enemies():
+		return
+		
+	var scene_to_spawn = enemy_small_scene
+	if current_phase >= 2 and (randi() % 2 == 0) and enemy_fast_scene:
+		scene_to_spawn = enemy_fast_scene
+		
+	if not scene_to_spawn: return
+	var enemy = scene_to_spawn.instantiate()
+	if "pattern" in enemy:
+		enemy.pattern = randi() % 5
+	var spd_mult = get_phase_speed_mult()
+	if "base_speed" in enemy:
+		enemy.base_speed *= spd_mult
+	elif "speed" in enemy:
+		enemy.speed *= spd_mult
+		
+	var spawn_x = get_safe_spawn_x(80.0, 460.0, 130.0)
+	enemy.global_position = Vector2(spawn_x, -70.0)
+	get_parent().add_child(enemy)
 
 func spawn_phase_pack() -> void:
 	if GameManager.is_game_over: return
+	var active_count = get_tree().get_nodes_in_group("enemies").size()
+	var max_allowed = get_max_active_enemies()
+	if active_count >= max_allowed:
+		return
+
 	match current_phase:
 		1:
-			var choice = randi() % 4
-			match choice:
-				0: spawn_v_formation_jets()
-				1: spawn_full_screen_sky_wall(5)
-				2: spawn_squadron_cross_pincer(4)
-				3: spawn_fast_jet_blitz(4)
+			if current_wave == 1 or active_count + 1 >= max_allowed:
+				spawn_single_jet()
+			else:
+				var choice = randi() % 4
+				match choice:
+					0: spawn_v_formation_jets()
+					1: spawn_full_screen_sky_wall(3)
+					2: spawn_squadron_cross_pincer(2)
+					3: spawn_fast_jet_blitz(2)
 		2:
 			var choice = randi() % 5
 			match choice:
 				0: spawn_tank_ground_assault()
 				1: spawn_medium_bombers(2)
-				2: spawn_squadron_gold_scurve(5)
-				3: spawn_squadron_cross_pincer(6)
-				4: spawn_fast_jet_blitz(5)
+				2: spawn_squadron_gold_scurve(3)
+				3: spawn_squadron_cross_pincer(4)
+				4: spawn_fast_jet_blitz(3)
 		3:
 			var choice = randi() % 6
 			match choice:
@@ -176,8 +247,8 @@ func spawn_phase_pack() -> void:
 				1: spawn_tank_ground_assault()
 				2: spawn_heavy_bomber_convoy()
 				3: spawn_medium_bombers(3)
-				4: spawn_full_screen_sky_wall(7)
-				5: spawn_squadron_gold_scurve(6)
+				4: spawn_full_screen_sky_wall(5)
+				5: spawn_squadron_gold_scurve(4)
 
 func spawn_v_formation_jets() -> void:
 	if not enemy_small_scene: return
@@ -187,37 +258,47 @@ func spawn_v_formation_jets() -> void:
 		Vector2(210, -140), Vector2(330, -140), # Left & Right inner wingmen
 		Vector2(150, -190), Vector2(390, -190)  # Left & Right outer wingmen
 	]
+	var max_allowed = get_max_active_enemies()
+	var active_count = get_tree().get_nodes_in_group("enemies").size()
 	for pos in offsets:
 		if GameManager.is_game_over: return
+		if active_count >= max_allowed: break
+		if is_pos_overlapping_rescue_zone(pos.x, 110.0): continue
 		var enemy = enemy_small_scene.instantiate()
 		enemy.pattern = 4 # DIVE_ATTACK
 		if "base_speed" in enemy: enemy.base_speed *= spd_mult
 		enemy.global_position = pos
 		get_parent().add_child(enemy)
-
-
+		active_count += 1
 
 func spawn_full_screen_sky_wall(count: int) -> void:
-
 	if not enemy_small_scene: return
 	var spd_mult = get_phase_speed_mult()
-	for i in range(count):
+	var max_allowed = get_max_active_enemies()
+	var actual_count = min(count, max_allowed)
+	for i in range(actual_count):
 		get_tree().create_timer(i * (0.22 / spd_mult)).timeout.connect(func():
 			if GameManager.is_game_over: return
+			if get_tree().get_nodes_in_group("enemies").size() >= get_max_active_enemies(): return
 			var enemy = enemy_small_scene.instantiate()
 			enemy.pattern = 4 # DIVE_ATTACK
 			if "base_speed" in enemy: enemy.base_speed *= spd_mult
-			var spawn_x = 55.0 + (i * (430.0 / max(1, count - 1)))
+			var spawn_x = 55.0 + (i * (430.0 / max(1, actual_count - 1)))
+			if is_pos_overlapping_rescue_zone(spawn_x, 110.0):
+				spawn_x = get_safe_spawn_x(55.0, 485.0, 110.0)
 			enemy.global_position = Vector2(spawn_x, -70.0)
 			get_parent().add_child(enemy)
 		)
 
 func spawn_squadron_cross_pincer(count: int) -> void:
-	var half = int(count / 2)
+	var max_allowed = get_max_active_enemies()
+	var actual_count = min(count, max_allowed)
+	var half = max(1, int(actual_count / 2))
 	var spd_mult = get_phase_speed_mult()
 	for i in range(half):
 		get_tree().create_timer(i * (0.32 / spd_mult)).timeout.connect(func():
 			if GameManager.is_game_over: return
+			if get_tree().get_nodes_in_group("enemies").size() >= get_max_active_enemies(): return
 			# Left arc plane
 			if enemy_small_scene:
 				var e_left = enemy_small_scene.instantiate()
@@ -226,7 +307,7 @@ func spawn_squadron_cross_pincer(count: int) -> void:
 				e_left.global_position = Vector2(-50.0 - (i * 20.0), 70.0 + (i * 18.0))
 				get_parent().add_child(e_left)
 			# Right arc plane
-			if enemy_gold_scene:
+			if enemy_gold_scene and get_tree().get_nodes_in_group("enemies").size() < get_max_active_enemies():
 				var e_right = enemy_gold_scene.instantiate()
 				if "base_speed" in e_right: e_right.base_speed *= spd_mult
 				e_right.global_position = Vector2(590.0 + (i * 20.0), 70.0 + (i * 18.0))
@@ -236,12 +317,15 @@ func spawn_squadron_cross_pincer(count: int) -> void:
 func spawn_fast_jet_blitz(count: int) -> void:
 	if not enemy_fast_scene: return
 	var spd_mult = get_phase_speed_mult()
-	for i in range(count):
+	var max_allowed = get_max_active_enemies()
+	var actual_count = min(count, max_allowed)
+	for i in range(actual_count):
 		get_tree().create_timer(i * (0.25 / spd_mult)).timeout.connect(func():
 			if GameManager.is_game_over: return
+			if get_tree().get_nodes_in_group("enemies").size() >= get_max_active_enemies(): return
 			var enemy = enemy_fast_scene.instantiate()
 			if "speed" in enemy: enemy.speed *= spd_mult
-			var spawn_x = randf_range(60.0, 480.0)
+			var spawn_x = get_safe_spawn_x(60.0, 480.0, 130.0)
 			enemy.global_position = Vector2(spawn_x, -80.0)
 			get_parent().add_child(enemy)
 		)
@@ -249,32 +333,47 @@ func spawn_fast_jet_blitz(count: int) -> void:
 func spawn_squadron_gold_scurve(count: int) -> void:
 	if not enemy_gold_scene: return
 	var spd_mult = get_phase_speed_mult()
-	for i in range(count):
+	var max_allowed = get_max_active_enemies()
+	var actual_count = min(count, max_allowed)
+	for i in range(actual_count):
 		get_tree().create_timer(i * (0.30 / spd_mult)).timeout.connect(func():
 			if GameManager.is_game_over: return
+			if get_tree().get_nodes_in_group("enemies").size() >= get_max_active_enemies(): return
 			var enemy = enemy_gold_scene.instantiate()
 			if "base_speed" in enemy: enemy.base_speed *= spd_mult
-			enemy.global_position = Vector2(70.0 + (i * 75.0), -70.0)
+			var spawn_x = 70.0 + (i * 75.0)
+			if is_pos_overlapping_rescue_zone(spawn_x, 110.0):
+				spawn_x = get_safe_spawn_x(60.0, 480.0, 110.0)
+			enemy.global_position = Vector2(spawn_x, -70.0)
 			get_parent().add_child(enemy)
 		)
 
 func spawn_medium_bombers(count: int) -> void:
 	if not enemy_medium_scene: return
-	for i in range(count):
+	var max_allowed = get_max_active_enemies()
+	var actual_count = min(count, max_allowed)
+	for i in range(actual_count):
 		get_tree().create_timer(i * 0.7).timeout.connect(func():
 			if GameManager.is_game_over: return
+			if get_tree().get_nodes_in_group("enemies").size() >= get_max_active_enemies(): return
 			var enemy = enemy_medium_scene.instantiate()
 			var spawn_x = 100.0 + (i * 200.0)
+			if is_pos_overlapping_rescue_zone(spawn_x, 130.0):
+				spawn_x = get_safe_spawn_x(80.0, 460.0, 130.0)
 			enemy.global_position = Vector2(spawn_x, -90.0)
 			get_parent().add_child(enemy)
 		)
 
 func spawn_heavy_bomber_convoy() -> void:
-	if enemy_large_scene:
+	if enemy_large_scene and get_tree().get_nodes_in_group("enemies").size() < get_max_active_enemies():
 		var count = 1 if current_phase < 3 else 2
 		for i in range(count):
+			if get_tree().get_nodes_in_group("enemies").size() >= get_max_active_enemies(): break
 			var heavy = enemy_large_scene.instantiate()
-			heavy.global_position = Vector2(140.0 + (i * 260.0), -110.0)
+			var spawn_x = 140.0 + (i * 260.0)
+			if is_pos_overlapping_rescue_zone(spawn_x, 140.0):
+				spawn_x = get_safe_spawn_x(100.0, 440.0, 140.0)
+			heavy.global_position = Vector2(spawn_x, -110.0)
 			get_parent().add_child(heavy)
 			
 	spawn_fast_jet_blitz(2 + current_phase)

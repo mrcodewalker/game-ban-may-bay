@@ -27,16 +27,16 @@ func apply_type_visuals() -> void:
 	match type:
 		BulletType.RED_CANNON:
 			sprite.modulate = Color(2.5, 0.4, 0.3, 0.95) # Red
-			scale = Vector2(1.1, 1.1)
+			scale = Vector2(0.72, 0.72)
 		BulletType.PURPLE_ORB:
 			sprite.modulate = Color(2.2, 0.4, 2.8, 0.95) # Purple Void
-			scale = Vector2(1.5, 1.5)
+			scale = Vector2(0.98, 0.98)
 		BulletType.FIREBALL:
 			sprite.modulate = Color(3.0, 1.2, 0.2, 0.95) # Fireball
-			scale = Vector2(1.4, 1.4)
+			scale = Vector2(0.92, 0.92)
 		BulletType.ENEMY_MISSILE:
 			sprite.modulate = Color(2.8, 0.5, 0.2, 1.0) # Rocket
-			scale = Vector2(0.6, 0.6)
+			scale = Vector2(0.40, 0.40)
 
 func _process(delta: float) -> void:
 	lifetime -= delta

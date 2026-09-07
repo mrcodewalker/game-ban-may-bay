@@ -70,7 +70,7 @@ func setup_sprites() -> void:
 	
 	if tex_help.size() > 0:
 		sprite.texture = tex_help[0]
-		set_sprite_scale(90.0)
+		set_sprite_scale(60.0)
 
 func set_sprite_scale(target_width: float) -> void:
 	if sprite and sprite.texture:
@@ -95,7 +95,7 @@ func setup_collision() -> void:
 	if not has_node("CollisionShape2D"):
 		var col = CollisionShape2D.new()
 		var shape = CircleShape2D.new()
-		shape.radius = 95.0
+		shape.radius = 65.0
 		col.shape = shape
 		add_child(col)
 
@@ -106,7 +106,7 @@ func _draw() -> void:
 	var pulse = 1.0 + sin(osc_timer * 4.5) * 0.08
 	var rot_cw = osc_timer * 2.5
 	var rot_ccw = -osc_timer * 1.8
-	var r = 95.0 * pulse
+	var r = 65.0 * pulse
 	
 	var cyan_idle = Color(0.0, 0.95, 1.0, 0.85)
 	var green_active = Color(0.1, 1.0, 0.5, 0.98)
@@ -186,7 +186,7 @@ func process_waiting_help(delta: float) -> void:
 		anim_timer = 0.0
 		anim_frame = (anim_frame + 1) % tex_help.size()
 		sprite.texture = tex_help[anim_frame]
-		set_sprite_scale(90.0)
+		set_sprite_scale(60.0)
 		
 	var aura_pulse = 1.0 + sin(osc_timer * 5.0) * 0.22
 	sprite.modulate = Color(1.25, 1.15, 0.85, 1.0) * aura_pulse
@@ -256,7 +256,7 @@ func complete_rescue() -> void:
 
 	if tex_success.size() > 0:
 		sprite.texture = tex_success[0]
-		set_sprite_scale(95.0)
+		set_sprite_scale(65.0)
 		
 	if label_node:
 		label_node.text = "[ ✨ VIP SECURED - 🛡️ SHIELD GRANTED ✨ ]"
@@ -295,7 +295,7 @@ func process_rescuing(delta: float) -> void:
 		anim_timer = 0.0
 		anim_frame = (anim_frame + 1) % tex_success.size()
 		sprite.texture = tex_success[anim_frame]
-		set_sprite_scale(95.0)
+		set_sprite_scale(65.0)
 		
 	if state_timer >= 1.4:
 		transition_to_flying_away()
@@ -310,7 +310,7 @@ func transition_to_flying_away() -> void:
 	
 	if tex_bye:
 		sprite.texture = tex_bye
-		set_sprite_scale(240.0)
+		set_sprite_scale(75.0)
 		
 	if label_node:
 		label_node.text = "[ 👋 BYE! THANK YOU! ❤️ ]"
@@ -325,7 +325,7 @@ func process_flying_away(delta: float) -> void:
 	var top_y = -100.0
 	var height_ratio = clamp((position.y - top_y) / float(max(1.0, start_y - top_y)), 0.0, 1.0)
 	
-	var current_w = lerp(40.0, 240.0, height_ratio)
+	var current_w = lerp(30.0, 75.0, height_ratio)
 	set_sprite_scale(current_w)
 	
 	if height_ratio < 0.25:

@@ -33,6 +33,8 @@ func _process(delta: float) -> void:
 	# Smooth wingman positioning
 	var target_pos = player.global_position + target_offset
 	global_position = global_position.lerp(target_pos, 14.0 * delta)
+	global_position.x = clamp(global_position.x, 20.0, 520.0)
+	global_position.y = clamp(global_position.y, 20.0, 940.0)
 	
 	fire_timer -= delta
 	if fire_timer <= 0.0:
@@ -73,7 +75,7 @@ class PetSupportBullet extends Area2D:
 
 		var col = CollisionShape2D.new()
 		var rect = RectangleShape2D.new()
-		rect.size = Vector2(10.0, 24.0)
+		rect.size = Vector2(7.0, 16.0)
 		col.shape = rect
 		add_child(col)
 
@@ -83,7 +85,7 @@ class PetSupportBullet extends Area2D:
 			sp.texture = load(tex_path) as Texture2D
 		else:
 			sp.texture = load("res://extracted_assets/Textures/circle.png") as Texture2D
-		var sc = 20.0 / float(max(1, sp.texture.get_width()))
+		var sc = 13.0 / float(max(1, sp.texture.get_width()))
 		sp.scale = Vector2(sc, sc)
 		sp.modulate = Color(0.2, 1.0, 0.4, 0.95) # Vibrant green pet support energy bolt
 		add_child(sp)

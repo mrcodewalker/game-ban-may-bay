@@ -24,7 +24,7 @@ func _ready() -> void:
 		var tex = load(tex_path) as Texture2D
 		if tex:
 			sprite.texture = tex
-			var sc = 140.0 / float(max(1, tex.get_width()))
+			var sc = 90.0 / float(max(1, tex.get_width()))
 
 
 

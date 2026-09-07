@@ -22,7 +22,7 @@ func _ready() -> void:
 		var tex = load(tex_path) as Texture2D
 		if tex:
 			sprite.texture = tex
-			var sc = 170.0 / float(max(1, tex.get_width()))
+			var sc = 110.0 / float(max(1, tex.get_width()))
 			sprite.scale = Vector2(sc, sc)
 
 func _process(delta: float) -> void:

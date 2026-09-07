@@ -30,6 +30,9 @@ var active_laser_beam: Area2D = null
 var homing_missile_level: int = 0
 var missile_fire_timer: float = 0.0
 
+var has_left_pet: bool = false
+var has_right_pet: bool = false
+
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var shadow_sprite: Sprite2D = $ShadowSprite
 @onready var prop_sprite: Sprite2D = $Sprite2D/PropellerSprite
@@ -60,7 +63,7 @@ func _ready() -> void:
 		if tex:
 			sprite.texture = tex
 			shadow_sprite.texture = tex
-			var sc = 90.0 / float(max(1, tex.get_width()))
+			var sc = 60.0 / float(max(1, tex.get_width()))
 			sprite.scale = Vector2(sc, sc)
 			shadow_sprite.scale = Vector2(sc, sc)
 			sprite.modulate = Color.WHITE
@@ -109,8 +112,20 @@ func _ready() -> void:
 
 	# Instantiate Equipped Pet Jets
 	setup_pet_jets()
+	
+	# Only spawn companion pet jets if equipped in loadout
+	if "loadout_pet_jets" in GameManager and GameManager.loadout_pet_jets:
+		spawn_pet_jets()
+	
+	# Takeoff setup
+
+	position = Vector2(270, 900)
+	is_taking_off = true
+	trigger_invulnerability(2.5)
 
 func setup_pet_jets() -> void:
+	has_left_pet = false
+	has_right_pet = false
 	for c in get_children():
 		if c.has_method("fire_support_bullet"):
 			c.queue_free()
@@ -126,6 +141,7 @@ func setup_pet_jets() -> void:
 		pet_l.set("pet_filename", GameManager.equipped_left_pet)
 		pet_l.set("pet_level", GameManager.owned_pets.get(GameManager.equipped_left_pet, 1))
 		add_child(pet_l)
+		has_left_pet = true
 
 	# Spawn Right Pet Jet
 	if GameManager.equipped_right_pet != "":
@@ -135,17 +151,6 @@ func setup_pet_jets() -> void:
 		pet_r.set("pet_filename", GameManager.equipped_right_pet)
 		pet_r.set("pet_level", GameManager.owned_pets.get(GameManager.equipped_right_pet, 1))
 		add_child(pet_r)
-
-
-			
-	# Only spawn companion pet jets if equipped in loadout
-	if "loadout_pet_jets" in GameManager and GameManager.loadout_pet_jets:
-		spawn_pet_jets()
-	
-	# Takeoff setup
-
-	position = Vector2(270, 900)
-	is_taking_off = true
 	trigger_invulnerability(2.5)
 
 func spawn_pet_jets() -> void:
@@ -162,6 +167,7 @@ func spawn_pet_jets() -> void:
 	pet_l.set("pet_filename", GameManager.equipped_left_pet if GameManager.equipped_left_pet != "" else "pet-jet-1.png")
 	pet_l.set("pet_level", 2)
 	add_child(pet_l)
+	has_left_pet = true
 
 	var pet_r = Node2D.new()
 	pet_r.set_script(PetJetScript)
@@ -169,6 +175,7 @@ func spawn_pet_jets() -> void:
 	pet_r.set("pet_filename", GameManager.equipped_right_pet if GameManager.equipped_right_pet != "" else "pet-jet-2.png")
 	pet_r.set("pet_level", 2)
 	add_child(pet_r)
+	has_right_pet = true
 
 
 func load_banking_textures() -> void:
@@ -275,7 +282,9 @@ func handle_movement(delta: float) -> void:
 		shadow_sprite.rotation = rotation
 		shadow_sprite.scale = sprite.scale * 0.95
 
-	position.x = clamp(position.x, 28.0, 512.0)
+	var min_x = 72.0 if has_left_pet else 28.0
+	var max_x = 468.0 if has_right_pet else 512.0
+	position.x = clamp(position.x, min_x, max_x)
 	position.y = clamp(position.y, 40.0, 920.0)
 
 func update_banking_sprite(horizontal_input: float) -> void:

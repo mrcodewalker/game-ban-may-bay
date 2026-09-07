@@ -34,7 +34,7 @@ func _ready() -> void:
 		var tex = load(tex_path) as Texture2D
 		if tex:
 			sprite.texture = tex
-			var sc = 185.0 / float(max(1, tex.get_width()))
+			var sc = 125.0 / float(max(1, tex.get_width()))
 			sprite.scale = Vector2(sc, sc)
 			sprite.modulate = Color(1.3, 0.88, 0.88) # Heavy fortress red tint
 

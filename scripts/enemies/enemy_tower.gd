@@ -71,7 +71,7 @@ func setup_tower_visuals() -> void:
 		var tex = load(full_path) as Texture2D
 		if tex:
 			sprite.texture = tex
-			var sc = 150.0 / float(max(1, tex.get_width()))
+			var sc = 100.0 / float(max(1, tex.get_width()))
 
 
 

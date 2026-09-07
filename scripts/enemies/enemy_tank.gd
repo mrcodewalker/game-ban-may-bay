@@ -73,7 +73,7 @@ func setup_visuals() -> void:
 		if tex:
 			tank_body_sprite.texture = tex
 			shadow_sprite.texture = tex
-			var sc = 140.0 / float(max(1, tex.get_width()))
+			var sc = 90.0 / float(max(1, tex.get_width()))
 
 
 
@@ -92,7 +92,7 @@ func _load_fallback_atlas() -> void:
 	if tex:
 		tank_body_sprite.texture = tex
 		shadow_sprite.texture = tex
-		var sc = 140.0 / float(max(1, tex.get_width()))
+		var sc = 90.0 / float(max(1, tex.get_width()))
 		tank_body_sprite.scale = Vector2(sc, sc)
 		shadow_sprite.scale = Vector2(sc, sc)
 

@@ -19,7 +19,7 @@ func _ready() -> void:
 	if not has_node("CollisionShape2D"):
 		var col = CollisionShape2D.new()
 		var rect = RectangleShape2D.new()
-		rect.size = Vector2(60.0, 240.0)
+		rect.size = Vector2(40.0, 160.0)
 		col.shape = rect
 		add_child(col)
 
@@ -54,12 +54,12 @@ func update_sprite_scaling() -> void:
 	
 	# If we reached peak frame 7 (last frame of 1..7 sequence), elongate scale_y for full lightning strike ray
 	if current_frame_idx == thunder_textures.size() - 1:
-		var scale_x = 85.0 / float(max(1, tex.get_width()))
-		var scale_y = 380.0 / float(max(1, tex.get_height())) # Stretched out beam length
+		var scale_x = 55.0 / float(max(1, tex.get_width()))
+		var scale_y = 250.0 / float(max(1, tex.get_height())) # Stretched out beam length
 		sprite.scale = Vector2(scale_x, scale_y)
 	else:
-		var scale_x = 70.0 / float(max(1, tex.get_width()))
-		var scale_y = 180.0 / float(max(1, tex.get_height()))
+		var scale_x = 45.0 / float(max(1, tex.get_width()))
+		var scale_y = 120.0 / float(max(1, tex.get_height()))
 		sprite.scale = Vector2(scale_x, scale_y)
 		
 	sprite.modulate = Color(1.4, 1.8, 2.5, 1.0) # Vivid thunder lightning glow

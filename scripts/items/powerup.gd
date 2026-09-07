@@ -70,7 +70,7 @@ func update_appearance() -> void:
 		if tex:
 			sprite.texture = tex
 			var max_dim = float(max(tex.get_width(), tex.get_height()))
-			var sc = 72.0 / max(1.0, max_dim) # Increased size from 56 to 72
+			var sc = 48.0 / max(1.0, max_dim)
 			sprite.scale = Vector2(sc, sc)
 			sprite.modulate = Color(1.15, 1.15, 1.15, 1.0)
 			if label: label.hide()
@@ -83,7 +83,7 @@ func update_appearance() -> void:
 		if tex:
 			sprite.texture = tex
 			var max_dim = float(max(tex.get_width(), tex.get_height()))
-			var sc = 72.0 / max(1.0, max_dim)
+			var sc = 48.0 / max(1.0, max_dim)
 			sprite.scale = Vector2(sc, sc)
 			sprite.modulate = Color(1.15, 1.15, 1.15, 1.0)
 			if label: label.hide()
@@ -97,7 +97,7 @@ func _process(delta: float) -> void:
 	if sprite and sprite.texture:
 		var pulse = 1.0 + sin(time_passed * 5.0) * 0.12
 		var max_dim = float(max(sprite.texture.get_width(), sprite.texture.get_height()))
-		var base_sc = 72.0 / max(1.0, max_dim)
+		var base_sc = 48.0 / max(1.0, max_dim)
 		sprite.scale = Vector2(base_sc, base_sc) * pulse
 		
 	if is_instance_valid(glow_node):

@@ -28,7 +28,7 @@ func setup_visuals() -> void:
 		var tex = load(ship_path) as Texture2D
 		if tex:
 			ship_sprite.texture = tex
-			var sc = 240.0 / float(max(1, tex.get_width()))
+			var sc = 160.0 / float(max(1, tex.get_width()))
 			ship_sprite.scale = Vector2(sc, sc)
 			ship_sprite.modulate = Color.WHITE
 	add_child(ship_sprite)

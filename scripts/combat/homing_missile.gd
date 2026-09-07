@@ -26,7 +26,7 @@ func _ready() -> void:
 			var tex = load(tex_path) as Texture2D
 			if tex:
 				sp.texture = tex
-				var sc = 40.0 / float(max(1, tex.get_width()))
+				var sc = 26.0 / float(max(1, tex.get_width()))
 
 
 				sp.scale = Vector2(sc, sc)
