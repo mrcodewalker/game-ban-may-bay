@@ -18,7 +18,7 @@ var current_mode: String = "vertical" # "vertical" (B at top, moving down), "ver
 var time_elapsed: float = 0.0
 var respawn_count: int = 0
 var hit_count: int = 0
-var base_rotation: float = PI
+var base_rotation: float = 0.0
 
 func _ready() -> void:
 	z_index = 6
@@ -32,25 +32,29 @@ func set_spawn_mode(mode: String, p_screen_size: Vector2 = Vector2(540, 960)) ->
 	time_elapsed = 0.0
 	
 	if mode == "vertical" or mode == "vertical_bottom":
-		# MẶC ĐỊNH: B ở chính giữa biên trên, quay mặt XUỐNG DƯỚI (đối đầu trực diện A ở dưới)
+		# MẶC ĐỊNH: B ở chính giữa biên trên, mũi chúc XUỐNG DƯỚI (đối đầu trực diện A ở dưới)
+		# Texture J2M2_color_1.png mặc định có mũi hướng xuống dưới nên base_rotation = 0.0
 		position = Vector2(screen_size.x * 0.5, object_size.y * 1.0)
-		base_rotation = PI # 180 độ - quay mặt xuống dưới
-		rotation = PI
-		if particles:
-			particles.direction = Vector2(0, -1)
-	elif mode == "vertical_top":
-		# B ở chính giữa biên dưới, quay mặt LÊN TRÊN (đối đầu A ở trên)
-		position = Vector2(screen_size.x * 0.5, screen_size.y - object_size.y * 1.0)
-		base_rotation = 0.0 # 0 độ - quay mặt lên trên
+		base_rotation = 0.0
 		rotation = 0.0
 		if particles:
+			particles.position = Vector2(0, -32)
+			particles.direction = Vector2(0, -1)
+	elif mode == "vertical_top":
+		# B ở chính giữa biên dưới, mũi chúc LÊN TRÊN (đối đầu A ở trên)
+		position = Vector2(screen_size.x * 0.5, screen_size.y - object_size.y * 1.0)
+		base_rotation = PI
+		rotation = PI
+		if particles:
+			particles.position = Vector2(0, 32)
 			particles.direction = Vector2(0, 1)
 	elif mode == "horizontal":
-		# B ở chính giữa biên phải, quay mặt SANG TRÁI (đối đầu A ở trái)
+		# B ở chính giữa biên phải, mũi chúc SANG TRÁI (đối đầu A ở trái)
 		position = Vector2(screen_size.x - object_size.x * 0.9, screen_size.y * 0.5)
-		base_rotation = -PI * 0.5 # -90 độ - quay mặt sang trái
-		rotation = -PI * 0.5
+		base_rotation = PI * 0.5
+		rotation = PI * 0.5
 		if particles:
+			particles.position = Vector2(32, 0)
 			particles.direction = Vector2(1, 0)
 		
 	apply_size()
@@ -71,7 +75,7 @@ func _process(delta: float) -> void:
 	var move_vec = calculate_movement(delta)
 	position += move_vec * speed * delta
 	
-	# Banking tilt according to horizontal oscillation
+	# Banking tilt according to oscillation
 	if current_mode == "vertical" or current_mode == "vertical_bottom":
 		rotation = lerp_angle(rotation, base_rotation - (move_vec.x * 0.2), 10.0 * delta)
 	elif current_mode == "vertical_top":
