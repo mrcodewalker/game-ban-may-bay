@@ -43,7 +43,7 @@ func _process(delta: float) -> void:
 	velocity = Vector2(vx, vy)
 	position += velocity * delta
 	
-	if sprite and velocity.length_squared() > 10.0:
+	if is_instance_valid(sprite) and velocity.length_squared() > 10.0:
 		sprite.rotation = lerp_angle(sprite.rotation, velocity.angle() + (PI / 2.0), 12.0 * delta)
 
 	shoot_timer -= delta

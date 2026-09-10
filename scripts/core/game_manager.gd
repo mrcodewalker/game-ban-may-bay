@@ -19,6 +19,12 @@ signal phase_changed(phase_num: int, phase_name: String)
 signal wave_progress_updated(phase_num: int, progress_ratio: float, phase_title: String)
 signal princess_rescued(total_rescued: int, target: int)
 signal mission_tasks_updated(rescued_vip: int, target_vip: int, jets_destroyed: int, target_jets: int, tanks_destroyed: int, target_tanks: int, towers_destroyed: int, target_towers: int)
+signal combo_updated(combo_count: int, combo_title: String)
+signal princess_cheer_requested(message: String)
+
+var combo_count: int = 0
+var combo_timer: float = 0.0
+var princess_cheer_timer: float = 0.0
 
 var rescued_vip_count: int = 0
 var target_vip_count: int = 3
@@ -59,8 +65,8 @@ var equipped_right_pet: String = ""
 var owned_pets: Dictionary = {} # e.g. {"pet-jet-1.png": 1}
 
 # Player Stats
-var player_hp: float = 120.0
-var player_max_hp: float = 120.0
+var player_hp: float = 260.0
+var player_max_hp: float = 260.0
 var player_bombs: int = 3
 var current_weapon_level: int = 1
 var max_weapon_level: int = 4
@@ -316,7 +322,7 @@ const JET_CATALOG: Array[Dictionary] = [
 		"weapon_type": 0, # Vulcan
 		"price_stars": 0,
 		"price_gems": 0,
-		"hp": 120.0
+		"hp": 260.0
 	},
 	{
 		"file": "jet2.png",
@@ -325,7 +331,7 @@ const JET_CATALOG: Array[Dictionary] = [
 		"weapon_type": 1, # Thunder Strike
 		"price_stars": 300,
 		"price_gems": 10,
-		"hp": 130.0
+		"hp": 290.0
 	},
 	{
 		"file": "jet3.png",
@@ -334,7 +340,7 @@ const JET_CATALOG: Array[Dictionary] = [
 		"weapon_type": 3, # Spread
 		"price_stars": 500,
 		"price_gems": 15,
-		"hp": 140.0
+		"hp": 320.0
 	},
 	{
 		"file": "jet4.png",
@@ -343,7 +349,7 @@ const JET_CATALOG: Array[Dictionary] = [
 		"weapon_type": 2, # Homing Rocket
 		"price_stars": 800,
 		"price_gems": 25,
-		"hp": 160.0
+		"hp": 360.0
 	},
 	{
 		"file": "jet5.png",
@@ -352,7 +358,7 @@ const JET_CATALOG: Array[Dictionary] = [
 		"weapon_type": 1, # Thunder Strike
 		"price_stars": 1200,
 		"price_gems": 35,
-		"hp": 170.0
+		"hp": 400.0
 	},
 	{
 		"file": "jet6.png",
@@ -361,7 +367,7 @@ const JET_CATALOG: Array[Dictionary] = [
 		"weapon_type": 3, # Spread
 		"price_stars": 1500,
 		"price_gems": 45,
-		"hp": 180.0
+		"hp": 430.0
 	},
 	{
 		"file": "jet7.png",
@@ -370,7 +376,7 @@ const JET_CATALOG: Array[Dictionary] = [
 		"weapon_type": 0, # Vulcan
 		"price_stars": 2000,
 		"price_gems": 60,
-		"hp": 190.0
+		"hp": 460.0
 	},
 	{
 		"file": "jet8.png",
@@ -379,7 +385,7 @@ const JET_CATALOG: Array[Dictionary] = [
 		"weapon_type": 2, # Homing Rocket
 		"price_stars": 3000,
 		"price_gems": 100,
-		"hp": 220.0
+		"hp": 500.0
 	}
 ]
 
@@ -575,6 +581,9 @@ func trigger_game_won(stars_earned: int = 10, coins_earned: int = 100) -> void:
 func damage_player(amount: float) -> void:
 	player_hp = max(0.0, player_hp - amount)
 	player_health_updated.emit(player_hp, player_max_hp)
+	if combo_count > 0:
+		combo_count = 0
+		combo_updated.emit(0, "")
 	if player_hp <= 0.0 and not is_game_over:
 		trigger_game_over()
 
@@ -589,6 +598,18 @@ func _process(delta: float) -> void:
 		overcharge_timer -= delta
 		if overcharge_timer <= 0.0:
 			is_overcharged = false
+
+	if combo_count > 0:
+		combo_timer -= delta
+		if combo_timer <= 0.0:
+			combo_count = 0
+			combo_updated.emit(0, "")
+
+	if not is_game_over:
+		princess_cheer_timer += delta
+		if princess_cheer_timer >= 28.0:
+			princess_cheer_timer = 0.0
+			trigger_princess_cheer()
 
 func activate_star_magnet(_duration: float = 10.0) -> void:
 	pass
@@ -647,11 +668,40 @@ func add_gem(amount: int = 1) -> void:
 	gems_updated.emit(gems)
 	save_user_data()
 
+func add_kill_combo() -> void:
+	combo_count += 1
+	combo_timer = 3.2
+	var title = ""
+	if combo_count >= 15: title = "👑 %dx LEGENDARY COMBO!" % combo_count
+	elif combo_count >= 10: title = "💥 10x ULTRA COMBO!"
+	elif combo_count >= 8: title = "⚡ 8x MEGA COMBO!"
+	elif combo_count >= 5: title = "🔥 5x SUPER COMBO!"
+	elif combo_count >= 3: title = "🎯 3x COMBO!"
+
+	if title != "":
+		combo_updated.emit(combo_count, title)
+		add_score(combo_count * 150)
+		if combo_count in [5, 10, 15]:
+			add_gem(1)
+			trigger_princess_cheer()
+
+func trigger_princess_cheer() -> void:
+	var cheers = [
+		"Bạn làm tốt lắm! Cố lên! ✨",
+		"Bắn hay lắm anh hùng! 💖",
+		"Xuất sắc! Đội tiêm kích địch đang tháo chạy! 🔥",
+		"Cảm ơn bạn đã bảo vệ chúng tôi! ❤️",
+		"Tôi tin tưởng ở bạn, xuất kích thắng lợi! 🌟"
+	]
+	var selected_msg = cheers[randi() % cheers.size()]
+	princess_cheer_requested.emit(selected_msg)
+
 func register_princess_rescue() -> void:
 	rescued_vip_count += 1
 	princesses_rescued_in_run += 1
 	add_gem(1)
 	princess_rescued.emit(rescued_vip_count, target_vip_count)
+	trigger_princess_cheer()
 	emit_mission_update()
 
 func register_kill(_pos = Vector2.ZERO) -> void:
@@ -659,14 +709,17 @@ func register_kill(_pos = Vector2.ZERO) -> void:
 
 func register_jet_kill() -> void:
 	jets_destroyed_count += 1
+	add_kill_combo()
 	emit_mission_update()
 
 func register_tank_kill() -> void:
 	tanks_destroyed_count += 1
+	add_kill_combo()
 	emit_mission_update()
 
 func register_tower_kill() -> void:
 	towers_destroyed_count += 1
+	add_kill_combo()
 	emit_mission_update()
 
 func emit_mission_update() -> void:

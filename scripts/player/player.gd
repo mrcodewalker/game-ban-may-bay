@@ -50,6 +50,8 @@ func _ready() -> void:
 	add_to_group("player")
 	area_entered.connect(_on_area_entered)
 	GameManager.game_over_triggered.connect(_on_game_over)
+	if GameManager.has_signal("game_won_triggered"):
+		GameManager.game_won_triggered.connect(func(_stars=0, _coins=0): trigger_victory_flyaway())
 	GameManager.player_revived.connect(func(): trigger_revive_invulnerability(3.0))
 	
 	var jet_data = GameManager.get_jet_data(GameManager.selected_player_jet)
@@ -199,8 +201,33 @@ func set_weapon_type(w_type: int) -> void:
 	current_weapon_type = w_type as WeaponType
 	if AudioManager: AudioManager.play_sfx("powerup")
 
+var is_victory_flyaway: bool = false
+var flyaway_speed: float = 250.0
+
+func trigger_victory_flyaway() -> void:
+	is_victory_flyaway = true
+	flyaway_speed = 280.0
+	trigger_invulnerability(10.0)
+	monitoring = false
+	monitorable = false
+	if AudioManager: AudioManager.play_sfx("powerup", 2.0, 1.2)
+	spawn_pickup_text("✈️ STAGE CLEAR! FLYING OFF!")
+
+func handle_victory_flyaway(delta: float) -> void:
+	flyaway_speed = lerp(flyaway_speed, 1250.0, 3.5 * delta)
+	position.y -= flyaway_speed * delta
+	rotation = lerp_angle(rotation, 0.0, 12.0 * delta)
+	if shadow_sprite:
+		shadow_sprite.position = shadow_sprite.position.lerp(Vector2(25, 45), 5.0 * delta)
+	if position.y < -150:
+		hide()
+
 func _process(delta: float) -> void:
 	if GameManager.is_game_over: return
+
+	if is_victory_flyaway:
+		handle_victory_flyaway(delta)
+		return
 
 	# Process active shield 3.0s expiration timer
 	if active_shield_timer > 0.0:
@@ -218,7 +245,7 @@ func _process(delta: float) -> void:
 			GameManager.weapon_level_updated.emit(1)
 			spawn_pickup_text("⚡ MAX WEAPON EXPIRED")
 		
-	if prop_sprite: prop_sprite.rotation += 50.0 * delta
+	if is_instance_valid(prop_sprite): prop_sprite.rotation += 50.0 * delta
 	if is_instance_valid(shield_node) and shield_node.visible:
 		shield_node.queue_redraw()
 		
@@ -276,7 +303,7 @@ func handle_movement(delta: float) -> void:
 	target_rotation = move_dir.x * deg_to_rad(14.0)
 	rotation = lerp_angle(rotation, target_rotation, 16.0 * delta)
 	
-	if shadow_sprite and sprite:
+	if is_instance_valid(shadow_sprite) and is_instance_valid(sprite):
 		shadow_sprite.texture = sprite.texture
 		shadow_sprite.position = Vector2(16, 26)
 		shadow_sprite.rotation = rotation

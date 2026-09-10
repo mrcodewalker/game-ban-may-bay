@@ -36,14 +36,14 @@ func _process(delta: float) -> void:
 	var vy = speed * speed_mult
 	position += Vector2(vx, vy) * delta
 	
-	if sprite:
+	if is_instance_valid(sprite):
 		var target_roll = PI + (vx / 75.0) * deg_to_rad(14.0)
 		sprite.rotation = lerp_angle(sprite.rotation, target_roll, 10.0 * delta)
 
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		shoot()
-		shoot_timer = 1.8
+		shoot_timer = 3.0
 		
 	if position.y > 1030:
 		queue_free()
@@ -52,7 +52,7 @@ func shoot() -> void:
 	if position.y < 0 or position.y > 850 or GameManager.is_game_over:
 		return
 		
-	for angle in [-16.0, 0.0, 16.0]:
+	for angle in [-14.0, 14.0]:
 		var ring = UFOPlasmaRing.new()
 		ring.global_position = global_position + Vector2(0, 24)
 		ring.direction = Vector2.DOWN.rotated(deg_to_rad(angle))
@@ -92,7 +92,7 @@ func _on_area_entered(area: Area2D) -> void:
 			area.take_damage(25.0)
 
 class UFOPlasmaRing extends Area2D:
-	var speed: float = 360.0
+	var speed: float = 270.0
 	var damage: float = 12.0
 	var direction: Vector2 = Vector2.DOWN
 	var _time: float = 0.0

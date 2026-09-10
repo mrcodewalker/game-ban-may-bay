@@ -116,12 +116,12 @@ func update_ui() -> void:
 		btn_style.set_corner_radius_all(6)
 
 		if is_owned:
-			buy_btn.text = "✔ OWNED"
+			buy_btn.text = "✅ OWNED"
 			buy_btn.disabled = true
 			ButtonStyler.apply_textured_style(buy_btn, "green")
 		else:
 			var price = data["price"] as int
-			buy_btn.text = "BUY (%d 💎)" % price
+			buy_btn.text = "🛒 BUY (%d 💎)" % price
 			buy_btn.disabled = (GameManager.gems < price)
 			ButtonStyler.apply_textured_style(buy_btn, "purple")
 

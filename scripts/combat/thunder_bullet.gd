@@ -1,7 +1,7 @@
 extends Area2D
 
 @export var speed: float = 1750.0
-@export var damage: float = 42.0
+@export var damage: float = 13.0
 
 var direction: Vector2 = Vector2.UP
 var hit_enemies: Array = []
@@ -67,7 +67,7 @@ func update_sprite_scaling() -> void:
 func _process(delta: float) -> void:
 	position += direction * speed * delta
 	
-	if direction != Vector2.ZERO and sprite:
+	if direction != Vector2.ZERO and is_instance_valid(sprite):
 		sprite.rotation = direction.angle() + (PI / 2.0)
 		
 	# Animate thunder frames 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 (and lock at frame 7)
@@ -117,8 +117,8 @@ func create_thunder_hit_effect() -> void:
 	tween.tween_callback(spark.queue_free)
 
 func chain_lightning_impact(pos: Vector2) -> void:
-	# Damage nearby enemies with electric splash
-	var splash_dmg = damage * 0.5 * GameManager.get_player_damage_mult()
+	# Subtle electric splash for neighboring enemies (scaled with nerfed damage)
+	var splash_dmg = damage * 0.25 * GameManager.get_player_damage_mult()
 	for other in get_tree().get_nodes_in_group("enemies"):
 		if other != null and is_instance_valid(other) and not hit_enemies.has(other):
 			if other.global_position.distance_to(pos) <= 120.0:

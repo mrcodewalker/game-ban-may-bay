@@ -214,16 +214,16 @@ func _process(delta: float) -> void:
 	var player_nodes = get_tree().get_nodes_in_group("player")
 	if player_nodes.size() > 0:
 		var target_pos = player_nodes[0].global_position
-		if turret_left and turret_left.visible:
+		if is_instance_valid(turret_left) and turret_left.visible:
 			turret_left.rotation = (target_pos - turret_left.global_position).angle()
-		if turret_right and turret_right.visible:
+		if is_instance_valid(turret_right) and turret_right.visible:
 			turret_right.rotation = (target_pos - turret_right.global_position).angle()
 		
 		# Rotate multipart turrets
 		for t_node in active_turrets:
 			if is_instance_valid(t_node) and not t_node.is_destroyed:
 				var spr = t_node.get_node_or_null("Sprite2D")
-				if spr:
+				if is_instance_valid(spr):
 					spr.rotation = (target_pos - t_node.global_position).angle() - global_rotation
 
 	# Entrance descent

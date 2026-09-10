@@ -33,7 +33,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	position += direction * speed * delta
-	if direction != Vector2.ZERO and sprite:
+	if direction != Vector2.ZERO and is_instance_valid(sprite):
 		sprite.rotation = direction.angle() + (PI / 2.0)
 		
 	if position.y < -150 or position.y > 1300 or position.x < -150 or position.x > 700:

@@ -29,7 +29,7 @@ func _ready() -> void:
 	hp = max_hp * GameManager.get_enemy_hp_mult()
 	start_pos = position
 	area_entered.connect(_on_area_entered)
-	shoot_timer = randf_range(1.0, 2.2)
+	shoot_timer = randf_range(2.0, 3.5)
 	
 	var tex_path = "res://extracted_assets/AI/cut_assets/enemies/jet1.png"
 	if ResourceLoader.exists(tex_path) and sprite:
@@ -52,7 +52,7 @@ func _process(delta: float) -> void:
 	
 	position += velocity * delta
 	
-	if velocity.length_squared() > 10.0 and sprite:
+	if velocity.length_squared() > 10.0 and is_instance_valid(sprite):
 		var target_angle = velocity.angle() + (PI / 2.0)
 		sprite.rotation = lerp_angle(sprite.rotation, target_angle, 14.0 * delta)
 
@@ -60,7 +60,7 @@ func _process(delta: float) -> void:
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		shoot()
-		shoot_timer = randf_range(1.8, 3.2)
+		shoot_timer = randf_range(2.8, 4.2)
 		
 	if position.y > 1060 or position.y < -300 or position.x < -150 or position.x > 690:
 		queue_free()

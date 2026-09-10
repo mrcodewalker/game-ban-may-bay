@@ -1,7 +1,7 @@
 extends Area2D
 
-@export var speed: float = 450.0
-@export var damage: float = 15.0
+@export var speed: float = 290.0
+@export var damage: float = 12.0
 var direction: Vector2 = Vector2.DOWN
 
 func _ready() -> void:

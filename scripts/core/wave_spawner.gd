@@ -21,36 +21,38 @@ var princess_timer: float = 0.0
 var debuff_timer: float = 0.0
 
 
+var initial_grace_timer: float = 6.0
+
 # Dynamic spawn interval calculation (accelerates as phases advance towards Boss!)
 func get_max_active_enemies() -> int:
 	match current_wave:
 		1:
-			return 1 if wave_timer < 8.0 else 2
+			return 1 if wave_timer < 12.0 else 2
 		2:
-			return 3
+			return 2
 		3:
-			return 4
+			return 3
 		4:
-			return 5
+			return 4
 		_:
-			return 6
+			return 5
 
 func get_current_spawn_interval() -> float:
 	match current_phase:
 		1:
 			if current_wave == 1:
-				return max(2.5, 3.8 - (wave_timer * 0.04))
-			return max(3.5, 4.5 - (wave_timer * 0.04))
-		2: return max(3.0, 3.8 - (wave_timer * 0.04))
-		3: return max(2.4, 3.0 - (wave_timer * 0.05))
+				return max(3.6, 4.8 - (wave_timer * 0.04))
+			return max(3.2, 4.0 - (wave_timer * 0.04))
+		2: return max(2.8, 3.4 - (wave_timer * 0.04))
+		3: return max(2.2, 2.8 - (wave_timer * 0.05))
 		_: return 3.0
 
 func get_phase_speed_mult() -> float:
 	match current_phase:
-		1: return 0.80
-		2: return 0.95
-		3: return 1.10
-		_: return 0.90
+		1: return 0.70
+		2: return 0.88
+		3: return 1.05
+		_: return 0.85
 
 func _ready() -> void:
 	start_wave(1)
@@ -82,13 +84,14 @@ func start_wave(wave_num: int) -> void:
 		spawn_boss()
 		return
 		
+	# If we are in wave 1, DO NOT immediately spawn enemies: wait for the 6.0s initial grace period!
+	if wave_num == 1:
+		return
+
 	match current_phase:
 		1:
-			if wave_num == 1:
-				spawn_single_jet()
-			else:
-				spawn_full_screen_sky_wall(2)
-				get_tree().create_timer(3.8).timeout.connect(func(): spawn_squadron_cross_pincer(3))
+			spawn_full_screen_sky_wall(2)
+			get_tree().create_timer(3.8).timeout.connect(func(): spawn_squadron_cross_pincer(3))
 		2:
 			spawn_medium_bombers(2)
 			get_tree().create_timer(3.5).timeout.connect(func(): spawn_squadron_cross_pincer(4))
@@ -99,6 +102,18 @@ func start_wave(wave_num: int) -> void:
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over or boss_spawned:
+		return
+
+	# STRICT ZERO-SPAWN 6-SECOND INITIAL GRACE PERIOD
+	# Ensures player has 6 full seconds of completely clear sky and ocean upon starting
+	if initial_grace_timer > 0.0:
+		initial_grace_timer -= delta
+		continuous_timer = 0.0
+		tower_timer = 0.0
+		princess_timer = 0.0
+		if initial_grace_timer <= 0.0:
+			# After 6.0 seconds, gently spawn the first introductory fighter jet
+			spawn_single_jet()
 		return
 
 	wave_timer += delta
@@ -131,9 +146,11 @@ func _process(delta: float) -> void:
 		spawn_ground_tower()
 
 	princess_timer += delta
-	if princess_timer >= 45.0:
-		princess_timer = 0.0
-		spawn_princess_vip()
+	if princess_timer >= 55.0:
+		var active_zones = get_tree().get_nodes_in_group("rescue_zones").size()
+		if active_zones < 1:
+			princess_timer = 0.0
+			spawn_princess_vip()
 
 	if wave_timer > 16.0:
 		var active_enemies = get_tree().get_nodes_in_group("enemies")

@@ -14,7 +14,10 @@ func setup(texture_res: Texture2D, start_pos: Vector2, initial_vel: Vector2, ini
 	velocity = initial_vel
 	rotation_speed = randf_range(-4.0, 4.0)
 	
-	if sprite and texture_res:
+	if not is_instance_valid(sprite):
+		sprite = get_node_or_null("Sprite2D") as Sprite2D
+	
+	if is_instance_valid(sprite) and texture_res:
 		sprite.texture = texture_res
 		sprite.scale = initial_scale
 		sprite.rotation = randf_range(-PI, PI)

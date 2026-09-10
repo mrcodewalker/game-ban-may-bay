@@ -5,7 +5,7 @@ class_name PrincessRescueZone
 enum State { WAITING_HELP, RESCUING, FLYING_AWAY }
 
 @export var scroll_speed: float = 120.0
-@export var rescue_time_required: float = 3.0
+@export var rescue_time_required: float = 2.0
 @export var score_reward: int = 5000
 @export var star_reward: int = 5
 
@@ -65,12 +65,12 @@ func load_textures() -> void:
 
 func setup_sprites() -> void:
 	sprite = Sprite2D.new()
-	sprite.position = Vector2(0, -45)
+	sprite.position = Vector2(0, -25)
 	add_child(sprite)
 	
 	if tex_help.size() > 0:
 		sprite.texture = tex_help[0]
-		set_sprite_scale(60.0)
+		set_sprite_scale(36.0)
 
 func set_sprite_scale(target_width: float) -> void:
 	if sprite and sprite.texture:
@@ -81,21 +81,21 @@ func set_sprite_scale(target_width: float) -> void:
 
 func setup_label() -> void:
 	label_node = Label.new()
-	label_node.text = "[ 🔒 HOLOGRAPHIC VIP RECOVERY ZONE 🔒 ]"
+	label_node.text = "[ 🔒 VIP RECOVERY ZONE 🔒 ]"
 	label_node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label_node.position = Vector2(-170, -150)
-	label_node.custom_minimum_size = Vector2(340, 36)
+	label_node.position = Vector2(-140, -95)
+	label_node.custom_minimum_size = Vector2(280, 24)
 	label_node.add_theme_color_override("font_color", Color(0.0, 0.95, 1.0))
 	label_node.add_theme_color_override("font_outline_color", Color(0.0, 0.1, 0.2, 1.0))
-	label_node.add_theme_constant_override("outline_size", 8)
-	label_node.add_theme_font_size_override("font_size", 14)
+	label_node.add_theme_constant_override("outline_size", 6)
+	label_node.add_theme_font_size_override("font_size", 11)
 	add_child(label_node)
 
 func setup_collision() -> void:
 	if not has_node("CollisionShape2D"):
 		var col = CollisionShape2D.new()
 		var shape = CircleShape2D.new()
-		shape.radius = 65.0
+		shape.radius = 38.0
 		col.shape = shape
 		add_child(col)
 
@@ -106,7 +106,7 @@ func _draw() -> void:
 	var pulse = 1.0 + sin(osc_timer * 4.5) * 0.08
 	var rot_cw = osc_timer * 2.5
 	var rot_ccw = -osc_timer * 1.8
-	var r = 65.0 * pulse
+	var r = 38.0 * pulse
 	
 	var cyan_idle = Color(0.0, 0.95, 1.0, 0.85)
 	var green_active = Color(0.1, 1.0, 0.5, 0.98)

@@ -3,8 +3,8 @@ extends Area2D
 enum BulletType { RED_CANNON, PURPLE_ORB, FIREBALL, ENEMY_MISSILE }
 
 @export var type: BulletType = BulletType.RED_CANNON
-@export var speed: float = 480.0
-@export var damage: float = 20.0
+@export var speed: float = 300.0
+@export var damage: float = 14.0
 
 var direction: Vector2 = Vector2.DOWN
 var target: Node2D = null

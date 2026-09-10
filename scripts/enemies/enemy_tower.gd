@@ -51,59 +51,60 @@ func setup_collision() -> void:
 
 
 func setup_tower_visuals() -> void:
-	var base_cut = "res://extracted_assets/AI/cut_assets/towers/"
-	var tower_files = ["tower1.png", "tower02.png"]
-	
-	# ONLY allow tower3.png (Debuff Storm Zone Tower) after 10.0 seconds of match time elapsed!
-	var match_time = Time.get_ticks_msec() * 0.001
-	if match_time > 10.0:
-		tower_files.append("tower3.png")
+	setup_visuals()
 
+func setup_visuals() -> void:
+	var base_cut = "res://extracted_assets/AI/cut_assets/towers/"
+	var tower_files = ["tower1.png", "tower02.png", "tower3.png"]
 	var selected_name = tower_files[randi() % tower_files.size()]
-	var full_path = base_cut + selected_name
 	
 	if selected_name == "tower3.png":
 		is_tower3 = true
-		spawn_tower3_storm_zone()
-
+		create_storm_zone()
 		
-	if ResourceLoader.exists(full_path):
-		var tex = load(full_path) as Texture2D
+	var path = base_cut + selected_name
+	if ResourceLoader.exists(path):
+		var tex = load(path) as Texture2D
 		if tex:
-			sprite.texture = tex
-			var sc = 100.0 / float(max(1, tex.get_width()))
+			if sprite:
+				sprite.texture = tex
+				var sc = 75.0 / float(max(1, tex.get_width()))
+				sprite.scale = Vector2(sc, sc)
 
+	if not has_node("CollisionShape2D"):
+		var col = CollisionShape2D.new()
+		var rect = RectangleShape2D.new()
+		rect.size = Vector2(65.0, 65.0)
+		col.shape = rect
+		add_child(col)
 
-
-
-			sprite.scale = Vector2(sc, sc)
-
-func spawn_tower3_storm_zone() -> void:
-	var storm_scene_path = "res://extracted_assets/AI/cut_assets/towers/effect-tower-03.png"
-	if ResourceLoader.exists(storm_scene_path):
-		var storm = Tower03StormZone.new()
-		storm.global_position = Vector2(270, 840) # Fixed screen bottom zone
-		get_parent().call_deferred("add_child", storm)
-		storm_zone = storm
+func create_storm_zone() -> void:
+	var zone_script = load("res://scripts/combat/debuff_zone.gd")
+	if zone_script:
+		storm_zone = Area2D.new()
+		storm_zone.script = zone_script
+		storm_zone.global_position = global_position
+		get_parent().call_deferred("add_child", storm_zone)
 
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over: return
-
-	# Scroll along ground terrain
+	
 	position.y += scroll_speed * delta
+	if is_instance_valid(storm_zone):
+		storm_zone.position = position
 	
 	# Aim turret barrel at player plane
 	var players = get_tree().get_nodes_in_group("player")
 	if players.size() > 0:
 		var p = players[0]
-		if is_instance_valid(p) and barrel:
+		if is_instance_valid(p) and is_instance_valid(barrel):
 			var dir = (p.global_position - global_position).normalized()
 			barrel.rotation = lerp_angle(barrel.rotation, dir.angle() + PI/2.0, 5.0 * delta)
 			
 	# Firing anti-air salvos
 	fire_timer += delta
-	var target_interval = 0.8 if GameManager.is_hard_mode() else fire_interval
+	var target_interval = 2.0 if GameManager.is_hard_mode() else fire_interval
 	if fire_timer >= target_interval:
 		fire_timer = 0.0
 		fire_burst()
@@ -121,7 +122,7 @@ func fire_burst() -> void:
 	var target_dir = (players[0].global_position - global_position).normalized()
 	var base_angle = target_dir.angle()
 	
-	var angles = [base_angle - 0.35, base_angle - 0.18, base_angle, base_angle + 0.18, base_angle + 0.35] if GameManager.is_hard_mode() else [base_angle - 0.20, base_angle, base_angle + 0.20]
+	var angles = [base_angle - 0.22, base_angle, base_angle + 0.22] if GameManager.is_hard_mode() else [base_angle]
 	for ang in angles:
 		spawn_bullet(ang, bullet_tex)
 		
@@ -134,8 +135,8 @@ func spawn_bullet(angle: float, tex: Texture2D) -> void:
 		var b = bullet_scene.instantiate() as Area2D
 		b.global_position = barrel.global_position if barrel else global_position
 		b.set_meta("direction", Vector2.RIGHT.rotated(angle))
-		b.set_meta("speed", (bullet_speed + 120.0) if GameManager.is_hard_mode() else bullet_speed)
-		b.set_meta("damage", 60.0 if GameManager.is_hard_mode() else 25.0)
+		b.set_meta("speed", (bullet_speed + 60.0) if GameManager.is_hard_mode() else bullet_speed)
+		b.set_meta("damage", 25.0 if GameManager.is_hard_mode() else 15.0)
 		if tex:
 			var spr = b.get_node_or_null("Sprite2D") as Sprite2D
 			if spr:

@@ -2,12 +2,12 @@ extends Area2D
 
 @export var max_hp: float = 35.0
 @export var score_value: int = 180
-@export var base_speed: float = 580.0
+@export var base_speed: float = 380.0
 @export var bullet_scene: PackedScene = preload("res://scenes/combat/enemy_bullet.tscn")
 @export var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
 
 var hp: float
-var shoot_timer: float = 0.4
+var shoot_timer: float = 1.2
 var velocity: Vector2 = Vector2.DOWN
 
 @onready var sprite: Sprite2D = $Sprite2D
@@ -38,7 +38,7 @@ func _process(delta: float) -> void:
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		shoot()
-		shoot_timer = 0.8
+		shoot_timer = 2.2
 
 	if position.y > 1060: queue_free()
 
@@ -47,7 +47,7 @@ func shoot() -> void:
 	var b = bullet_scene.instantiate()
 	b.global_position = global_position + Vector2(0, 20)
 	b.direction = Vector2.DOWN
-	b.speed *= 1.4 * GameManager.get_bullet_speed_mult()
+	b.speed *= 1.1 * GameManager.get_bullet_speed_mult()
 	get_parent().add_child(b)
 
 func take_damage(amount: float) -> void:

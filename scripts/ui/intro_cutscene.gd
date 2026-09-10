@@ -8,15 +8,15 @@ extends Control
 var slides: Array[Dictionary] = [
 	{
 		"texture": "res://extracted_assets/Textures/Airforce1943_sunrise.png",
-		"text": "PACIFIC OCEAN - 1943.\nA massive enemy armada has invaded allied waters across the Pacific..."
+		"text": "NĂM 2043 - BÁO ĐỘNG ĐỎ TOÀN CẦU!\nĐế chế Không quân Bóng đêm 'Dreadnought Empire' bất ngờ tung hạm đội không hạm đánh chiếm 5 quần đảo chiến lược Thái Bình Dương!"
 	},
 	{
 		"texture": "res://extracted_assets/Textures/Airforce1943_dogfight.png",
-		"text": "Commanders from all bases call for urgent air support!\nHeavy bombers and invincible flagships are sweeping the archipelago..."
+		"text": "CÁC CĂN CỨ ĐỒNG MINH LẦN LƯỢT THẤT THỦ!\nĐịch bắt giữ các kỹ sư VIP và Công chúa Aura – người nắm giữ mật mã Năng lượng Vũ trụ để chế tạo siêu vũ khí hủy diệt!"
 	},
 	{
 		"texture": "res://extracted_assets/Textures/Carrier_2.png",
-		"text": "PILOT! YOUR FIGHTER IS READY ON THE FLIGHT DECK.\nScramble all engines and eliminate the enemy flagship!"
+		"text": "CHIẾN SĨ! TIÊM KÍCH VALKYRIE ALPHA ĐÃ SẴN SÀNG XUẤT KÍCH!\nHãy cất cánh từ Hàng không mẫu hạm, phá tan 5 phòng tuyến của địch và giải cứu Công chúa!"
 	}
 ]
 

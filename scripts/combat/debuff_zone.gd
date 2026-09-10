@@ -29,7 +29,8 @@ func _process(delta: float) -> void:
 	position.y += scroll_speed * delta
 	
 	# Slow rotation for atmospheric effect
-	sprite.rotation += 0.2 * delta
+	if is_instance_valid(sprite):
+		sprite.rotation += 0.2 * delta
 	
 	if is_instance_valid(player_inside):
 		# Apply continuous visual effect to player inside storm

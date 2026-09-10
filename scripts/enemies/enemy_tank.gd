@@ -114,7 +114,7 @@ func _process(delta: float) -> void:
 
 	# Find player and aim turret
 	find_player()
-	if is_instance_valid(target_player) and turret_sprite:
+	if is_instance_valid(target_player) and is_instance_valid(turret_sprite):
 		var dir = (target_player.global_position - global_position).normalized()
 		turret_sprite.rotation = lerp_angle(turret_sprite.rotation, dir.angle() + PI/2.0, 6.0 * delta)
 
@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		fire_anti_air_shell()
-		shoot_timer = randf_range(0.6, 1.2) if GameManager.is_hard_mode() else randf_range(2.0, 3.2)
+		shoot_timer = randf_range(1.5, 2.5) if GameManager.is_hard_mode() else randf_range(3.2, 4.5)
 
 func find_player() -> void:
 	if is_instance_valid(target_player): return
@@ -138,8 +138,8 @@ func fire_anti_air_shell() -> void:
 	var bullet = bullet_scene.instantiate()
 	bullet.global_position = global_position + fire_dir * 32.0
 	if "direction" in bullet: bullet.direction = fire_dir
-	if "speed" in bullet: bullet.speed = (580.0 if GameManager.is_hard_mode() else 480.0) * GameManager.get_bullet_speed_mult()
-	if "damage" in bullet: bullet.damage = 55.0 if GameManager.is_hard_mode() else 25.0
+	if "speed" in bullet: bullet.speed = (360.0 if GameManager.is_hard_mode() else 290.0) * GameManager.get_bullet_speed_mult()
+	if "damage" in bullet: bullet.damage = 30.0 if GameManager.is_hard_mode() else 16.0
 
 	if bullet.has_node("Sprite2D"):
 		var sp = bullet.get_node("Sprite2D") as Sprite2D

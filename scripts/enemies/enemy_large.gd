@@ -52,7 +52,7 @@ func _process(delta: float) -> void:
 	var vy = speed * speed_mult
 	position += Vector2(vx, vy) * delta
 	
-	if sprite:
+	if is_instance_valid(sprite):
 		var target_roll = PI + (vx / 60.0) * deg_to_rad(10.0)
 		sprite.rotation = lerp_angle(sprite.rotation, target_roll, 8.0 * delta)
 
