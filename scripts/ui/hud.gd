@@ -1,13 +1,16 @@
 extends CanvasLayer
 
-@onready var score_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/ScoreLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/ScoreLabel") else $TopMargin/HBox/VBoxLeft/ScoreLabel
+@onready var score_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/ScoreLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/ScoreLabel") else null
 @onready var high_score_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/HighScoreLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/HighScoreLabel") else null
 @onready var gems_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/GemsLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/GemsLabel") else null
-@onready var weapon_label: Label = $TopBarPanel/Margin/HBox/VBoxRight/WeaponLabel if has_node("TopBarPanel/Margin/HBox/VBoxRight/WeaponLabel") else $TopMargin/HBox/VBoxRight/WeaponLabel
-@onready var bomb_label: Label = $TopBarPanel/Margin/HBox/VBoxRight/BombLabel if has_node("TopBarPanel/Margin/HBox/VBoxRight/BombLabel") else $TopMargin/HBox/VBoxRight/BombLabel
+@onready var weapon_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/WeaponLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/WeaponLabel") else null
+@onready var bomb_label: Label = null
+
+@onready var mute_btn: Button = $TopBarPanel/Margin/HBox/HBoxHeaderSettings/MuteButton if has_node("TopBarPanel/Margin/HBox/HBoxHeaderSettings/MuteButton") else null
+@onready var pause_btn: Button = $TopBarPanel/Margin/HBox/HBoxHeaderSettings/PauseButton if has_node("TopBarPanel/Margin/HBox/HBoxHeaderSettings/PauseButton") else null
 
 @onready var phase_banner: Label = $PhaseBanner if has_node("PhaseBanner") else null
-@onready var hp_bar: ProgressBar = $BottomMargin/HBoxBottom/VBoxHP/HPBar if has_node("BottomMargin/HBoxBottom/VBoxHP/HPBar") else $BottomMargin/VBoxHP/HPBar
+@onready var hp_bar: ProgressBar = $BottomMargin/HBoxBottom/VBoxHP/HPBar if has_node("BottomMargin/HBoxBottom/VBoxHP/HPBar") else null
 @onready var phase_bar: ProgressBar = $BottomMargin/HBoxBottom/VBoxPhase/PhaseBar if has_node("BottomMargin/HBoxBottom/VBoxPhase/PhaseBar") else null
 @onready var phase_title_label: Label = $BottomMargin/HBoxBottom/VBoxPhase/PhaseTitle if has_node("BottomMargin/HBoxBottom/VBoxPhase/PhaseTitle") else null
 
@@ -16,6 +19,7 @@ extends CanvasLayer
 
 @onready var revive_panel: Control = $ReviveDialog if has_node("ReviveDialog") else null
 @onready var game_over_panel: Control = $GameOverDialog
+@onready var pause_dialog: Control = $PauseDialog if has_node("PauseDialog") else null
 
 func _ready() -> void:
 	if GameManager:
@@ -57,6 +61,61 @@ func _ready() -> void:
 		revive_panel.hide()
 		if revive_panel.has_signal("revive_cancelled"):
 			revive_panel.revive_cancelled.connect(show_game_over_dialog)
+	if pause_dialog: pause_dialog.hide()
+	setup_pause_and_audio_ui()
+
+func setup_pause_and_audio_ui() -> void:
+	if mute_btn:
+		mute_btn.pressed.connect(_on_mute_btn_pressed)
+		ButtonStyler.apply_textured_style(mute_btn, "default")
+		update_mute_btn_visual(AudioManager.is_muted if AudioManager else false)
+		
+	if pause_btn:
+		pause_btn.pressed.connect(_on_pause_btn_pressed)
+		ButtonStyler.apply_textured_style(pause_btn, "default")
+
+	if AudioManager and AudioManager.has_signal("audio_settings_changed"):
+		AudioManager.audio_settings_changed.connect(func(_bgm, _sfx, is_muted):
+			update_mute_btn_visual(is_muted)
+		)
+
+func update_mute_btn_visual(is_muted: bool) -> void:
+	if mute_btn:
+		mute_btn.text = "🔇" if is_muted else "🔊"
+		if is_muted:
+			ButtonStyler.apply_textured_style(mute_btn, "red")
+		else:
+			ButtonStyler.apply_textured_style(mute_btn, "default")
+
+func _on_mute_btn_pressed() -> void:
+	if AudioManager:
+		var new_muted = AudioManager.toggle_mute()
+		update_mute_btn_visual(new_muted)
+
+func _on_pause_btn_pressed() -> void:
+	if is_game_over_or_dialog_active():
+		return
+	if pause_dialog and pause_dialog.has_method("open_pause_menu"):
+		pause_dialog.open_pause_menu()
+
+func is_game_over_or_dialog_active() -> bool:
+	if game_over_panel and game_over_panel.visible:
+		return true
+	if revive_panel and revive_panel.visible:
+		return true
+	return false
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_ESCAPE or event.keycode == KEY_P:
+			if is_game_over_or_dialog_active():
+				return
+			if pause_dialog:
+				if pause_dialog.visible:
+					pause_dialog.resume_game()
+				else:
+					pause_dialog.open_pause_menu()
+				get_viewport().set_input_as_handled()
 
 func _on_score_updated(new_score: int) -> void:
 	if score_label:
@@ -75,9 +134,8 @@ func _on_player_health_updated(current: float, max_hp: float) -> void:
 		hp_bar.max_value = max_hp
 		hp_bar.value = current
 
-func _on_player_bombs_updated(bombs: int) -> void:
-	if bomb_label:
-		bomb_label.text = "💣 BOMBS: %d (SHIFT/K)" % bombs
+func _on_player_bombs_updated(_bombs: int) -> void:
+	pass
 
 func _on_weapon_level_updated(level: int) -> void:
 	if weapon_label:
@@ -187,6 +245,8 @@ func _on_wave_progress_updated(phase_num: int, progress_ratio: float, phase_titl
 		phase_title_label.text = phase_title
 
 func _on_game_over() -> void:
+	if pause_dialog and pause_dialog.visible:
+		pause_dialog.hide()
 	# Show Revive Modal first if player has gems
 	if revive_panel and revive_panel.has_method("popup_revive") and GameManager.gems >= 10:
 		revive_panel.popup_revive()
@@ -200,6 +260,9 @@ func show_game_over_dialog() -> void:
 		game_over_panel.show()
 
 func _on_game_won(stars: int, coins_earned: int) -> void:
+	if pause_dialog and pause_dialog.visible:
+		pause_dialog.hide()
+		get_tree().paused = false
 	var map_id = GameManager.current_map if GameManager else 1
 	# 1. Cho máy bay bay vút lên tới hết màn hình trước (Fly off top boundary)
 	await get_tree().create_timer(1.8).timeout

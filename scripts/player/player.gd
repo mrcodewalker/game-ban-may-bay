@@ -280,6 +280,30 @@ func handle_takeoff(delta: float) -> void:
 	if position.y <= 780.0 or takeoff_timer >= 1.4:
 		is_taking_off = false
 
+var is_dragging_ship: bool = false
+
+func is_mouse_over_ui() -> bool:
+	var vp = get_viewport()
+	if not vp: return false
+	var hovered = vp.gui_get_hovered_control()
+	if hovered:
+		if hovered is BaseButton or hovered is Range or hovered is LineEdit or hovered is TextEdit:
+			return true
+		var cur: Node = hovered
+		while cur and cur != vp:
+			if cur.name in ["TopBarPanel", "BottomMargin", "BottomBar", "PauseDialog", "ReviveDialog", "GameOverDialog", "HBoxBottomBtns", "HBoxBtns"]:
+				return true
+			cur = cur.get_parent()
+	return false
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			if not is_mouse_over_ui():
+				is_dragging_ship = true
+		else:
+			is_dragging_ship = false
+
 func handle_movement(delta: float) -> void:
 	if is_speed_boosted:
 		speed_boost_timer -= delta
@@ -291,12 +315,15 @@ func handle_movement(delta: float) -> void:
 	if move_dir != Vector2.ZERO:
 		position += move_dir * effective_speed * delta
 		
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		var mouse_pos = get_global_mouse_position()
-		var dir_to_mouse = (mouse_pos - position)
-		var lerp_spd = 28.0 if is_speed_boosted else 22.0
-		position = position.lerp(mouse_pos, lerp_spd * delta)
-		if abs(dir_to_mouse.x) > 6.0: move_dir.x = sign(dir_to_mouse.x)
+	if is_dragging_ship and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		if not is_mouse_over_ui():
+			var mouse_pos = get_global_mouse_position()
+			var dir_to_mouse = (mouse_pos - position)
+			var lerp_spd = 28.0 if is_speed_boosted else 22.0
+			position = position.lerp(mouse_pos, lerp_spd * delta)
+			if abs(dir_to_mouse.x) > 6.0: move_dir.x = sign(dir_to_mouse.x)
+		else:
+			is_dragging_ship = false
 
 	update_banking_sprite(move_dir.x)
 
@@ -312,26 +339,34 @@ func handle_movement(delta: float) -> void:
 	var min_x = 72.0 if has_left_pet else 28.0
 	var max_x = 468.0 if has_right_pet else 512.0
 	position.x = clamp(position.x, min_x, max_x)
-	position.y = clamp(position.y, 40.0, 920.0)
+	position.y = clamp(position.y, 75.0, 885.0)
 
 func update_banking_sprite(horizontal_input: float) -> void:
 	if not sprite: return
+	if bank_textures_left.is_empty() and bank_textures_right.is_empty():
+		return
 	var bank_intensity = abs(horizontal_input)
 	if bank_intensity < 0.15:
 		if bank_neutral: sprite.texture = bank_neutral
 	elif horizontal_input < 0:
-		if bank_intensity < 0.45 and bank_textures_left.size() > 1: sprite.texture = bank_textures_left[1]
-		elif bank_intensity < 0.85 and bank_textures_left.size() > 2: sprite.texture = bank_textures_left[2]
-		elif bank_textures_left.size() > 3: sprite.texture = bank_textures_left[3]
+		if bank_intensity < 0.45 and bank_textures_left.size() > 1:
+			sprite.texture = bank_textures_left[1]
+		elif bank_intensity < 0.85 and bank_textures_left.size() > 2:
+			sprite.texture = bank_textures_left[2]
+		elif bank_textures_left.size() > 3:
+			sprite.texture = bank_textures_left[3]
 	else:
-		if bank_intensity < 0.55 and bank_textures_right.size() > 0: sprite.texture = bank_textures_right[0]
-		elif bank_intensity < 0.85 and bank_textures_right.size() > 1: sprite.texture = bank_textures_right[1]
-		elif bank_textures_right.size() > 2: sprite.texture = bank_textures_right[2]
+		if bank_intensity < 0.55 and bank_textures_right.size() > 0:
+			sprite.texture = bank_textures_right[0]
+		elif bank_intensity < 0.85 and bank_textures_right.size() > 1:
+			sprite.texture = bank_textures_right[1]
+		elif bank_textures_right.size() > 2:
+			sprite.texture = bank_textures_right[2]
 
 func handle_shooting(delta: float) -> void:
 	fire_timer -= delta
 	missile_fire_timer -= delta
-	var is_firing = Input.is_action_pressed("shoot") or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	var is_firing = Input.is_action_pressed("shoot") or (is_dragging_ship and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not is_mouse_over_ui())
 	
 	if is_firing:
 		var fire_rate = get_fire_rate()

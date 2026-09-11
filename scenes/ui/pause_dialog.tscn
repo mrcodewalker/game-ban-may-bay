@@ -1,0 +1,218 @@
+[gd_scene format=3 uid="uid://cpausemenu001"]
+
+[ext_resource type="Script" path="res://scripts/ui/pause_dialog.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://cfont231" path="res://extracted_assets/Fonts/font_231.ttf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_Panel"]
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+bg_color = Color(0.04, 0.08, 0.16, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.3, 0.85, 1, 0.95)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0.1, 0.6, 0.9, 0.35)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_AudioCard"]
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.06, 0.12, 0.22, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.65, 0.85, 0.6)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_Sep"]
+color = Color(0.2, 0.6, 0.8, 0.4)
+
+[node name="PauseDialog" type="Control"]
+process_mode = 3
+z_index = 95
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.03, 0.07, 0.88)
+
+[node name="Panel" type="PanelContainer" parent="."]
+custom_minimum_size = Vector2(440, 480)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -220.0
+offset_top = -240.0
+offset_right = 220.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_Panel")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.25, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "⏸️ TRẬN CHIẾN TẠM DỪNG"
+horizontal_alignment = 1
+
+[node name="InfoLabel" type="Label" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "CHIẾN DỊCH 01 | ĐIỂM: 000000"
+horizontal_alignment = 1
+
+[node name="HSeparator1" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_Sep")
+
+[node name="AudioCard" type="PanelContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_AudioCard")
+
+[node name="VBox" type="VBoxContainer" parent="Panel/VBox/AudioCard"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="AudioTitle" type="Label" parent="Panel/VBox/AudioCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+text = "🔊 CÀI ĐẶT ÂM THANH"
+horizontal_alignment = 1
+
+[node name="MuteButton" type="Button" parent="Panel/VBox/AudioCard/VBox"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "🔊 ÂM THANH: ĐANG BẬT"
+
+[node name="BgmRow" type="HBoxContainer" parent="Panel/VBox/AudioCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Panel/VBox/AudioCard/VBox/BgmRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "🎵 Nhạc nền:"
+
+[node name="BgmSlider" type="HSlider" parent="Panel/VBox/AudioCard/VBox/BgmRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 80.0
+
+[node name="BgmVal" type="Label" parent="Panel/VBox/AudioCard/VBox/BgmRow"]
+custom_minimum_size = Vector2(38, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "80%"
+horizontal_alignment = 2
+
+[node name="SfxRow" type="HBoxContainer" parent="Panel/VBox/AudioCard/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Label" type="Label" parent="Panel/VBox/AudioCard/VBox/SfxRow"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "💥 Hiệu ứng:"
+
+[node name="SfxSlider" type="HSlider" parent="Panel/VBox/AudioCard/VBox/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 100.0
+value = 80.0
+
+[node name="SfxVal" type="Label" parent="Panel/VBox/AudioCard/VBox/SfxRow"]
+custom_minimum_size = Vector2(38, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 12
+text = "80%"
+horizontal_alignment = 2
+
+[node name="HSeparator2" type="HSeparator" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxLine_Sep")
+
+[node name="ActionVBox" type="VBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="ResumeButton" type="Button" parent="Panel/VBox/ActionVBox"]
+custom_minimum_size = Vector2(260, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+text = "▶️ TIẾP TỤC CHIẾN ĐẤU"
+
+[node name="RestartButton" type="Button" parent="Panel/VBox/ActionVBox"]
+custom_minimum_size = Vector2(260, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "🔄 CHƠI LẠI MÀN NÀY"
+
+[node name="MenuButton" type="Button" parent="Panel/VBox/ActionVBox"]
+custom_minimum_size = Vector2(260, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "🏠 VỀ MENU CHÍNH"

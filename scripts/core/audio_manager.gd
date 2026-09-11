@@ -10,6 +10,8 @@ var bgm_volume_scale: float = 1.0
 var sfx_volume_scale: float = 1.0
 var is_muted: bool = false
 
+signal audio_settings_changed(bgm_scale: float, sfx_scale: float, is_muted: bool)
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -24,22 +26,54 @@ func _ready() -> void:
 		sfx_players.append(p)
 		
 	load_audio_resources()
+	load_audio_settings()
 
-func set_bgm_volume_linear(val: float) -> void:
+func load_audio_settings() -> void:
+	var cfg = ConfigFile.new()
+	if cfg.load("user://audio_settings.cfg") == OK:
+		bgm_volume_scale = cfg.get_value("audio", "bgm_volume", 0.8)
+		sfx_volume_scale = cfg.get_value("audio", "sfx_volume", 0.8)
+		is_muted = cfg.get_value("audio", "is_muted", false)
+	set_bgm_volume_linear(bgm_volume_scale, false)
+	set_sfx_volume_linear(sfx_volume_scale, false)
+	set_muted(is_muted, false)
+	audio_settings_changed.emit(bgm_volume_scale, sfx_volume_scale, is_muted)
+
+func save_audio_settings() -> void:
+	var cfg = ConfigFile.new()
+	cfg.set_value("audio", "bgm_volume", bgm_volume_scale)
+	cfg.set_value("audio", "sfx_volume", sfx_volume_scale)
+	cfg.set_value("audio", "is_muted", is_muted)
+	cfg.save("user://audio_settings.cfg")
+
+func set_bgm_volume_linear(val: float, should_save: bool = true) -> void:
 	bgm_volume_scale = clamp(val, 0.0, 1.0)
 	if bgm_volume_scale <= 0.001:
 		bgm_player.volume_db = -80.0
 	else:
 		bgm_player.volume_db = linear_to_db(bgm_volume_scale)
+	if should_save:
+		save_audio_settings()
+		audio_settings_changed.emit(bgm_volume_scale, sfx_volume_scale, is_muted)
 
-func set_sfx_volume_linear(val: float) -> void:
+func set_sfx_volume_linear(val: float, should_save: bool = true) -> void:
 	sfx_volume_scale = clamp(val, 0.0, 1.0)
+	if should_save:
+		save_audio_settings()
+		audio_settings_changed.emit(bgm_volume_scale, sfx_volume_scale, is_muted)
 
-func set_muted(muted: bool) -> void:
+func set_muted(muted: bool, should_save: bool = true) -> void:
 	is_muted = muted
 	var master_bus = AudioServer.get_bus_index("Master")
 	if master_bus >= 0:
 		AudioServer.set_bus_mute(master_bus, muted)
+	if should_save:
+		save_audio_settings()
+		audio_settings_changed.emit(bgm_volume_scale, sfx_volume_scale, is_muted)
+
+func toggle_mute() -> bool:
+	set_muted(not is_muted)
+	return is_muted
 
 func load_audio_resources() -> void:
 	var audio_files = {
