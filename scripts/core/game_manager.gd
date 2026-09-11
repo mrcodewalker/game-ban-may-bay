@@ -779,7 +779,7 @@ func get_enemy_hp_mult() -> float:
 	var map_scale = 1.0 + float(current_map - 1) * 0.35
 	return base_mult * map_scale
 
-# ── Ant Hive Stat Calculations ──
+
 func get_hive_hp_bonus() -> float:
 	return float(ant_hive_levels.get("max_hp", 0)) * 15.0
 

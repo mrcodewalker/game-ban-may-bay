@@ -29,6 +29,7 @@ func _ready() -> void:
 		GameManager.phase_changed.connect(_on_phase_changed)
 		GameManager.wave_progress_updated.connect(_on_wave_progress_updated)
 		GameManager.princess_rescued.connect(_on_princess_rescued)
+		GameManager.mission_tasks_updated.connect(_on_mission_tasks_updated)
 		if GameManager.has_signal("combo_updated"):
 			GameManager.combo_updated.connect(_on_combo_updated)
 		if GameManager.has_signal("princess_cheer_requested"):
