@@ -18,11 +18,22 @@ texture = ExtResource("2_texture")
 
 [node name="FreezeOverlay" type="ColorRect" parent="."]
 visible = false
-offset_left = -25.0
-offset_top = -25.0
-offset_right = 25.0
-offset_bottom = 25.0
-color = Color(0.1, 0.7, 1, 0.45)
+offset_left = -28.0
+offset_top = -28.0
+offset_right = 28.0
+offset_bottom = 28.0
+color = Color(0.2, 0.8, 1, 0.4)
+
+[node name="FreezeParticles" type="CPUParticles2D" parent="."]
+emitting = false
+amount = 16
+lifetime = 0.3
+emission_shape = 1
+emission_sphere_radius = 28.0
+gravity = Vector2(0, 0)
+scale_amount_min = 2.0
+scale_amount_max = 4.5
+color = Color(0.3, 0.9, 1, 0.9)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_1")

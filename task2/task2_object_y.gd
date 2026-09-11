@@ -1,43 +1,103 @@
 extends Area2D
 class_name Task2ObjectY
 
-@export var speed: float = 60.0
+@export var speed: float = 75.0
+@export var hp: float = 40.0
+
+var time_passed: float = 0.0
+var bomb_pickup_scene: PackedScene = preload("res://task2/task2_bomb_pickup.tscn")
+
+@onready var sprite: Sprite2D = $Sprite2D
+@onready var aura: CPUParticles2D = $TrapAura
 
 func _ready() -> void:
 	add_to_group("hazards")
 	add_to_group("object_y")
+	add_to_group("enemies") # Can be targeted/damaged by weapons
 	body_entered.connect(_on_body_entered)
+	area_entered.connect(_on_area_entered)
+	
+	var bomb_tex_path = "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/bomb-decrease-hp-can-fire-bullet.png"
+	if ResourceLoader.exists(bomb_tex_path):
+		var tex = load(bomb_tex_path) as Texture2D
+		if tex and sprite:
+			sprite.texture = tex
+			var max_dim = float(max(tex.get_width(), tex.get_height()))
+			var sc = 54.0 / max(1.0, max_dim)
+			sprite.scale = Vector2(sc, sc)
 
 func _physics_process(delta: float) -> void:
+	time_passed += delta
 	global_position.y += speed * delta
-	# Rotate slowly like a spiked mine
-	rotation += 2.0 * delta
+	# Ominous rotation
+	rotation += 1.8 * delta
+	
+	# Danger flash
+	if sprite:
+		var flash = 1.0 + sin(time_passed * 8.0) * 0.25
+		sprite.modulate = Color(1.3 * flash, 0.4, 0.5 * flash, 1.0)
+		
+	queue_redraw()
+	
 	if global_position.y > 1050:
 		queue_free()
+
+func _draw() -> void:
+	var r = 30.0 + sin(time_passed * 8.0) * 3.0
+	# Pulsing hazard warning ring
+	draw_arc(Vector2.ZERO, r, 0, TAU, 28, Color(1.0, 0.2, 0.2, 0.75), 2.0)
+
+func take_damage(amount: float) -> void:
+	hp -= amount
+	# White flash
+	if sprite:
+		sprite.modulate = Color(3.0, 3.0, 3.0)
+	if hp <= 0.0:
+		_destroy_and_drop_bomb(true)
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") and body.has_method("hit_by_object_y"):
 		body.hit_by_object_y()
-		_trigger_zap_fx()
+		_destroy_and_drop_bomb(false)
 
-func _trigger_zap_fx() -> void:
+func _on_area_entered(area: Area2D) -> void:
+	if area.is_in_group("player") and area.has_method("hit_by_object_y"):
+		area.hit_by_object_y()
+		_destroy_and_drop_bomb(false)
+
+func _destroy_and_drop_bomb(is_shot_down: bool) -> void:
 	var root = get_parent()
 	if root:
-		var zap = CPUParticles2D.new()
-		zap.global_position = global_position
-		zap.emitting = true
-		zap.one_shot = true
-		zap.amount = 20
-		zap.lifetime = 0.4
-		zap.spread = 180.0
-		zap.initial_velocity_min = 50.0
-		zap.initial_velocity_max = 110.0
-		zap.scale_amount_min = 2.0
-		zap.scale_amount_max = 5.0
-		zap.color = Color(0.9, 0.2, 1.0, 1.0)
-		root.add_child(zap)
+		# 1. Spawn dramatic explosion
+		var exp_node = Node2D.new()
+		exp_node.global_position = global_position
+		root.add_child(exp_node)
 		
-		var t = zap.get_tree().create_timer(0.5)
-		t.timeout.connect(zap.queue_free)
+		var p = CPUParticles2D.new()
+		p.emitting = true
+		p.one_shot = true
+		p.amount = 32
+		p.lifetime = 0.5
+		p.spread = 180.0
+		p.initial_velocity_min = 80.0
+		p.initial_velocity_max = 160.0
+		p.scale_amount_min = 3.0
+		p.scale_amount_max = 6.5
+		p.color = Color(1.0, 0.3, 0.1, 1.0)
+		exp_node.add_child(p)
 		
+		var t = exp_node.get_tree().create_timer(0.6)
+		t.timeout.connect(exp_node.queue_free)
+		
+		# 2. Drop the bomb powerup!
+		var bomb_drop = bomb_pickup_scene.instantiate()
+		bomb_drop.global_position = global_position
+		root.add_child(bomb_drop)
+		
+	var main = get_tree().current_scene
+	if main and main.has_node("AudioController"):
+		main.get_node("AudioController").play_sfx("explosion", 1.0, 1.0)
+		if is_shot_down and main.has_node("Task2HUD"):
+			main.get_node("Task2HUD").show_toast("BẪY BỊ BẮN HẠ!", "Bẫy nổ tung và rơi ra POWERUP QUẢ BOM!")
+			
 	queue_free()

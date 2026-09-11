@@ -1,29 +1,29 @@
-[gd_scene format=3 uid="uid://t2objy001"]
+[gd_scene format=3 uid="uid://t2bombpickup001"]
 
-[ext_resource type="Script" path="res://task2/task2_object_y.gd" id="1_script"]
+[ext_resource type="Script" path="res://task2/task2_bomb_pickup.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/bomb-decrease-hp-can-fire-bullet.png" id="2_texture"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1"]
-radius = 24.0
+radius = 22.0
 
-[node name="Task2ObjectY" type="Area2D"]
+[node name="Task2BombPickup" type="Area2D"]
 collision_layer = 8
-collision_mask = 7
+collision_mask = 3
 script = ExtResource("1_script")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.42, 0.42)
+scale = Vector2(0.4, 0.4)
 texture = ExtResource("2_texture")
 
-[node name="TrapAura" type="CPUParticles2D" parent="."]
+[node name="Glow" type="CPUParticles2D" parent="."]
 amount = 14
 lifetime = 0.35
 emission_shape = 1
-emission_sphere_radius = 22.0
-gravity = Vector2(0, 0)
+emission_sphere_radius = 20.0
+gravity = Vector2(0, -20)
 scale_amount_min = 2.0
 scale_amount_max = 4.0
-color = Color(1, 0.2, 0.1, 0.8)
+color = Color(1, 0.3, 0.1, 0.8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_1")

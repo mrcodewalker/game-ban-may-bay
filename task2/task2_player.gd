@@ -50,7 +50,7 @@ var shoot_delay: float = 0.16
 var shoot_timer: float = 0.0
 
 # Nodes
-@onready var shield_sprite: Sprite2D = $ShieldVisual
+@onready var shield_sprite: Node2D = $ShieldVisual
 @onready var ship_sprite: Sprite2D = $ShipSprite
 @onready var boost_particles: CPUParticles2D = $EngineParticles
 @onready var slow_particles: CPUParticles2D = $SlowSparks
@@ -59,6 +59,7 @@ var bullet_scene: PackedScene = preload("res://task2/task2_bullet.tscn")
 var missile_scene: PackedScene = preload("res://task2/task2_missile.tscn")
 var lightning_scene: PackedScene = preload("res://task2/task2_lightning.tscn")
 var wall_scene: PackedScene = preload("res://task2/task2_defense_wall.tscn")
+var emp_wave_scene: PackedScene = preload("res://task2/task2_emp_shockwave.tscn")
 
 const Task2AudioController = preload("res://task2/task2_audio_controller.gd")
 var audio_controller: Node = null
@@ -292,6 +293,13 @@ func defense_emp() -> void:
 	
 	if audio_controller:
 		audio_controller.play_sfx("emp", 2.0, 1.0)
+		
+	# Spawn visual expanding EMP shockwave
+	var parent_scene = get_parent()
+	if parent_scene:
+		var wave = emp_wave_scene.instantiate()
+		wave.global_position = global_position
+		parent_scene.add_child(wave)
 		
 	# Freeze all enemies on screen for 4s
 	var enemies = get_tree().get_nodes_in_group("enemies")

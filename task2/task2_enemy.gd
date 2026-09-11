@@ -10,19 +10,24 @@ var freeze_timer: float = 0.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var freeze_fx: ColorRect = $FreezeOverlay
+@onready var freeze_particles: CPUParticles2D = $FreezeParticles
 
 func _ready() -> void:
 	add_to_group("enemies")
 	add_to_group("enemy_b")
 	hp = max_hp
 	freeze_fx.visible = false
+	freeze_particles.emitting = false
 
 func _physics_process(delta: float) -> void:
 	if is_frozen:
 		freeze_timer -= delta
+		sprite.modulate = Color(0.4, 0.9, 1.5, 1.0)
 		if freeze_timer <= 0.0:
 			is_frozen = false
 			freeze_fx.visible = false
+			freeze_particles.emitting = false
+			sprite.modulate = Color.WHITE
 		return
 		
 	# Move downward through the zone
@@ -47,6 +52,7 @@ func apply_freeze(duration: float) -> void:
 	is_frozen = true
 	freeze_timer = duration
 	freeze_fx.visible = true
+	freeze_particles.emitting = true
 
 func _die() -> void:
 	var root = get_parent()
