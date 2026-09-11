@@ -5,9 +5,6 @@ class_name Task2Main
 @onready var player: CharacterBody2D = $Task2Player
 @onready var hud: CanvasLayer = $Task2HUD
 @onready var restricted_zone: Area2D = $Task2RestrictedZone
-@onready var bg_sprite_1: Sprite2D = $Background/Bg1
-@onready var bg_sprite_2: Sprite2D = $Background/Bg2
-
 # Test control buttons
 @onready var btn_spawn_b: Button = $TestPanel/Panel/HBox/BtnSpawnB
 @onready var btn_spawn_x: Button = $TestPanel/Panel/HBox/BtnSpawnX
@@ -22,7 +19,6 @@ var object_z_scene: PackedScene = preload("res://task2/task2_object_z.tscn")
 
 var is_auto_wave: bool = false
 var wave_timer: float = 0.0
-var bg_scroll_speed: float = 120.0
 
 func _ready() -> void:
 	# Initialize HUD
@@ -42,22 +38,11 @@ func _ready() -> void:
 	hud.show_toast("CHÀO MỪNG ĐẾN VỚI TASK 2", "Di chuyển: WASD | Tấn công: Space, K, L | Phòng thủ: U, I, O")
 
 func _process(delta: float) -> void:
-	_scroll_background(delta)
-	
 	if is_auto_wave:
 		wave_timer += delta
 		if wave_timer >= 3.5:
 			wave_timer = 0.0
 			_spawn_random_entity()
-
-func _scroll_background(delta: float) -> void:
-	bg_sprite_1.position.y += bg_scroll_speed * delta
-	bg_sprite_2.position.y += bg_scroll_speed * delta
-	
-	if bg_sprite_1.position.y >= 960.0:
-		bg_sprite_1.position.y = bg_sprite_2.position.y - 960.0
-	if bg_sprite_2.position.y >= 960.0:
-		bg_sprite_2.position.y = bg_sprite_1.position.y - 960.0
 
 func spawn_enemy_b() -> void:
 	var b = enemy_b_scene.instantiate()

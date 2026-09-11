@@ -1,29 +1,29 @@
 [gd_scene format=3 uid="uid://t2objz001"]
 
 [ext_resource type="Script" path="res://task2/task2_object_z.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://extracted_assets/sprites/buff_crate_brown.png" id="2_texture"]
+[ext_resource type="Texture2D" path="res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/power-up.png" id="2_texture"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_1"]
-size = Vector2(36, 36)
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 24.0
 
 [node name="Task2ObjectZ" type="Area2D"]
 collision_layer = 8
-collision_mask = 1
+collision_mask = 3
 script = ExtResource("1_script")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.38, 0.38)
 texture = ExtResource("2_texture")
 
 [node name="GoldGlow" type="CPUParticles2D" parent="."]
-amount = 14
+amount = 16
 lifetime = 0.4
 emission_shape = 1
-emission_sphere_radius = 24.0
-gravity = Vector2(0, -20)
+emission_sphere_radius = 26.0
+gravity = Vector2(0, -25)
 scale_amount_min = 2.0
 scale_amount_max = 4.5
 color = Color(1, 0.85, 0.2, 0.85)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("RectangleShape2D_1")
+shape = SubResource("CircleShape2D_1")
