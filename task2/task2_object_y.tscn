@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://t2objy001"]
+
+[ext_resource type="Script" path="res://task2/task2_object_y.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://extracted_assets/sprites/buff_bomb.png" id="2_texture"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 18.0
+
+[node name="Task2ObjectY" type="Area2D"]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1.2, 0.3, 1.2, 1)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_texture")
+
+[node name="TrapAura" type="CPUParticles2D" parent="."]
+amount = 10
+lifetime = 0.3
+emission_shape = 1
+emission_sphere_radius = 20.0
+gravity = Vector2(0, 0)
+scale_amount_min = 2.0
+scale_amount_max = 4.0
+color = Color(0.9, 0.1, 1, 0.7)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_1")

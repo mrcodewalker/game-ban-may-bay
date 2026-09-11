@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://t2bullet001"]
+
+[ext_resource type="Script" path="res://task2/task2_bullet.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://extracted_assets/Textures/bullett.png" id="2_texture"]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_1"]
+radius = 4.0
+height = 16.0
+
+[node name="Task2Bullet" type="Area2D"]
+collision_layer = 2
+collision_mask = 4
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1.2, 1.1, 0.4, 1)
+scale = Vector2(0.8, 0.8)
+texture = ExtResource("2_texture")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CapsuleShape2D_1")
