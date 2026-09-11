@@ -67,13 +67,18 @@ func _draw() -> void:
 	draw_arc(Vector2.ZERO, r - 3.0, 0, TAU, 24, Color(1.0, 1.0, 1.0, 0.4), 1.5)
 
 func _on_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player") and body.has_method("hit_by_object_z"):
-		body.hit_by_object_z(gold_reward, diamond_reward)
-		_trigger_sparkle_fx()
+	_handle_pickup(body)
 
 func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("player") and area.has_method("hit_by_object_z"):
-		area.hit_by_object_z(gold_reward, diamond_reward)
+	_handle_pickup(area)
+
+func _handle_pickup(node: Node2D) -> void:
+	var victim = node
+	if not victim.has_method("hit_by_object_z") and victim.get_parent() != null and victim.get_parent().has_method("hit_by_object_z"):
+		victim = victim.get_parent()
+		
+	if victim.has_method("hit_by_object_z"):
+		victim.hit_by_object_z(gold_reward, diamond_reward)
 		_trigger_sparkle_fx()
 
 func _trigger_sparkle_fx() -> void:

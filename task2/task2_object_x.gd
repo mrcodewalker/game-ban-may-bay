@@ -1,9 +1,11 @@
 extends Area2D
 class_name Task2ObjectX
 
-@export var speed: float = 240.0
-@export var damage_hp: float = 25.0
-@export var damage_armor: float = 15.0
+@export var speed: float = 260.0
+@export var damage_hp: float = 35.0
+@export var damage_armor: float = 20.0
+
+var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
 
 func _ready() -> void:
 	add_to_group("enemies")
@@ -17,40 +19,39 @@ func _physics_process(delta: float) -> void:
 		queue_free()
 
 func _on_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player") and body.has_method("hit_by_object_x"):
-		body.hit_by_object_x(damage_hp, damage_armor)
-		_trigger_destruction()
+	_handle_collision(body)
 
 func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("player_defenses"):
+	_handle_collision(area)
+
+func _handle_collision(node: Node2D) -> void:
+	if node.is_in_group("enemies") or node.is_in_group("enemy_bullets"):
+		return
+	if node.is_in_group("player_defenses"):
 		_trigger_destruction()
+		return
+		
+	var victim = node
+	if not victim.has_method("hit_by_object_x") and victim.get_parent() != null and victim.get_parent().has_method("hit_by_object_x"):
+		victim = victim.get_parent()
+		
+	if victim.has_method("hit_by_object_x"):
+		victim.hit_by_object_x(damage_hp, damage_armor)
+	elif victim.has_method("take_damage"):
+		victim.take_damage(damage_hp, damage_armor)
+		
+	_trigger_destruction()
 
 func take_damage(_dmg: float) -> void:
 	_trigger_destruction()
 
 func _trigger_destruction() -> void:
-	# Spawn fiery explosion
 	var root = get_parent()
-	if root:
-		var exp_node = Node2D.new()
-		exp_node.global_position = global_position
-		root.add_child(exp_node)
-		
-		var p = CPUParticles2D.new()
-		p.emitting = true
-		p.one_shot = true
-		p.amount = 32
-		p.lifetime = 0.6
-		p.spread = 180.0
-		p.initial_velocity_min = 80.0
-		p.initial_velocity_max = 160.0
-		p.scale_amount_min = 3.0
-		p.scale_amount_max = 7.0
-		p.color = Color(1.0, 0.3, 0.05, 1.0)
-		exp_node.add_child(p)
-		
-		var t = exp_node.get_tree().create_timer(0.7)
-		t.timeout.connect(exp_node.queue_free)
+	if root and explosion_fx_scene:
+		var exp = explosion_fx_scene.instantiate()
+		exp.global_position = global_position
+		exp.scale = Vector2(1.1, 1.1)
+		root.add_child(exp)
 		
 	var main = get_tree().current_scene
 	if main and main.has_node("AudioController"):

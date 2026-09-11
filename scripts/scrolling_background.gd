@@ -36,7 +36,8 @@ func load_environment_assets() -> void:
 		if tex: cloud_textures.append(tex)
 
 func apply_map_theme() -> void:
-	var map_id = GameManager.current_map if GameManager else 1
+	var gm = get_node_or_null("/root/GameManager")
+	var map_id = gm.current_map if gm and "current_map" in gm else 1
 	var bg_tex = load("res://extracted_assets/Textures/Oceano_Fondale_NUOVO.png") as Texture2D
 	var tint_color = Color(1.0, 1.0, 1.0)
 

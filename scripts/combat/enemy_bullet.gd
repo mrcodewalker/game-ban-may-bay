@@ -5,8 +5,9 @@ extends Area2D
 var direction: Vector2 = Vector2.DOWN
 
 func _ready() -> void:
-	z_index = 7
+	z_index = 8
 	area_entered.connect(_on_area_entered)
+	body_entered.connect(_on_body_entered)
 	if GameManager:
 		GameManager.bomb_exploded.connect(_on_bomb_exploded)
 		
@@ -24,9 +25,35 @@ func _process(delta: float) -> void:
 		queue_free()
 
 func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("player"):
-		if area.has_method("take_damage"):
-			area.take_damage(damage)
+	# Ignore all allies, towers, tanks, hazards, or other enemy bullets!
+	if area.is_in_group("enemies") or area.is_in_group("enemy_towers") or area.is_in_group("enemy_tanks") or area.is_in_group("ground_units") or area.is_in_group("enemy_bullets") or area.is_in_group("hazards"):
+		return
+	if area.is_in_group("player_defenses"):
+		create_hit_spark()
+		queue_free()
+		return
+	var victim = area
+	if not victim.is_in_group("player") and victim.get_parent() != null and victim.get_parent().is_in_group("player"):
+		victim = victim.get_parent()
+	if victim.is_in_group("player"):
+		if victim.has_method("take_damage"):
+			victim.take_damage(damage)
+		create_hit_spark()
+		queue_free()
+
+func _on_body_entered(body: Node2D) -> void:
+	if body.is_in_group("enemies") or body.is_in_group("enemy_towers") or body.is_in_group("enemy_tanks") or body.is_in_group("ground_units") or body.is_in_group("enemy_bullets") or body.is_in_group("hazards"):
+		return
+	if body.is_in_group("player_defenses"):
+		create_hit_spark()
+		queue_free()
+		return
+	var victim = body
+	if not victim.is_in_group("player") and victim.get_parent() != null and victim.get_parent().is_in_group("player"):
+		victim = victim.get_parent()
+	if victim.is_in_group("player"):
+		if victim.has_method("take_damage"):
+			victim.take_damage(damage)
 		create_hit_spark()
 		queue_free()
 

@@ -30,18 +30,32 @@ class_name Task2HUD
 @onready var toast_title: Label = $ToastBanner/Margin/VBox/Title
 @onready var toast_desc: Label = $ToastBanner/Margin/VBox/Desc
 
+# Game Over Dialog
+@onready var game_over_dialog: Control = $GameOverDialog
+@onready var game_over_panel: PanelContainer = $GameOverDialog/Panel
+@onready var go_coins_stat: Label = $GameOverDialog/Panel/Margin/VBox/StatsContainer/CoinsStat
+@onready var go_diamonds_stat: Label = $GameOverDialog/Panel/Margin/VBox/StatsContainer/DiamondsStat
+@onready var go_weapon_stat: Label = $GameOverDialog/Panel/Margin/VBox/StatsContainer/WeaponStat
+@onready var go_restart_btn: Button = $GameOverDialog/Panel/Margin/VBox/BtnBox/RestartBtn
+@onready var go_reload_btn: Button = $GameOverDialog/Panel/Margin/VBox/BtnBox/ReloadBtn
+
 var audio_controller: Node = null
 var player: CharacterBody2D = null
 var toast_tween: Tween = null
 
 func _ready() -> void:
 	toast_banner.modulate.a = 0.0
+	game_over_dialog.visible = false
 	
 	# Connect Audio Buttons
 	sound_off_btn.pressed.connect(_on_sound_off_clicked)
 	sound_on_btn.pressed.connect(_on_sound_on_clicked)
 	music_off_btn.pressed.connect(_on_music_off_clicked)
 	music_on_btn.pressed.connect(_on_music_on_clicked)
+	
+	# Connect Game Over Buttons
+	go_restart_btn.pressed.connect(_on_restart_clicked)
+	go_reload_btn.pressed.connect(_on_reload_clicked)
 	
 	# Initial audio toggle visibility
 	# Default: Sound is ON -> SoundOff button is shown so user can click to mute
@@ -62,6 +76,7 @@ func setup(p_audio: Node, p_player: CharacterBody2D) -> void:
 		player.stats_updated.connect(update_player_stats)
 		player.skill_cooldowns_updated.connect(update_cooldowns)
 		player.player_effect_triggered.connect(show_toast)
+		player.player_died.connect(_on_player_died)
 		
 	if audio_controller:
 		audio_controller.sound_toggled.connect(_on_sound_toggled)
@@ -165,3 +180,44 @@ func _connect_skills_buttons() -> void:
 	btn_shield.pressed.connect(func(): if player: player.defense_shield())
 	btn_wall.pressed.connect(func(): if player: player.defense_wall())
 	btn_emp.pressed.connect(func(): if player: player.defense_emp())
+
+# ================= GAME OVER / RESTART DIALOG =================
+func _on_player_died(coins: int, diamonds: int, weapon_lvl: int) -> void:
+	go_coins_stat.text = "🪙 Vàng tích lũy: +%d" % coins
+	go_diamonds_stat.text = "💎 Kim cương: +%d" % diamonds
+	go_weapon_stat.text = "⚡ Cấp vũ khí đạt được: Cấp %d" % weapon_lvl
+	
+	game_over_dialog.visible = true
+	game_over_dialog.modulate.a = 0.0
+	game_over_panel.scale = Vector2(0.85, 0.85)
+	game_over_panel.pivot_offset = game_over_panel.size * 0.5
+	
+	var tw = create_tween()
+	tw.tween_property(game_over_dialog, "modulate:a", 1.0, 0.2)
+	tw.parallel().tween_property(game_over_panel, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _on_restart_clicked() -> void:
+	if audio_controller:
+		audio_controller.play_sfx("button", 0.0, 1.0)
+		
+	# Hide dialog
+	var tw = create_tween()
+	tw.tween_property(game_over_dialog, "modulate:a", 0.0, 0.15)
+	tw.tween_callback(func(): game_over_dialog.visible = false)
+	
+	# Clear any active enemy bullets
+	var bullets = get_tree().get_nodes_in_group("enemy_bullets") + get_tree().get_nodes_in_group("enemy_projectiles")
+	for b in bullets:
+		if is_instance_valid(b):
+			b.queue_free()
+			
+	if player and player.has_method("respawn"):
+		player.respawn()
+		
+	show_toast("HỒI SINH THÀNH CÔNG!", "Bạn đã quay lại chiến trường với đầy đủ 100% máu & giáp (Khiên 3s)!")
+
+func _on_reload_clicked() -> void:
+	if audio_controller:
+		audio_controller.play_sfx("button", 0.0, 1.0)
+	get_tree().reload_current_scene()
+

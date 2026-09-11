@@ -5,8 +5,8 @@ class_name EnemyTower
 @export var max_health: float = 80.0
 @export var score_value: int = 250
 @export var scroll_speed: float = 120.0
-@export var fire_interval: float = 2.4
-@export var bullet_speed: float = 210.0
+@export var fire_interval: float = 1.8
+@export var bullet_speed: float = 230.0
 
 var current_health: float = 80.0
 
@@ -87,15 +87,26 @@ func create_storm_zone() -> void:
 		get_parent().call_deferred("add_child", storm_zone)
 
 
+func _get_gm() -> Node:
+	if not is_inside_tree(): return null
+	return get_node_or_null("/root/GameManager")
+
+func _get_am() -> Node:
+	if not is_inside_tree(): return null
+	return get_node_or_null("/root/AudioManager")
+
 func _process(delta: float) -> void:
-	if GameManager.is_game_over: return
+	var gm = _get_gm()
+	if gm and "is_game_over" in gm and gm.is_game_over: return
 	
 	position.y += scroll_speed * delta
 	if is_instance_valid(storm_zone):
 		storm_zone.position = position
 	
 	# Aim turret barrel at player plane
-	var players = get_tree().get_nodes_in_group("player")
+	var tree = get_tree()
+	if not tree: return
+	var players = tree.get_nodes_in_group("player")
 	if players.size() > 0:
 		var p = players[0]
 		if is_instance_valid(p) and is_instance_valid(barrel):
@@ -104,7 +115,8 @@ func _process(delta: float) -> void:
 			
 	# Firing anti-air salvos
 	fire_timer += delta
-	var target_interval = 2.0 if GameManager.is_hard_mode() else fire_interval
+	var is_hard = gm.is_hard_mode() if gm and gm.has_method("is_hard_mode") else false
+	var target_interval = 2.0 if is_hard else fire_interval
 	if fire_timer >= target_interval:
 		fire_timer = 0.0
 		fire_burst()
@@ -115,33 +127,43 @@ func _process(delta: float) -> void:
 		queue_free()
 
 func fire_burst() -> void:
-	var bullet_tex = load("res://extracted_assets/AI/cut_assets/bullets/bullet_04.png") as Texture2D
-	var players = get_tree().get_nodes_in_group("player")
+	if not is_inside_tree(): return
+	var tree = get_tree()
+	if not tree: return
+	var gm = _get_gm()
+	var is_hard = gm.is_hard_mode() if gm and gm.has_method("is_hard_mode") else false
+	var players = tree.get_nodes_in_group("player")
 	if players.size() < 1: return
 		
 	var target_dir = (players[0].global_position - global_position).normalized()
 	var base_angle = target_dir.angle()
 	
-	var angles = [base_angle - 0.22, base_angle, base_angle + 0.22] if GameManager.is_hard_mode() else [base_angle]
+	var angles = [base_angle - 0.22, base_angle, base_angle + 0.22] if is_hard else [base_angle]
 	for ang in angles:
-		spawn_bullet(ang, bullet_tex)
+		spawn_bullet(ang)
 		
-	if AudioManager:
-		AudioManager.play_sfx("enemy_shoot", 0.7)
+	var am = _get_am()
+	if am and am.has_method("play_sfx"):
+		am.play_sfx("enemy_shoot", 0.7)
 
-func spawn_bullet(angle: float, tex: Texture2D) -> void:
+func spawn_bullet(angle: float) -> void:
 	var bullet_scene = load("res://scenes/combat/enemy_bullet.tscn") as PackedScene
-	if bullet_scene:
+	if bullet_scene and is_inside_tree():
 		var b = bullet_scene.instantiate() as Area2D
-		b.global_position = barrel.global_position if barrel else global_position
-		b.set_meta("direction", Vector2.RIGHT.rotated(angle))
-		b.set_meta("speed", (bullet_speed + 60.0) if GameManager.is_hard_mode() else bullet_speed)
-		b.set_meta("damage", 25.0 if GameManager.is_hard_mode() else 15.0)
-		if tex:
-			var spr = b.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				spr.texture = tex
-				spr.scale = Vector2(0.28, 0.28)
+		var dir = Vector2.RIGHT.rotated(angle)
+		# Spawn outside tower collision radius (radius is 60.0) so it doesn't self-collide
+		b.global_position = global_position + dir * 68.0
+		b.z_index = 8
+		b.set_meta("direction", dir)
+		var gm = _get_gm()
+		var is_hard = gm.is_hard_mode() if gm and gm.has_method("is_hard_mode") else false
+		var spd = (bullet_speed + 60.0) if is_hard else bullet_speed
+		b.set_meta("speed", spd)
+		b.set_meta("damage", 25.0 if is_hard else 15.0)
+		if "direction" in b:
+			b.direction = dir
+		if "speed" in b:
+			b.speed = spd
 		get_parent().add_child(b)
 
 func take_damage(amount: float) -> void:
@@ -159,11 +181,14 @@ func die() -> void:
 	if is_instance_valid(storm_zone):
 		storm_zone.queue_free()
 		
-	if GameManager:
-		GameManager.add_score(score_value)
-		GameManager.add_star(2)
-		if GameManager.has_method("register_tower_kill"):
-			GameManager.register_tower_kill()
+	var gm = _get_gm()
+	if gm:
+		if gm.has_method("add_score"):
+			gm.add_score(score_value)
+		if gm.has_method("add_star"):
+			gm.add_star(2)
+		if gm.has_method("register_tower_kill"):
+			gm.register_tower_kill()
 
 	var exp_scene = load("res://scenes/effects/explosion_fx.tscn") as PackedScene
 	if exp_scene:
@@ -181,8 +206,9 @@ func _on_area_entered(area: Area2D) -> void:
 		if exp_scene:
 			var exp = exp_scene.instantiate()
 			exp.global_position = global_position
-			get_parent().add_child(exp)
-		if AudioManager: AudioManager.play_sfx("explosion", -1.0, 0.85)
+		var am = _get_am()
+		if am and am.has_method("play_sfx"):
+			am.play_sfx("explosion", -1.0, 0.85)
 		die()
 	elif area.is_in_group("player_bullets") or area.has_method("get_damage"):
 		var dmg = area.get("damage")
@@ -244,7 +270,9 @@ class Tower03StormZone extends Area2D:
 	func _on_entered(area: Area2D) -> void:
 		if area.is_in_group("player"):
 			player_inside = area
-			if AudioManager: AudioManager.play_sfx("warning", 0.5)
+			var am = get_node_or_null("/root/AudioManager")
+			if am and am.has_method("play_sfx"):
+				am.play_sfx("warning", 0.5)
 
 	func _on_exited(area: Area2D) -> void:
 		if area == player_inside:

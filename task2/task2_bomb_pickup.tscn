@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://t2bombpickup001"]
+[gd_scene format=3 uid="uid://c8j6jctbfmnwy"]
 
 [ext_resource type="Script" path="res://task2/task2_bomb_pickup.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/bomb-decrease-hp-can-fire-bullet.png" id="2_texture"]

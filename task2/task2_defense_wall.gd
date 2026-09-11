@@ -40,18 +40,29 @@ func _draw() -> void:
 	draw_line(Vector2(-95, 0), Vector2(95, 0), Color(0.1, 0.7, 1.0, 0.25), 18.0)
 
 func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("enemy_projectiles"):
-		area.queue_free()
+	if area.is_in_group("player") or area.is_in_group("player_projectiles"):
+		return
+	if area.is_in_group("enemy_bullets") or area.is_in_group("enemy_projectiles") or "bullet" in area.name.to_lower():
 		_spawn_block_sparks(area.global_position)
+		area.queue_free()
+		return
 	elif area.is_in_group("enemies") or area.has_method("take_damage"):
-		if area.has_method("take_damage"):
-			area.take_damage(damage)
+		var victim = area
+		if not victim.has_method("take_damage") and victim.get_parent() != null and victim.get_parent().has_method("take_damage"):
+			victim = victim.get_parent()
+		if victim.has_method("take_damage"):
+			victim.take_damage(damage)
 		_spawn_block_sparks(area.global_position)
 
 func _on_body_entered(body: Node2D) -> void:
+	if body.is_in_group("player") or body.is_in_group("player_projectiles"):
+		return
 	if body.is_in_group("enemies") or body.has_method("take_damage"):
-		if body.has_method("take_damage"):
-			body.take_damage(damage)
+		var victim = body
+		if not victim.has_method("take_damage") and victim.get_parent() != null and victim.get_parent().has_method("take_damage"):
+			victim = victim.get_parent()
+		if victim.has_method("take_damage"):
+			victim.take_damage(damage)
 		_spawn_block_sparks(body.global_position)
 
 func _spawn_block_sparks(pos: Vector2) -> void:
@@ -69,8 +80,10 @@ func _spawn_block_sparks(pos: Vector2) -> void:
 	p.color = Color(0.4, 0.95, 1.0, 1.0)
 	get_parent().add_child(p)
 	
-	var t = get_tree().create_timer(0.35)
-	t.timeout.connect(p.queue_free)
+	var tree = get_tree()
+	if tree:
+		var t = tree.create_timer(0.35)
+		t.timeout.connect(p.queue_free)
 
 func _on_expire() -> void:
 	var tw = create_tween()

@@ -6,6 +6,7 @@ class_name Task2ObjectY
 
 var time_passed: float = 0.0
 var bomb_pickup_scene: PackedScene = preload("res://task2/task2_bomb_pickup.tscn")
+var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var aura: CPUParticles2D = $TrapAura
@@ -56,40 +57,39 @@ func take_damage(amount: float) -> void:
 		_destroy_and_drop_bomb(true)
 
 func _on_body_entered(body: Node2D) -> void:
-	if body.is_in_group("player") and body.has_method("hit_by_object_y"):
-		body.hit_by_object_y()
-		_destroy_and_drop_bomb(false)
+	_handle_collision(body)
 
 func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("player") and area.has_method("hit_by_object_y"):
-		area.hit_by_object_y()
+	_handle_collision(area)
+
+func _handle_collision(node: Node2D) -> void:
+	if node.is_in_group("enemies") or node.is_in_group("enemy_bullets"):
+		return
+	if node.is_in_group("player_defenses"):
 		_destroy_and_drop_bomb(false)
+		return
+		
+	var victim = node
+	if not victim.has_method("hit_by_object_y") and victim.get_parent() != null and victim.get_parent().has_method("hit_by_object_y"):
+		victim = victim.get_parent()
+		
+	if victim.has_method("hit_by_object_y"):
+		victim.hit_by_object_y()
+	elif victim.has_method("take_damage"):
+		victim.take_damage(20.0, 15.0)
+		
+	_destroy_and_drop_bomb(false)
 
 func _destroy_and_drop_bomb(is_shot_down: bool) -> void:
 	var root = get_parent()
 	if root:
-		# 1. Spawn dramatic explosion
-		var exp_node = Node2D.new()
-		exp_node.global_position = global_position
-		root.add_child(exp_node)
-		
-		var p = CPUParticles2D.new()
-		p.emitting = true
-		p.one_shot = true
-		p.amount = 32
-		p.lifetime = 0.5
-		p.spread = 180.0
-		p.initial_velocity_min = 80.0
-		p.initial_velocity_max = 160.0
-		p.scale_amount_min = 3.0
-		p.scale_amount_max = 6.5
-		p.color = Color(1.0, 0.3, 0.1, 1.0)
-		exp_node.add_child(p)
-		
-		var t = exp_node.get_tree().create_timer(0.6)
-		t.timeout.connect(exp_node.queue_free)
-		
-		# 2. Drop the bomb powerup!
+		if explosion_fx_scene:
+			var exp = explosion_fx_scene.instantiate()
+			exp.global_position = global_position
+			exp.scale = Vector2(1.1, 1.1)
+			root.add_child(exp)
+			
+		# Drop the bomb powerup!
 		var bomb_drop = bomb_pickup_scene.instantiate()
 		bomb_drop.global_position = global_position
 		root.add_child(bomb_drop)

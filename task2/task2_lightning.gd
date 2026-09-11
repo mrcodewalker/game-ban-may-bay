@@ -2,13 +2,15 @@ extends Area2D
 class_name Task2Lightning
 
 @export var speed: float = 850.0
-@export var damage: float = 95.0
+@export var damage: float = 350.0
 
 var hit_targets: Array[Node2D] = []
 var thunder_frames: Array[Texture2D] = []
 var current_frame: int = 0
 var anim_timer: float = 0.0
 var time_alive: float = 0.0
+
+var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var flame_particles: CPUParticles2D = $FlameParticles
@@ -70,31 +72,34 @@ func _draw() -> void:
 		draw_line(Vector2(x_pos, y_pos), Vector2(x_pos, y_pos + 16.0), Color(1.0, 0.5, 0.1, 0.8), 2.0)
 
 func _on_hit(target: Node2D) -> void:
-	if target in hit_targets:
+	if target in hit_targets or target.is_in_group("player") or target.is_in_group("player_defenses"):
 		return
-	if target.is_in_group("enemies") or target.has_method("take_damage"):
-		hit_targets.append(target)
-		if target.has_method("take_damage"):
-			target.take_damage(damage)
-			_spawn_hit_sparks(target.global_position)
-
-func _spawn_hit_sparks(pos: Vector2) -> void:
-	var root = get_parent()
-	if not root:
+	var victim = target
+	if not victim.has_method("take_damage") and victim.get_parent() != null and victim.get_parent().has_method("take_damage"):
+		victim = victim.get_parent()
+	if victim in hit_targets:
 		return
-	var spark = Sprite2D.new()
-	var hit_tex = "res://extracted_assets/AI/cut_assets/bullets/hitted-by-bullet.png"
-	if ResourceLoader.exists(hit_tex):
-		spark.texture = load(hit_tex) as Texture2D
-	else:
-		spark.texture = load("res://extracted_assets/Textures/energy_hit.png") as Texture2D
-		
-	spark.global_position = pos
-	spark.scale = Vector2(0.8, 0.8)
-	spark.modulate = Color(2.0, 1.5, 3.0, 1.0)
-	root.add_child(spark)
+	hit_targets.append(target)
+	hit_targets.append(victim)
 	
-	var tw = spark.create_tween()
-	tw.tween_property(spark, "scale", Vector2(1.3, 1.3), 0.1)
-	tw.parallel().tween_property(spark, "modulate:a", 0.0, 0.12)
-	tw.tween_callback(spark.queue_free)
+	if victim.has_method("take_damage"):
+		victim.take_damage(damage)
+	elif victim.has_method("_die"):
+		victim._die()
+	elif victim.has_method("_trigger_destruction"):
+		victim._trigger_destruction()
+		
+	_spawn_lightning_explosion(victim.global_position)
+
+func _spawn_lightning_explosion(pos: Vector2) -> void:
+	var root = get_parent()
+	if root and explosion_fx_scene:
+		var exp = explosion_fx_scene.instantiate()
+		exp.global_position = pos
+		exp.modulate = Color(0.8, 1.3, 3.0) # Intense electric glow
+		exp.scale = Vector2(1.1, 1.1)
+		root.add_child(exp)
+		
+	var main = get_tree().current_scene
+	if main and main.has_node("AudioController"):
+		main.get_node("AudioController").play_sfx("lightning", 2.0, 1.2)

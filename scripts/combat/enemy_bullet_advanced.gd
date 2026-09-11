@@ -60,9 +60,15 @@ func _process(delta: float) -> void:
 		queue_free()
 
 func _on_area_entered(area: Area2D) -> void:
-	if area.is_in_group("player"):
-		if area.has_method("take_damage"):
-			area.take_damage(damage)
+	if area.is_in_group("player_defenses"):
+		queue_free()
+		return
+	var victim = area
+	if not victim.has_method("take_damage") and victim.get_parent() != null and victim.get_parent().has_method("take_damage"):
+		victim = victim.get_parent()
+	if victim.is_in_group("player") or victim.has_method("take_damage"):
+		if victim.has_method("take_damage"):
+			victim.take_damage(damage)
 		queue_free()
 
 func _on_bomb_exploded() -> void:

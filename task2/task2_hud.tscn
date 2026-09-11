@@ -76,6 +76,44 @@ corner_radius_bottom_left = 8
 shadow_color = Color(0, 0, 0, 0.5)
 shadow_size = 6
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_game_over_panel"]
+bg_color = Color(0.06, 0.08, 0.12, 0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.3, 0.2, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_restart_btn"]
+bg_color = Color(0.15, 0.7, 0.35, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 1.0, 0.6, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reload_btn"]
+bg_color = Color(0.2, 0.45, 0.8, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.8, 1.0, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [node name="Task2HUD" type="CanvasLayer"]
 script = ExtResource("1_script")
 
@@ -453,3 +491,123 @@ theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 11
 text = "Mô tả chi tiết hiệu ứng va chạm hoặc kỹ năng"
 horizontal_alignment = 1
+
+[node name="GameOverDialog" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Backdrop" type="ColorRect" parent="GameOverDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.04, 0.08, 0.85)
+
+[node name="Panel" type="PanelContainer" parent="GameOverDialog"]
+custom_minimum_size = Vector2(420, 360)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -180.0
+offset_right = 210.0
+offset_bottom = 180.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_game_over_panel")
+
+[node name="Margin" type="MarginContainer" parent="GameOverDialog/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 22
+
+[node name="VBox" type="VBoxContainer" parent="GameOverDialog/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Title" type="Label" parent="GameOverDialog/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.25, 0.25, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 20
+text = "💥 GAME OVER 💥
+BẠN ĐÃ HY SINH!"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="GameOverDialog/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.85, 0.9, 0.8)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 11
+text = "Chiến cơ bị bắn hạ trong cuộc không chiến khốc liệt!"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="GameOverDialog/Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="StatsContainer" type="VBoxContainer" parent="GameOverDialog/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CoinsStat" type="Label" parent="GameOverDialog/Panel/Margin/VBox/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "🪙 Vàng tích lũy: +150"
+horizontal_alignment = 1
+
+[node name="DiamondsStat" type="Label" parent="GameOverDialog/Panel/Margin/VBox/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "💎 Kim cương: +20"
+horizontal_alignment = 1
+
+[node name="WeaponStat" type="Label" parent="GameOverDialog/Panel/Margin/VBox/StatsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.5, 0.8, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 14
+text = "⚡ Cấp vũ khí đạt được: Cấp 1"
+horizontal_alignment = 1
+
+[node name="BtnBox" type="VBoxContainer" parent="GameOverDialog/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="RestartBtn" type="Button" parent="GameOverDialog/Panel/Margin/VBox/BtnBox"]
+custom_minimum_size = Vector2(260, 46)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_restart_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_restart_btn")
+text = "🔄 CHƠI LẠI (RESTART)"
+
+[node name="ReloadBtn" type="Button" parent="GameOverDialog/Panel/Margin/VBox/BtnBox"]
+custom_minimum_size = Vector2(260, 38)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_reload_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_reload_btn")
+text = "🔁 LÀM MỚI MÀN CHƠI"

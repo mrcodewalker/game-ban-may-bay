@@ -50,18 +50,19 @@ func _on_area_entered(area: Area2D) -> void:
 		_collect(area)
 
 func _collect(player_node: Node2D) -> void:
+	var player = player_node if player_node is Task2Player else player_node.get_parent()
 	# Trigger massive screen clear tactical nuke
 	var enemies = get_tree().get_nodes_in_group("enemies")
 	for e in enemies:
 		if is_instance_valid(e) and e.has_method("take_damage"):
-			e.take_damage(150.0)
+			e.take_damage(250.0)
 			
 	var main = get_tree().current_scene
 	if main and main.has_node("AudioController"):
 		main.get_node("AudioController").play_sfx("explosion", 2.0, 0.85)
 		
-	if player_node.has_signal("player_effect_triggered"):
-		player_node.player_effect_triggered.emit("💣 POWERUP BOMB KÍCH NỔ! 💣", "Nhặt được quả bom từ bẫy! Kích nổ toàn màn hình!")
+	if player and player.has_signal("player_effect_triggered"):
+		player.player_effect_triggered.emit("💣 POWERUP BOMB KÍCH NỔ! 💣", "Nhặt được quả bom từ bẫy! Kích nổ toàn màn hình!")
 		
 	# Spawn blast ring
 	_spawn_nuke_blast()

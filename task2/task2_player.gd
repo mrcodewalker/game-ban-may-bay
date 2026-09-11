@@ -4,6 +4,9 @@ class_name Task2Player
 signal stats_updated(hp: float, max_hp: float, armor: float, max_armor: float, coins: int, diamonds: int, current_speed: float, weapon_level: int)
 signal skill_cooldowns_updated(missile_pct: float, thunder_pct: float, shield_pct: float, wall_pct: float, emp_pct: float)
 signal player_effect_triggered(effect_title: String, effect_desc: String)
+signal player_died(coins: int, diamonds: int, weapon_level: int)
+
+var is_dead: bool = false
 
 @export var base_speed: float = 340.0
 @export var boost_speed_mult: float = 1.5
@@ -60,6 +63,7 @@ var missile_scene: PackedScene = preload("res://task2/task2_missile.tscn")
 var lightning_scene: PackedScene = preload("res://task2/task2_lightning.tscn")
 var wall_scene: PackedScene = preload("res://task2/task2_defense_wall.tscn")
 var emp_wave_scene: PackedScene = preload("res://task2/task2_emp_shockwave.tscn")
+var explosion_fx_scene: PackedScene = preload("res://scenes/effects/explosion_fx.tscn")
 
 const Task2AudioController = preload("res://task2/task2_audio_controller.gd")
 var audio_controller: Node = null
@@ -73,6 +77,9 @@ func _ready() -> void:
 	
 	_find_audio_controller()
 	_emit_stats()
+	
+	if has_node("Hitbox"):
+		$Hitbox.area_entered.connect(_on_hitbox_area_entered)
 
 func _find_audio_controller() -> void:
 	var root = get_tree().current_scene
@@ -80,6 +87,8 @@ func _find_audio_controller() -> void:
 		audio_controller = root.get_node_or_null("AudioController")
 
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		return
 	_update_timers(delta)
 	_handle_movement(delta)
 	_handle_input_actions(delta)
@@ -256,7 +265,10 @@ func defense_shield() -> void:
 	is_shield_active = true
 	shield_timer = shield_duration
 	shield_cd_timer = shield_cooldown
-	shield_sprite.visible = true
+	if not shield_sprite and has_node("ShieldVisual"):
+		shield_sprite = $ShieldVisual
+	if shield_sprite:
+		shield_sprite.visible = true
 	
 	if audio_controller:
 		audio_controller.play_sfx("shield", 2.0, 1.2)
@@ -266,7 +278,10 @@ func defense_shield() -> void:
 func deactivate_shield() -> void:
 	is_shield_active = false
 	shield_timer = 0.0
-	shield_sprite.visible = false
+	if not shield_sprite and has_node("ShieldVisual"):
+		shield_sprite = $ShieldVisual
+	if shield_sprite:
+		shield_sprite.visible = false
 
 func defense_wall() -> void:
 	if wall_cd_timer > 0.0:
@@ -292,7 +307,7 @@ func defense_emp() -> void:
 	emp_cd_timer = emp_cooldown
 	
 	if audio_controller:
-		audio_controller.play_sfx("emp", 2.0, 1.0)
+		audio_controller.play_sfx("emp", 2.5, 0.9)
 		
 	# Spawn visual expanding EMP shockwave
 	var parent_scene = get_parent()
@@ -301,33 +316,190 @@ func defense_emp() -> void:
 		wave.global_position = global_position
 		parent_scene.add_child(wave)
 		
-	# Freeze all enemies on screen for 4s
-	var enemies = get_tree().get_nodes_in_group("enemies")
-	for e in enemies:
-		if is_instance_valid(e) and e.has_method("apply_freeze"):
-			e.apply_freeze(4.0)
+	# Vaporize all enemy bullets on screen immediately
+	var bullets = get_tree().get_nodes_in_group("enemy_bullets") + get_tree().get_nodes_in_group("enemy_projectiles")
+	for b in bullets:
+		if is_instance_valid(b):
+			_spawn_small_explosion(b.global_position)
+			b.queue_free()
 			
-	player_effect_triggered.emit("DEFENSE 3: EMP STUN", "Sóng xung kích EMP làm tê liệt tất cả kẻ địch trong 4s!")
+	# Catastrophic chain reaction: EXPLODE ALL ENEMIES ON SCREEN!
+	var enemies = get_tree().get_nodes_in_group("enemies")
+	var count = 0
+	for e in enemies:
+		if is_instance_valid(e):
+			count += 1
+			var dist = global_position.distance_to(e.global_position)
+			var delay = clampf(dist / 900.0 * 0.35, 0.0, 0.4)
+			get_tree().create_timer(delay).timeout.connect(func():
+				if is_instance_valid(e):
+					_spawn_large_explosion(e.global_position, 1.2)
+					if e.has_method("take_damage"):
+						e.take_damage(999.0)
+					elif e.has_method("_die"):
+						e._die()
+					elif e.has_method("_trigger_destruction"):
+						e._trigger_destruction()
+			)
+			
+	trigger_screen_shake(16.0, 0.4)
+	player_effect_triggered.emit("💥 SIÊU SÓNG EMP KÍCH NỔ TOÀN MÀN HÌNH! 💥", "Xóa sổ toàn bộ đạn và làm nổ tung %d mục tiêu địch!" % count)
+
+func trigger_screen_shake(intensity: float = 8.0, duration: float = 0.2) -> void:
+	var vp = get_viewport()
+	if not vp:
+		return
+	var cam = vp.get_camera_2d()
+	if cam:
+		var orig_offset = cam.offset
+		var tw = create_tween()
+		var steps = maxi(1, int(duration / 0.03))
+		for i in range(steps):
+			var rand_offset = Vector2(randf_range(-intensity, intensity), randf_range(-intensity, intensity))
+			tw.tween_property(cam, "offset", rand_offset, 0.03)
+		tw.tween_property(cam, "offset", orig_offset, 0.03)
+
+func _spawn_large_explosion(pos: Vector2, sc: float = 1.0) -> void:
+	var root = get_parent()
+	if root and explosion_fx_scene:
+		var exp = explosion_fx_scene.instantiate()
+		exp.global_position = pos
+		exp.scale = Vector2(sc, sc)
+		root.add_child(exp)
+		if audio_controller:
+			audio_controller.play_sfx("explosion", 1.0, 1.0)
+
+func _spawn_small_explosion(pos: Vector2) -> void:
+	var root = get_parent()
+	if root and explosion_fx_scene:
+		var exp = explosion_fx_scene.instantiate()
+		exp.global_position = pos
+		exp.scale = Vector2(0.5, 0.5)
+		root.add_child(exp)
+
+func take_damage(hp_damage: float, armor_damage: float = -1.0) -> void:
+	if is_dead:
+		return
+		
+	if is_shield_active:
+		if shield_sprite.has_method("trigger_absorb_flash"):
+			shield_sprite.trigger_absorb_flash()
+		player_effect_triggered.emit("SHIELD BLOCKED!", "Khiên năng lượng chặn đứng đòn tấn công!")
+		if audio_controller:
+			audio_controller.play_sfx("shield", 1.0, 1.5)
+		return
+		
+	var actual_hp_loss = hp_damage
+	var actual_arm_loss = armor_damage
+	if actual_arm_loss < 0.0:
+		# Balanced split: direct HP deduction + Armor absorption
+		actual_hp_loss = hp_damage * 0.75
+		actual_arm_loss = hp_damage * 0.65
+		
+	current_armor = maxf(0.0, current_armor - actual_arm_loss)
+	current_hp = maxf(0.0, current_hp - actual_hp_loss)
+		
+	# Intense Red hit flash
+	if not ship_sprite and has_node("ShipSprite"):
+		ship_sprite = $ShipSprite
+	if ship_sprite:
+		var tw = create_tween()
+		tw.tween_property(ship_sprite, "modulate", Color(3.5, 0.2, 0.2), 0.08)
+		tw.tween_property(ship_sprite, "modulate", Color.WHITE, 0.12)
+	
+	trigger_screen_shake(9.0, 0.18)
+	if audio_controller:
+		audio_controller.play_sfx("debuff", 0.0, 1.3)
+		
+	_emit_stats()
+	player_effect_triggered.emit("TRÚNG SÁT THƯƠNG!", "Mất %d HP! (HP còn: %d | Giáp: %d)" % [int(actual_hp_loss), int(current_hp), int(current_armor)])
+	
+	if current_hp <= 0.0:
+		die()
+
+func _on_hitbox_area_entered(area: Area2D) -> void:
+	if is_dead:
+		return
+	if area.is_in_group("enemy_bullets") or area.is_in_group("enemy_projectiles"):
+		var dmg = area.damage if "damage" in area else 16.0
+		take_damage(dmg * 0.8, dmg * 0.6)
+		_spawn_small_explosion(area.global_position)
+		area.queue_free()
+	elif area.is_in_group("object_x"):
+		hit_by_object_x(35.0, 20.0)
+		_spawn_large_explosion(area.global_position, 1.1)
+		if area.has_method("_trigger_destruction"):
+			area._trigger_destruction()
+		else:
+			area.queue_free()
+	elif area.is_in_group("object_y"):
+		hit_by_object_y()
+		_spawn_large_explosion(area.global_position, 1.1)
+		if area.has_method("_destroy_and_drop_bomb"):
+			area._destroy_and_drop_bomb(false)
+		else:
+			area.queue_free()
+	elif area.is_in_group("object_z"):
+		hit_by_object_z(100, 5)
+		if area.has_method("_trigger_sparkle_fx"):
+			area._trigger_sparkle_fx()
+		else:
+			area.queue_free()
+	elif area.is_in_group("enemies"):
+		# Direct ship crash into enemy B
+		take_damage(40.0, 25.0)
+		_spawn_large_explosion(area.global_position, 1.3)
+		trigger_screen_shake(15.0, 0.35)
+		if area.has_method("_die"):
+			area._die()
+		elif area.has_method("take_damage"):
+			area.take_damage(500.0)
+
+func die() -> void:
+	if is_dead:
+		return
+	is_dead = true
+	
+	# Massive explosion FX
+	_spawn_large_explosion(global_position, 1.8)
+	trigger_screen_shake(22.0, 0.5)
+	if audio_controller:
+		audio_controller.play_sfx("explosion", 3.0, 0.75)
+		
+	# Hide ship
+	ship_sprite.visible = false
+	boost_particles.emitting = false
+	if has_node("ShadowSprite"):
+		$ShadowSprite.visible = false
+		
+	player_effect_triggered.emit("BẠN ĐÃ HY SINH!", "Phi cơ bị tiêu diệt hoàn toàn!")
+	player_died.emit(coins, diamonds, weapon_level)
+
+func respawn() -> void:
+	is_dead = false
+	current_hp = max_hp
+	current_armor = max_armor
+	slow_timer = 0.0
+	boost_timer = 0.0
+	global_position = Vector2(270, 750)
+	
+	ship_sprite.visible = true
+	ship_sprite.modulate = Color.WHITE
+	boost_particles.emitting = true
+	if has_node("ShadowSprite"):
+		$ShadowSprite.visible = true
+		
+	# Brief respawn invulnerability shield (3s)
+	defense_shield()
+	_update_speed_multiplier()
+	_emit_stats()
 
 # ================= DAMAGE & COLLISION EFFECTS (X, Y, Z) =================
 ## Effect with Object X (Kamikaze): Explosion, Destroy X, A loses HP and Armor
-func hit_by_object_x(damage_hp: float = 25.0, damage_armor: float = 15.0) -> void:
-	if is_shield_active:
-		player_effect_triggered.emit("SHIELD BLOCKED!", "Khiên năng lượng chặn đòn va chạm Object X!")
-		return
-		
-	current_armor = maxf(0.0, current_armor - damage_armor)
-	current_hp = maxf(0.0, current_hp - damage_hp)
-	
-	# Flash red
-	var tw = create_tween()
-	tw.tween_property(ship_sprite, "modulate", Color(2.5, 0.4, 0.4), 0.1)
-	tw.tween_property(ship_sprite, "modulate", Color.WHITE, 0.15)
-	
-	_emit_stats()
-	player_effect_triggered.emit("COLLISION X: IMPACT!", "Va chạm Kamikaze X: Giảm -25 HP, Giảm -15 Giáp!")
+func hit_by_object_x(damage_hp: float = 35.0, damage_armor: float = 20.0) -> void:
+	take_damage(damage_hp, damage_armor)
 
-## Effect with Object Y (Hazard Trap): Breaks shield, slows speed 50% for 3s
+## Effect with Object Y (Hazard Trap): Breaks shield, slows speed 50% for 3s, deals damage
 func hit_by_object_y() -> void:
 	var shield_lost_text = ""
 	if is_shield_active:
@@ -335,12 +507,13 @@ func hit_by_object_y() -> void:
 		shield_lost_text = " [MẤT KHIÊN CHẮN!]"
 		
 	slow_timer = 3.0
+	take_damage(20.0, 15.0)
 	_update_speed_multiplier()
 	
 	if audio_controller:
 		audio_controller.play_sfx("debuff", 1.0, 0.8)
 		
-	player_effect_triggered.emit("COLLISION Y: TRAP!" + shield_lost_text, "Dính bẫy Y: Phá vỡ khiên & Giảm tốc 50% trong 3s!")
+	player_effect_triggered.emit("COLLISION Y: TRAP!" + shield_lost_text, "Dính bẫy Y: Mất 20 HP, Phá vỡ khiên & Giảm tốc 50% trong 3s!")
 
 ## Effect with Object Z (Supply Chest): +Coins, +Diamonds, +Speed Boost, Weapon Upgrade
 func hit_by_object_z(gold_reward: int = 100, diamond_reward: int = 5) -> void:
