@@ -549,13 +549,28 @@ func hit_by_object_y() -> void:
 	take_damage(20.0, 15.0)
 	_update_speed_multiplier()
 	
+	# Strong RED danger flash on ship
+	if ship_sprite:
+		var tw = create_tween()
+		tw.tween_property(ship_sprite, "modulate", Color(4.0, 0.1, 0.1), 0.06)
+		tw.tween_property(ship_sprite, "modulate", Color(2.0, 0.3, 0.3), 0.08)
+		tw.tween_property(ship_sprite, "modulate", Color(3.5, 0.1, 0.1), 0.06)
+		tw.tween_property(ship_sprite, "modulate", Color.WHITE, 0.15)
+	
+	# Bigger screen shake for trap collision
+	trigger_screen_shake(14.0, 0.3)
+	
+	# Floating danger text at player position
+	_spawn_floating_text(global_position + Vector2(0, -50), "⚠ BẪY! -20HP GIẢM TỐC 50%!", Color(1.0, 0.2, 0.2))
+	
 	if audio_controller:
 		audio_controller.play_sfx("debuff", 1.0, 0.8)
 		
-	player_effect_triggered.emit("COLLISION Y: TRAP!" + shield_lost_text, "Dính bẫy Y: Mất 20 HP, Phá vỡ khiên & Giảm tốc 50% trong 3s!")
+	player_effect_triggered.emit("💥 DÍNH BẪY Y!" + shield_lost_text, "Mất 20 HP · Phá khiên · Giảm tốc 50% trong 3s!")
 
 ## Effect with Object Z (Supply Chest): +Coins, +Diamonds, +Speed Boost, Weapon Upgrade
 func hit_by_object_z(gold_reward: int = 100, diamond_reward: int = 5) -> void:
+	var old_weapon_level = weapon_level
 	coins += gold_reward
 	diamonds += diamond_reward
 	boost_timer = 5.0
@@ -564,14 +579,28 @@ func hit_by_object_z(gold_reward: int = 100, diamond_reward: int = 5) -> void:
 	
 	if audio_controller:
 		audio_controller.play_sfx("pickup", 2.0, 1.2)
-		
-	# Flash golden
-	var tw = create_tween()
-	tw.tween_property(ship_sprite, "modulate", Color(1.5, 1.5, 0.4), 0.15)
-	tw.tween_property(ship_sprite, "modulate", Color.WHITE, 0.2)
 	
+	# Strong golden flash — 3 pulses
+	if ship_sprite:
+		var tw = create_tween()
+		tw.tween_property(ship_sprite, "modulate", Color(3.0, 2.5, 0.2), 0.1)
+		tw.tween_property(ship_sprite, "modulate", Color(1.2, 1.2, 0.5), 0.08)
+		tw.tween_property(ship_sprite, "modulate", Color(3.0, 2.5, 0.2), 0.1)
+		tw.tween_property(ship_sprite, "modulate", Color(1.2, 1.2, 0.5), 0.08)
+		tw.tween_property(ship_sprite, "modulate", Color(2.5, 2.0, 0.3), 0.1)
+		tw.tween_property(ship_sprite, "modulate", Color.WHITE, 0.2)
+	
+	# Floating reward text
+	_spawn_floating_text(global_position + Vector2(-30, -60), "+%d 🪙" % gold_reward, Color(1.0, 0.85, 0.1))
+	_spawn_floating_text(global_position + Vector2(30, -80), "+%d 💎" % diamond_reward, Color(0.4, 0.9, 1.0))
+	
+	# Weapon level up special notification
+	if weapon_level > old_weapon_level:
+		_spawn_floating_text(global_position + Vector2(0, -110), "⬆ VŨ KHÍ CẤP %d!" % weapon_level, Color(1.0, 0.5, 0.0))
+		trigger_screen_shake(6.0, 0.2)
+		
 	_emit_stats()
-	player_effect_triggered.emit("COLLISION Z: CHEST!", "+%d Vàng, +%d Kim Cương, Tăng Tốc +40%%, Nâng Cấp Vũ Khí Cấp %d!" % [gold_reward, diamond_reward, weapon_level])
+	player_effect_triggered.emit("✨ NHẶT RƯƠNG Z!", "+%d Vàng · +%d Kim Cương · Tăng Tốc +40%% · Vũ Khí Cấp %d!" % [gold_reward, diamond_reward, weapon_level])
 
 func _emit_stats() -> void:
 	var display_speed = base_speed * speed_multiplier
@@ -586,3 +615,21 @@ func _emit_cooldowns() -> void:
 	var emp_pct = 1.0 - (emp_cd_timer / emp_cooldown) if emp_cooldown > 0 else 1.0
 	skill_cooldowns_updated.emit(clampf(missile_pct, 0.0, 1.0), clampf(thunder_pct, 0.0, 1.0), clampf(shield_pct, 0.0, 1.0), clampf(wall_pct, 0.0, 1.0), clampf(emp_pct, 0.0, 1.0))
 	thunder_charges_updated.emit(thunder_charges, thunder_max_charges, clampf(recharge_pct, 0.0, 1.0), thunder_recharge_timer)
+
+# Spawn floating text label at world position that flies upward and fades out
+func _spawn_floating_text(pos: Vector2, text: String, color: Color) -> void:
+	var root = get_parent()
+	if not root:
+		return
+	var lbl = Label.new()
+	lbl.text = text
+	lbl.add_theme_color_override("font_color", color)
+	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.z_index = 100
+	lbl.global_position = pos
+	root.add_child(lbl)
+	var tw = lbl.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(lbl, "position:y", lbl.position.y - 70.0, 1.0).set_ease(Tween.EASE_OUT)
+	tw.tween_property(lbl, "modulate:a", 0.0, 1.0).set_delay(0.4)
+	tw.tween_callback(lbl.queue_free).set_delay(1.05)

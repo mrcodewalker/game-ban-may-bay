@@ -33,11 +33,27 @@ func _ready() -> void:
 	btn_spawn_z.pressed.connect(spawn_object_z)
 	btn_auto_wave.pressed.connect(_toggle_auto_wave)
 	
+	# Update button labels to show keyboard shortcuts
+	btn_spawn_b.text = "[F1] Spawn B"
+	btn_spawn_x.text = "[F2] Spawn X"
+	btn_spawn_y.text = "[F3] Spawn Y"
+	btn_spawn_z.text = "[F4] Spawn Z"
+	btn_auto_wave.text = "[F5] Auto: TẮT"
+	
 	# Start background music
 	audio_controller.play_bgm()
 	
 	# Initial welcome toast
-	hud.show_toast("CHÀO MỪNG ĐẾN VỚI TASK 2", "Di chuyển: WASD | Tấn công: Space, K, L | Phòng thủ: U, I, O")
+	hud.show_toast("CHÀO MỪNG ĐẾN VỚI TASK 2", "Di chuyển: WASD | Spawn: F1 B / F2 X / F3 Y / F4 Z / F5 Auto")
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		match event.keycode:
+			KEY_F1: spawn_enemy_b()
+			KEY_F2: spawn_object_x()
+			KEY_F3: spawn_object_y()
+			KEY_F4: spawn_object_z()
+			KEY_F5: _toggle_auto_wave()
 
 func _process(delta: float) -> void:
 	if is_auto_wave:
@@ -77,11 +93,11 @@ func spawn_object_z() -> void:
 func _toggle_auto_wave() -> void:
 	is_auto_wave = not is_auto_wave
 	if is_auto_wave:
-		btn_auto_wave.text = "Auto: BẬT"
+		btn_auto_wave.text = "[F5] Auto: BẬT"
 		btn_auto_wave.modulate = Color(0.4, 1.0, 0.4)
 		hud.show_toast("AUTO WAVE: BẬT", "Tự động sinh Địch B, Vật thể X, Y, Z mỗi 3.5s")
 	else:
-		btn_auto_wave.text = "Auto: TẮT"
+		btn_auto_wave.text = "[F5] Auto: TẮT"
 		btn_auto_wave.modulate = Color.WHITE
 		hud.show_toast("AUTO WAVE: TẮT", "Đã dừng tự động sinh quái")
 

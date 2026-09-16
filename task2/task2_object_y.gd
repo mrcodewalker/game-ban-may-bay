@@ -97,7 +97,10 @@ func _destroy_and_drop_bomb(is_shot_down: bool) -> void:
 	var main = get_tree().current_scene
 	if main and main.has_node("AudioController"):
 		main.get_node("AudioController").play_sfx("explosion", 1.0, 1.0)
-		if is_shot_down and main.has_node("Task2HUD"):
-			main.get_node("Task2HUD").show_toast("BẪY BỊ BẮN HẠ!", "Bẫy nổ tung và rơi ra POWERUP QUẢ BOM!")
-			
+	if main and main.has_node("Task2HUD"):
+		if is_shot_down:
+			main.get_node("Task2HUD").show_toast("BẪY BỊ BẮN HẠ! 💣", "Bẫy nổ tung và rơi ra POWERUP QUẢ BOM — hãy nhặt lấy!")
+		else:
+			main.get_node("Task2HUD").show_toast("💥 VA CHẠM BẪY Y! 💣", "Bẫy phát nổ, rơi ra QUẢ BOM — nhặt để dùng ngay!")
+		
 	queue_free()
