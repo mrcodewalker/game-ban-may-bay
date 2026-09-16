@@ -175,8 +175,22 @@ func explode() -> void:
 		GameManager.register_tank_kill()
 
 
-	if AudioManager: AudioManager.play_sfx("explosion", -2.0, 0.9)
+	var am = _get_am()
+	if am and am.has_method("play_sfx"):
+		am.play_sfx("explosion", -2.0, 0.9)
 	queue_free()
+
+func _get_am() -> Node:
+	if not is_inside_tree(): return null
+	var tree = get_tree()
+	if tree:
+		var root = tree.current_scene if tree.current_scene else tree.root
+		if root and root.has_node("AudioController"):
+			return root.get_node("AudioController")
+	var p = get_parent()
+	if p and p.has_node("AudioController"):
+		return p.get_node("AudioController")
+	return get_node_or_null("/root/AudioManager")
 
 func _on_area_entered(area: Area2D) -> void:
 	if area.is_in_group("player_bullets"):
@@ -192,5 +206,7 @@ func _on_area_entered(area: Area2D) -> void:
 			var exp = exp_scene.instantiate()
 			exp.global_position = global_position
 			get_parent().add_child(exp)
-		if AudioManager: AudioManager.play_sfx("explosion", -1.0, 0.85)
+		var am = _get_am()
+		if am and am.has_method("play_sfx"):
+			am.play_sfx("explosion", -1.0, 0.85)
 		explode()

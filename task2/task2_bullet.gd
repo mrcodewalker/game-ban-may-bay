@@ -8,8 +8,12 @@ var direction: Vector2 = Vector2.UP
 
 func _ready() -> void:
 	add_to_group("player_projectiles")
+	add_to_group("player_bullets")
 	area_entered.connect(_on_area_entered)
 	body_entered.connect(_on_body_entered)
+
+func get_damage() -> float:
+	return damage
 
 func _physics_process(delta: float) -> void:
 	global_position += direction * speed * delta
@@ -34,6 +38,9 @@ func _spawn_sparks() -> void:
 	var root = get_parent()
 	if not root:
 		return
+	var tree = root.get_tree() if root.is_inside_tree() else (get_tree() if is_inside_tree() else null)
+	if not tree:
+		return
 	var p = CPUParticles2D.new()
 	p.global_position = global_position
 	p.emitting = true
@@ -48,5 +55,5 @@ func _spawn_sparks() -> void:
 	p.color = Color(1.0, 0.85, 0.3, 1.0)
 	root.add_child(p)
 	
-	var t = root.get_tree().create_timer(0.3)
+	var t = tree.create_timer(0.3)
 	t.timeout.connect(p.queue_free)

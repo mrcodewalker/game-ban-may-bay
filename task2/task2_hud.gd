@@ -17,8 +17,27 @@ class_name Task2HUD
 @onready var sound_on_btn: Button = $Header/Margin/HBox/AudioControls/SoundSlot/SoundOnBtn
 @onready var music_on_btn: Button = $Header/Margin/HBox/AudioControls/MusicSlot/MusicOnBtn
 @onready var music_off_btn: Button = $Header/Margin/HBox/AudioControls/MusicSlot/MusicOffBtn
+@onready var volume_btn: Button = $Header/Margin/HBox/AudioControls/VolumeSlot/VolumeBtn
 
-# Skills / Attacks UI
+# Volume Settings Dialog
+@onready var volume_dialog: Control = $VolumeSettingsDialog
+@onready var volume_panel: PanelContainer = $VolumeSettingsDialog/Panel
+@onready var volume_close_btn: Button = $VolumeSettingsDialog/Panel/Margin/VBox/HeaderBox/CloseBtn
+@onready var volume_done_btn: Button = $VolumeSettingsDialog/Panel/Margin/VBox/DoneBtn
+@onready var sfx_slider: HSlider = $VolumeSettingsDialog/Panel/Margin/VBox/SFXContainer/SFXSlider
+@onready var sfx_percent_lbl: Label = $VolumeSettingsDialog/Panel/Margin/VBox/SFXContainer/SFXHeader/SFXPercentLabel
+@onready var bgm_slider: HSlider = $VolumeSettingsDialog/Panel/Margin/VBox/BGMContainer/BGMSlider
+@onready var bgm_percent_lbl: Label = $VolumeSettingsDialog/Panel/Margin/VBox/BGMContainer/BGMHeader/BGMPercentLabel
+
+# Skill Buttons
+@onready var btn_shoot: Button = $SkillsBar/HBox/BtnShoot
+@onready var btn_missile: Button = $SkillsBar/HBox/BtnMissile
+@onready var btn_thunder: Button = $SkillsBar/HBox/BtnThunder
+@onready var btn_shield: Button = $SkillsBar/HBox/BtnShield
+@onready var btn_wall: Button = $SkillsBar/HBox/BtnWall
+@onready var btn_emp: Button = $SkillsBar/HBox/BtnEMP
+
+# Skills / Attacks UI Cooldowns
 @onready var cd_missile: TextureProgressBar = $SkillsBar/HBox/BtnMissile/CD
 @onready var cd_thunder: TextureProgressBar = $SkillsBar/HBox/BtnThunder/CD
 @onready var cd_shield: TextureProgressBar = $SkillsBar/HBox/BtnShield/CD
@@ -46,23 +65,28 @@ var toast_tween: Tween = null
 func _ready() -> void:
 	toast_banner.modulate.a = 0.0
 	game_over_dialog.visible = false
+	volume_dialog.visible = false
 	
 	# Connect Audio Buttons
 	sound_off_btn.pressed.connect(_on_sound_off_clicked)
 	sound_on_btn.pressed.connect(_on_sound_on_clicked)
 	music_off_btn.pressed.connect(_on_music_off_clicked)
 	music_on_btn.pressed.connect(_on_music_on_clicked)
+	volume_btn.pressed.connect(_toggle_volume_dialog)
+	
+	# Connect Volume Dialog Buttons & Sliders
+	volume_close_btn.pressed.connect(_close_volume_dialog)
+	volume_done_btn.pressed.connect(_close_volume_dialog)
+	sfx_slider.value_changed.connect(_on_sfx_slider_changed)
+	bgm_slider.value_changed.connect(_on_bgm_slider_changed)
 	
 	# Connect Game Over Buttons
 	go_restart_btn.pressed.connect(_on_restart_clicked)
 	go_reload_btn.pressed.connect(_on_reload_clicked)
 	
 	# Initial audio toggle visibility
-	# Default: Sound is ON -> SoundOff button is shown so user can click to mute
 	sound_off_btn.visible = true
 	sound_on_btn.visible = false
-	
-	# Default: Music is ON -> MusicOff button is shown so user can click to stop
 	music_off_btn.visible = true
 	music_on_btn.visible = false
 	
@@ -77,6 +101,8 @@ func setup(p_audio: Node, p_player: CharacterBody2D) -> void:
 		player.skill_cooldowns_updated.connect(update_cooldowns)
 		player.player_effect_triggered.connect(show_toast)
 		player.player_died.connect(_on_player_died)
+		if player.has_signal("thunder_charges_updated"):
+			player.thunder_charges_updated.connect(_on_thunder_charges_updated)
 		
 	if audio_controller:
 		audio_controller.sound_toggled.connect(_on_sound_toggled)
@@ -124,6 +150,43 @@ func _on_music_toggled(is_enabled: bool) -> void:
 	music_off_btn.visible = is_enabled
 	music_on_btn.visible = not is_enabled
 
+# ================= VOLUME SETTINGS DIALOG =================
+func _toggle_volume_dialog() -> void:
+	if volume_dialog.visible:
+		_close_volume_dialog()
+	else:
+		_open_volume_dialog()
+
+func _open_volume_dialog() -> void:
+	if audio_controller:
+		sfx_slider.value = audio_controller.get_sfx_volume() * 100.0
+		bgm_slider.value = audio_controller.get_music_volume() * 100.0
+		sfx_percent_lbl.text = "%d%%" % int(sfx_slider.value)
+		bgm_percent_lbl.text = "%d%%" % int(bgm_slider.value)
+	volume_dialog.visible = true
+	volume_dialog.modulate.a = 0.0
+	volume_panel.scale = Vector2(0.9, 0.9)
+	volume_panel.pivot_offset = volume_panel.size * 0.5
+	var tw = create_tween()
+	tw.tween_property(volume_dialog, "modulate:a", 1.0, 0.15)
+	tw.parallel().tween_property(volume_panel, "scale", Vector2(1.0, 1.0), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+func _close_volume_dialog() -> void:
+	var tw = create_tween()
+	tw.tween_property(volume_dialog, "modulate:a", 0.0, 0.12)
+	tw.parallel().tween_property(volume_panel, "scale", Vector2(0.9, 0.9), 0.12)
+	tw.tween_callback(func(): volume_dialog.visible = false)
+
+func _on_sfx_slider_changed(val: float) -> void:
+	sfx_percent_lbl.text = "%d%%" % int(val)
+	if audio_controller:
+		audio_controller.set_sfx_volume(val / 100.0)
+
+func _on_bgm_slider_changed(val: float) -> void:
+	bgm_percent_lbl.text = "%d%%" % int(val)
+	if audio_controller:
+		audio_controller.set_music_volume(val / 100.0)
+
 # ================= HUD STATS DISPLAY =================
 func update_player_stats(hp: float, max_h: float, arm: float, max_a: float, p_coins: int, p_diamonds: int, p_speed: float, p_wp_lvl: int) -> void:
 	hp_bar.max_value = max_h
@@ -145,6 +208,23 @@ func update_cooldowns(m_pct: float, t_pct: float, s_pct: float, w_pct: float, e_
 	cd_shield.value = int(s_pct * 100.0)
 	cd_wall.value = int(w_pct * 100.0)
 	cd_emp.value = int(e_pct * 100.0)
+	
+	# Modulate skill buttons when cooling down
+	btn_missile.modulate = Color.WHITE if m_pct >= 0.99 else Color(0.65, 0.65, 0.7)
+	btn_shield.modulate = Color.WHITE if s_pct >= 0.99 else Color(0.65, 0.65, 0.7)
+	btn_wall.modulate = Color.WHITE if w_pct >= 0.99 else Color(0.65, 0.65, 0.7)
+	btn_emp.modulate = Color.WHITE if e_pct >= 0.99 else Color(0.65, 0.65, 0.7)
+
+func _on_thunder_charges_updated(charges: int, _max_charges: int, _recharge_pct: float, time_left: float) -> void:
+	if charges == 2:
+		btn_thunder.text = "3. Kiếm Sét\n[L] ⚡x2"
+		btn_thunder.modulate = Color.WHITE
+	elif charges == 1:
+		btn_thunder.text = "3. Kiếm Sét\n[L] ⚡x1 (%.1fs)" % time_left
+		btn_thunder.modulate = Color(1.0, 1.0, 0.9)
+	else:
+		btn_thunder.text = "3. Hồi Kiếm\n(%.1fs)" % time_left
+		btn_thunder.modulate = Color(0.65, 0.65, 0.7)
 
 func show_toast(title: String, desc: String) -> void:
 	toast_title.text = title
@@ -164,7 +244,7 @@ func show_toast(title: String, desc: String) -> void:
 	toast_tween.tween_property(toast_banner, "modulate:a", 0.0, 0.3)
 
 func _on_alarm_beep(cur: int, tot: int) -> void:
-	show_toast("🚨 BÁO ĐỘNG VÙNG CẤM (%d/%d) 🚨" % [cur, tot], "NPC Địch B đang di chuyển vào Vùng Cấm trên bản đồ!")
+	show_toast("🚨 BÁO ĐỘNG VÙNG CẤM (%d/%d) 🚨" % [cur, tot], "Quân địch (Tháp canh / Tàu B) đang xâm nhập Vùng Cấm!")
 
 func _connect_skills_buttons() -> void:
 	var btn_shoot = $SkillsBar/HBox/BtnShoot

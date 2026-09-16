@@ -3,6 +3,7 @@ class_name Task2Player
 
 signal stats_updated(hp: float, max_hp: float, armor: float, max_armor: float, coins: int, diamonds: int, current_speed: float, weapon_level: int)
 signal skill_cooldowns_updated(missile_pct: float, thunder_pct: float, shield_pct: float, wall_pct: float, emp_pct: float)
+signal thunder_charges_updated(current_charges: int, max_charges: int, recharge_pct: float, recharge_time_left: float)
 signal player_effect_triggered(effect_title: String, effect_desc: String)
 signal player_died(coins: int, diamonds: int, weapon_level: int)
 
@@ -44,8 +45,14 @@ var emp_cd_timer: float = 0.0
 var missile_cooldown: float = 2.0
 var missile_cd_timer: float = 0.0
 
-# Attack 3: Thunder Blade Cooldown
-var thunder_cooldown: float = 3.0
+# Attack 3: Thunder Blade (2 Charges / Double Slash Combo)
+var thunder_max_charges: int = 2
+var thunder_charges: int = 2
+var thunder_recharge_time: float = 2.5
+var thunder_recharge_timer: float = 0.0
+var thunder_internal_cd: float = 0.22
+var thunder_internal_timer: float = 0.0
+var thunder_cooldown: float = 2.5
 var thunder_cd_timer: float = 0.0
 
 # Attack 1: Rapid Bullet Fire Rate
@@ -81,10 +88,29 @@ func _ready() -> void:
 	if has_node("Hitbox"):
 		$Hitbox.area_entered.connect(_on_hitbox_area_entered)
 
+func get_audio() -> Node:
+	if is_instance_valid(audio_controller):
+		return audio_controller
+	_find_audio_controller()
+	return audio_controller
+
+func play_sfx(key: String, vol: float = 0.0, pitch: float = 1.0) -> void:
+	var ac = get_audio()
+	if ac and ac.has_method("play_sfx"):
+		ac.play_sfx(key, vol, pitch)
+
 func _find_audio_controller() -> void:
-	var root = get_tree().current_scene
-	if root:
-		audio_controller = root.get_node_or_null("AudioController")
+	var p = get_parent()
+	if p and p.has_node("AudioController"):
+		audio_controller = p.get_node("AudioController")
+		return
+	var tree = get_tree() if is_inside_tree() else null
+	if tree:
+		var root = tree.current_scene if tree.current_scene else tree.root
+		if root and root.has_node("AudioController"):
+			audio_controller = root.get_node("AudioController")
+			return
+	audio_controller = get_node_or_null("/root/AudioManager")
 
 func _physics_process(delta: float) -> void:
 	if is_dead:
@@ -99,8 +125,17 @@ func _update_timers(delta: float) -> void:
 		shoot_timer -= delta
 	if missile_cd_timer > 0.0:
 		missile_cd_timer -= delta
-	if thunder_cd_timer > 0.0:
-		thunder_cd_timer -= delta
+	if thunder_internal_timer > 0.0:
+		thunder_internal_timer -= delta
+	if thunder_charges < thunder_max_charges:
+		thunder_recharge_timer -= delta
+		if thunder_recharge_timer <= 0.0:
+			thunder_charges += 1
+			if thunder_charges < thunder_max_charges:
+				thunder_recharge_timer = thunder_recharge_time
+			else:
+				thunder_recharge_timer = 0.0
+	thunder_cd_timer = thunder_recharge_timer if thunder_charges == 0 else 0.0
 	if wall_cd_timer > 0.0:
 		wall_cd_timer -= delta
 	if emp_cd_timer > 0.0:
@@ -241,22 +276,28 @@ func attack_missile() -> void:
 	player_effect_triggered.emit("ATTACK 2: HOMING MISSILE", "Phóng 2 tên lửa tầm nhiệt truy kích mục tiêu!")
 
 func attack_lightning() -> void:
-	if thunder_cd_timer > 0.0:
+	if thunder_charges <= 0 or thunder_internal_timer > 0.0:
 		return
-	thunder_cd_timer = thunder_cooldown
+		
+	thunder_charges -= 1
+	thunder_internal_timer = thunder_internal_cd
+	if thunder_recharge_timer <= 0.0:
+		thunder_recharge_timer = thunder_recharge_time
+	thunder_cd_timer = thunder_recharge_timer if thunder_charges == 0 else 0.0
 	
 	if audio_controller:
-		audio_controller.play_sfx("lightning", 2.0, 0.95)
+		audio_controller.play_sfx("lightning", 2.0, 0.95 + (0.15 if thunder_charges == 0 else 0.0))
 		
 	var parent_scene = get_parent()
-	if not parent_scene:
-		return
+	if parent_scene:
+		var light = lightning_scene.instantiate()
+		var offset_x = -14.0 if thunder_charges == 1 else 14.0
+		light.global_position = global_position + Vector2(offset_x, -45)
+		parent_scene.add_child(light)
 		
-	var light = lightning_scene.instantiate()
-	light.global_position = global_position + Vector2(0, -45)
-	parent_scene.add_child(light)
-	
-	player_effect_triggered.emit("ATTACK 3: THUNDER BLADE", "Vung kiếm sấm sét quét sạch kẻ địch phía trước!")
+	var strike_num = (thunder_max_charges - thunder_charges)
+	var combo_text = " (Đòn %d/%d)" % [strike_num, thunder_max_charges]
+	player_effect_triggered.emit("ATTACK 3: THUNDER BLADE" + combo_text, "Vung kiếm sấm sét quét sạch kẻ địch phía trước! Còn lại: %d lượt" % thunder_charges)
 
 # ================= DEFENSE MECHANICS =================
 func defense_shield() -> void:
@@ -366,8 +407,7 @@ func _spawn_large_explosion(pos: Vector2, sc: float = 1.0) -> void:
 		exp.global_position = pos
 		exp.scale = Vector2(sc, sc)
 		root.add_child(exp)
-		if audio_controller:
-			audio_controller.play_sfx("explosion", 1.0, 1.0)
+		play_sfx("explosion", 1.0, 1.0)
 
 func _spawn_small_explosion(pos: Vector2) -> void:
 	var root = get_parent()
@@ -463,8 +503,7 @@ func die() -> void:
 	# Massive explosion FX
 	_spawn_large_explosion(global_position, 1.8)
 	trigger_screen_shake(22.0, 0.5)
-	if audio_controller:
-		audio_controller.play_sfx("explosion", 3.0, 0.75)
+	play_sfx("explosion", 3.0, 0.75)
 		
 	# Hide ship
 	ship_sprite.visible = false
@@ -540,8 +579,10 @@ func _emit_stats() -> void:
 
 func _emit_cooldowns() -> void:
 	var missile_pct = 1.0 - (missile_cd_timer / missile_cooldown) if missile_cooldown > 0 else 1.0
-	var thunder_pct = 1.0 - (thunder_cd_timer / thunder_cooldown) if thunder_cooldown > 0 else 1.0
+	var recharge_pct = 1.0 - (thunder_recharge_timer / thunder_recharge_time) if thunder_recharge_time > 0 else 1.0
+	var thunder_pct = recharge_pct if thunder_charges == 0 else 1.0
 	var shield_pct = 1.0 - (shield_cd_timer / shield_cooldown) if shield_cooldown > 0 else 1.0
 	var wall_pct = 1.0 - (wall_cd_timer / wall_cooldown) if wall_cooldown > 0 else 1.0
 	var emp_pct = 1.0 - (emp_cd_timer / emp_cooldown) if emp_cooldown > 0 else 1.0
 	skill_cooldowns_updated.emit(clampf(missile_pct, 0.0, 1.0), clampf(thunder_pct, 0.0, 1.0), clampf(shield_pct, 0.0, 1.0), clampf(wall_pct, 0.0, 1.0), clampf(emp_pct, 0.0, 1.0))
+	thunder_charges_updated.emit(thunder_charges, thunder_max_charges, clampf(recharge_pct, 0.0, 1.0), thunder_recharge_timer)

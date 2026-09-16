@@ -37,8 +37,8 @@ func _ready() -> void:
 	setup_tower_visuals()
 
 func setup_collision() -> void:
-	collision_layer = 1 | 2
-	collision_mask = 1 | 2 | 4 | 8
+	collision_layer = 4
+	collision_mask = 1 | 2 | 16 | 30
 	monitoring = true
 	monitorable = true
 	
@@ -93,6 +93,14 @@ func _get_gm() -> Node:
 
 func _get_am() -> Node:
 	if not is_inside_tree(): return null
+	var tree = get_tree()
+	if tree:
+		var root = tree.current_scene if tree.current_scene else tree.root
+		if root and root.has_node("AudioController"):
+			return root.get_node("AudioController")
+	var p = get_parent()
+	if p and p.has_node("AudioController"):
+		return p.get_node("AudioController")
 	return get_node_or_null("/root/AudioManager")
 
 func _process(delta: float) -> void:
@@ -210,15 +218,18 @@ func _on_area_entered(area: Area2D) -> void:
 		if am and am.has_method("play_sfx"):
 			am.play_sfx("explosion", -1.0, 0.85)
 		die()
-	elif area.is_in_group("player_bullets") or area.has_method("get_damage"):
-		var dmg = area.get("damage")
-		if dmg == null and area.has_method("get_damage"):
-			dmg = area.get_damage()
-		if dmg != null:
-			take_damage(float(dmg))
-		else:
-			take_damage(35.0)
-		area.queue_free()
+	elif area.is_in_group("player_bullets") or area.is_in_group("player_projectiles") or area.has_method("get_damage") or "damage" in area:
+		var dmg: float = 35.0
+		if area.has_method("get_damage"):
+			dmg = float(area.get_damage())
+		elif "damage" in area and area.damage != null:
+			dmg = float(area.damage)
+		take_damage(dmg)
+		if area.has_method("_spawn_sparks"):
+			area._spawn_sparks()
+		# Only destroy single-target bullets (not piercing lightning blades or defense walls)
+		if not area.is_in_group("piercing") and not (area is Task2Lightning):
+			area.queue_free()
 
 
 

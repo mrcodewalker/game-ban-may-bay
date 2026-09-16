@@ -3,11 +3,15 @@ class_name Task2AudioController
 
 signal sound_toggled(is_enabled: bool)
 signal music_toggled(is_enabled: bool)
+signal sfx_volume_changed(volume: float)
+signal music_volume_changed(volume: float)
 signal alarm_beep_played(current_count: int, total_count: int)
 signal alarm_finished()
 
 var sound_enabled: bool = true
 var music_enabled: bool = true
+var sfx_volume: float = 1.0
+var music_volume: float = 0.8
 
 var bgm_player: AudioStreamPlayer
 var alarm_player: AudioStreamPlayer
@@ -49,6 +53,15 @@ func _ready() -> void:
 	add_child(alarm_timer)
 	
 	_load_sound_resources()
+	_sync_to_global_audio_manager()
+
+func _sync_to_global_audio_manager() -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am:
+		if am.has_method("set_sfx_volume_linear"):
+			am.set_sfx_volume_linear(sfx_volume if sound_enabled else 0.0, false)
+		if am.has_method("set_bgm_volume_linear"):
+			am.set_bgm_volume_linear(music_volume if music_enabled else 0.0, false)
 
 func _load_sound_resources() -> void:
 	var files = {
@@ -74,38 +87,69 @@ func _load_sound_resources() -> void:
 				sound_streams[key] = res
 
 func play_sfx(key: String, volume_db: float = 0.0, pitch: float = 1.0) -> void:
-	if not sound_enabled:
+	if not sound_enabled or sfx_volume <= 0.001:
 		return
 	if not sound_streams.has(key):
 		return
 		
+	var final_db = volume_db + linear_to_db(clampf(sfx_volume, 0.001, 1.0))
 	var stream = sound_streams[key]
 	for p in sfx_players:
 		if not p.playing:
 			p.stream = stream
-			p.volume_db = volume_db
+			p.volume_db = final_db
 			p.pitch_scale = pitch
 			p.play()
 			return
 			
 	# Reuse first player if all channels busy
 	sfx_players[0].stream = stream
-	sfx_players[0].volume_db = volume_db
+	sfx_players[0].volume_db = final_db
 	sfx_players[0].pitch_scale = pitch
 	sfx_players[0].play()
 
 func play_bgm() -> void:
-	if not music_enabled:
+	if not music_enabled or music_volume <= 0.001:
 		return
 	if sound_streams.has("bgm"):
 		if bgm_player.stream == sound_streams["bgm"] and bgm_player.playing:
+			_update_bgm_volume()
 			return
 		bgm_player.stream = sound_streams["bgm"]
-		bgm_player.volume_db = -6.0
+		_update_bgm_volume()
 		bgm_player.play()
+
+func _update_bgm_volume() -> void:
+	if not is_instance_valid(bgm_player):
+		return
+	if not music_enabled or music_volume <= 0.001:
+		bgm_player.volume_db = -80.0
+	else:
+		bgm_player.volume_db = -6.0 + linear_to_db(clampf(music_volume, 0.001, 1.0))
 
 func stop_bgm() -> void:
 	bgm_player.stop()
+
+func set_sfx_volume(val: float) -> void:
+	sfx_volume = clampf(val, 0.0, 1.0)
+	var am = get_node_or_null("/root/AudioManager")
+	if am and am.has_method("set_sfx_volume_linear"):
+		am.set_sfx_volume_linear(sfx_volume if sound_enabled else 0.0, false)
+	sfx_volume_changed.emit(sfx_volume)
+
+func set_music_volume(val: float) -> void:
+	music_volume = clampf(val, 0.0, 1.0)
+	var am = get_node_or_null("/root/AudioManager")
+	if am and am.has_method("set_bgm_volume_linear"):
+		am.set_bgm_volume_linear(music_volume if music_enabled else 0.0, false)
+	_update_bgm_volume()
+	music_volume_changed.emit(music_volume)
+
+func get_sfx_volume() -> float:
+	return sfx_volume
+
+func get_music_volume() -> float:
+	return music_volume
 
 func set_sound_enabled(val: bool) -> void:
 	sound_enabled = val
@@ -115,10 +159,16 @@ func set_sound_enabled(val: bool) -> void:
 		alarm_player.stop()
 		alarm_timer.stop()
 		is_alarm_active = false
+	var am = get_node_or_null("/root/AudioManager")
+	if am and am.has_method("set_sfx_volume_linear"):
+		am.set_sfx_volume_linear(sfx_volume if sound_enabled else 0.0, false)
 	sound_toggled.emit(sound_enabled)
 
 func set_music_enabled(val: bool) -> void:
 	music_enabled = val
+	var am = get_node_or_null("/root/AudioManager")
+	if am and am.has_method("set_bgm_volume_linear"):
+		am.set_bgm_volume_linear(music_volume if music_enabled else 0.0, false)
 	if music_enabled:
 		play_bgm()
 	else:
@@ -140,9 +190,9 @@ func _play_next_alarm_beep() -> void:
 		alarm_finished.emit()
 		return
 		
-	if sound_enabled and sound_streams.has("siren"):
+	if sound_enabled and sfx_volume > 0.001 and sound_streams.has("siren"):
 		alarm_player.stream = sound_streams["siren"]
-		alarm_player.volume_db = 2.0
+		alarm_player.volume_db = 2.0 + linear_to_db(clampf(sfx_volume, 0.001, 1.0))
 		alarm_player.pitch_scale = 1.15
 		alarm_player.play()
 		

@@ -19,12 +19,14 @@ func _ready() -> void:
 	_find_audio_controller()
 
 func _find_audio_controller() -> void:
-	var root = get_tree().current_scene
-	if root:
-		audio_controller = root.get_node_or_null("AudioController")
-		if audio_controller:
-			audio_controller.alarm_beep_played.connect(_on_alarm_beep)
-			audio_controller.alarm_finished.connect(_on_alarm_finished)
+	var tree = get_tree() if is_inside_tree() else null
+	if tree:
+		var root = tree.current_scene if tree.current_scene else tree.root
+		if root:
+			audio_controller = root.get_node_or_null("AudioController")
+			if audio_controller:
+				audio_controller.alarm_beep_played.connect(_on_alarm_beep)
+				audio_controller.alarm_finished.connect(_on_alarm_finished)
 
 func _physics_process(_delta: float) -> void:
 	# Subtle alert pulse
@@ -37,8 +39,8 @@ func _physics_process(_delta: float) -> void:
 		border_rect.border_color = Color(1.0, 0.7, 0.2, 0.6)
 
 func _on_entity_entered(entity: Node2D) -> void:
-	# Object B or enemy NPC entered restricted zone
-	if entity.is_in_group("enemy_b") or entity.is_in_group("enemies"):
+	# Object B, Tower, or any enemy entered restricted zone
+	if entity.is_in_group("enemy_b") or entity.is_in_group("enemies") or entity.is_in_group("enemy_towers"):
 		if entity not in active_intruders:
 			active_intruders.append(entity)
 			

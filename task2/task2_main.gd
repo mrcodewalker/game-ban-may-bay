@@ -21,7 +21,9 @@ var is_auto_wave: bool = false
 var wave_timer: float = 0.0
 
 func _ready() -> void:
-	# Initialize HUD
+	# Initialize HUD and Player Audio
+	if player:
+		player.audio_controller = audio_controller
 	hud.setup(audio_controller, player)
 	
 	# Connect Test Buttons

@@ -45,8 +45,9 @@ func _on_area_entered(area: Area2D) -> void:
 		if "move_speed" in area:
 			area.set_meta("base_move_speed", area.move_speed)
 			area.move_speed *= speed_debuff_factor
-		if AudioManager:
-			AudioManager.play_sfx("warning", 0.5)
+		var am = get_node_or_null("/root/AudioManager")
+		if am and am.has_method("play_sfx"):
+			am.play_sfx("warning", 0.5)
 
 func _on_area_exited(area: Area2D) -> void:
 	if area == player_inside:
