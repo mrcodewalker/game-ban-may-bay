@@ -22,6 +22,8 @@ func _process(delta: float) -> void:
 		if player_nodes.size() > 0:
 			var p = player_nodes[0]
 			var magnet_radius = 150.0 + (GameManager.upgrade_magnet * 50.0)
+			magnet_radius += GameManager.get_hive_magnet_bonus()
+			if GameManager.magnet_timer > 0.0: magnet_radius = 1400.0
 			if global_position.distance_to(p.global_position) < magnet_radius:
 				is_magnetized = true
 				target_player = p

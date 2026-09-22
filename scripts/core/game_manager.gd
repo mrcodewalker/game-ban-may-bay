@@ -71,15 +71,25 @@ var player_bombs: int = 3
 var current_weapon_level: int = 1
 var max_weapon_level: int = 4
 var is_game_over: bool = false
+var is_game_won: bool = false
 var is_boss_active: bool = false
+## A terminal result is locked as soon as it is decided.  This prevents a
+## final collision/explosion from producing both the defeat and victory UI.
+var terminal_result_locked: bool = false
+var victory_rewarded: bool = false
+var save_path: String = "user://player_save.cfg"
+var defeat_pending: bool = false
+var magnet_timer: float = 0.0
 
 # Player Weapon Damage Upgrades (0: Vulcan, 1: Laser, 2: Missile, 3: Spread, 4: Thunder)
 var weapon_damage_levels: Dictionary = { 0: 1, 1: 1, 2: 1, 3: 1, 4: 1 }
 
 # Persistent Save Data across 5 Maps
-var map_unlocked: Array = [true, true, true, true, true]
+var map_unlocked: Array = [true, false, false, false, false]
 var map_stars: Array = [0, 0, 0, 0, 0]
 var map_high_scores: Array = [0, 0, 0, 0, 0]
+var total_missions_cleared: int = 0
+var total_vips_rescued: int = 0
 
 # Pre-game Consumable Buffs (bought with Gems before starting a run)
 var pregame_buffs: Dictionary = {
@@ -433,7 +443,19 @@ const PET_CATALOG: Array[Dictionary] = [
 ]
 
 func _ready() -> void:
+	setup_font_fallbacks()
 	load_user_data()
+
+func setup_font_fallbacks() -> void:
+	var sys_font = SystemFont.new()
+	sys_font.font_names = PackedStringArray(["Segoe UI", "Arial", "Roboto", "Calibri", "sans-serif"])
+	sys_font.font_weight = 600
+	
+	for font_path in ["res://extracted_assets/Fonts/font_231.ttf", "res://extracted_assets/Fonts/font_33.ttf", "res://extracted_assets/Fonts/font_34.ttf"]:
+		if ResourceLoader.exists(font_path):
+			var f = load(font_path) as FontFile
+			if f:
+				f.fallbacks = [sys_font]
 
 func save_user_data() -> void:
 	var cfg = ConfigFile.new()
@@ -443,22 +465,31 @@ func save_user_data() -> void:
 	cfg.set_value("player", "equipped_right_pet", equipped_right_pet)
 	cfg.set_value("player", "owned_pets", owned_pets)
 	cfg.set_value("player", "weapon_damage_level", weapon_damage_level)
+	cfg.set_value("player", "weapon_damage_levels", weapon_damage_levels)
 	cfg.set_value("player", "coins", coins)
 	cfg.set_value("player", "gems", gems)
 	cfg.set_value("player", "high_score", high_score)
 	cfg.set_value("player", "ant_hive_levels", ant_hive_levels)
 	cfg.set_value("player", "pregame_buffs", pregame_buffs)
-	cfg.save("user://player_save.cfg")
+	# Campaign Progress across 5 Maps
+	cfg.set_value("campaign", "map_unlocked", map_unlocked)
+	cfg.set_value("campaign", "map_stars", map_stars)
+	cfg.set_value("campaign", "map_high_scores", map_high_scores)
+	cfg.set_value("campaign", "total_missions_cleared", total_missions_cleared)
+	cfg.set_value("campaign", "total_vips_rescued", total_vips_rescued)
+	var save_error = cfg.save(save_path)
+	if save_error != OK: push_error("Cannot save player progress: %s" % error_string(save_error))
 
 func load_user_data() -> void:
 	var cfg = ConfigFile.new()
-	if cfg.load("user://player_save.cfg") == OK:
+	if cfg.load(save_path) == OK:
 		selected_player_jet = cfg.get_value("player", "selected_jet", "jet1.png")
 		owned_player_jets = cfg.get_value("player", "owned_jets", ["jet1.png"])
 		equipped_left_pet = cfg.get_value("player", "equipped_left_pet", "")
 		equipped_right_pet = cfg.get_value("player", "equipped_right_pet", "")
 		owned_pets = cfg.get_value("player", "owned_pets", {})
 		weapon_damage_level = cfg.get_value("player", "weapon_damage_level", 1)
+		weapon_damage_levels = cfg.get_value("player", "weapon_damage_levels", weapon_damage_levels)
 		coins = cfg.get_value("player", "coins", 0)
 		gems = cfg.get_value("player", "gems", 20)
 		high_score = cfg.get_value("player", "high_score", 0)
@@ -468,11 +499,33 @@ func load_user_data() -> void:
 		var saved_buffs = cfg.get_value("player", "pregame_buffs", {})
 		for k in saved_buffs.keys():
 			pregame_buffs[k] = saved_buffs[k]
+		
+		# Load Campaign Progress
+		var loaded_unlocked = cfg.get_value("campaign", "map_unlocked", [true, false, false, false, false])
+		if loaded_unlocked is Array:
+			while loaded_unlocked.size() < 5: loaded_unlocked.append(false)
+			loaded_unlocked[0] = true # Map 1 is always unlocked
+			map_unlocked = loaded_unlocked
+			
+		var loaded_stars = cfg.get_value("campaign", "map_stars", [0, 0, 0, 0, 0])
+		if loaded_stars is Array:
+			while loaded_stars.size() < 5: loaded_stars.append(0)
+			map_stars = loaded_stars
+			
+		var loaded_highs = cfg.get_value("campaign", "map_high_scores", [0, 0, 0, 0, 0])
+		if loaded_highs is Array:
+			while loaded_highs.size() < 5: loaded_highs.append(0)
+			map_high_scores = loaded_highs
+			
+		total_missions_cleared = cfg.get_value("campaign", "total_missions_cleared", 0)
+		total_vips_rescued = cfg.get_value("campaign", "total_vips_rescued", 0)
 
 func reset_game() -> void:
 	reset_game_state()
 
 func reset_game_state() -> void:
+	magnet_timer = 0.0
+	loadout_pet_jets = false
 	score = 0
 	coins_earned_in_run = 0
 	princesses_rescued_in_run = 0
@@ -528,7 +581,12 @@ func reset_game_state() -> void:
 	else:
 		current_weapon_level = 1
 	is_game_over = false
+	is_game_won = false
 	is_boss_active = false
+	target_princesses_count = target_vip_count
+	terminal_result_locked = false
+	victory_rewarded = false
+	defeat_pending = false
 	
 	player_health_updated.emit(player_hp, player_max_hp)
 	player_bombs_updated.emit(player_bombs)
@@ -566,25 +624,97 @@ func use_gems(amount: int) -> bool:
 	return false
 
 func revive_player() -> void:
+	if is_game_won: return
+	terminal_result_locked = false
+	defeat_pending = false
 	player_hp = player_max_hp
 	is_game_over = false
 	player_health_updated.emit(player_hp, player_max_hp)
 	player_revived.emit()
 
 func trigger_game_over() -> void:
+	if is_game_won or terminal_result_locked: return
+	if defeat_pending: return
+	defeat_pending = true
+	# Resolve after all collision callbacks from this physics tick.
+	_finish_defeat.call_deferred()
+
+func _finish_defeat() -> void:
+	defeat_pending = false
+	if is_game_won or terminal_result_locked or player_hp > 0.0: return
 	is_game_over = true
+	terminal_result_locked = true
 	game_over_triggered.emit()
 
-func trigger_game_won(stars_earned: int = 10, coins_earned: int = 100) -> void:
-	game_won_triggered.emit(stars_earned, coins_earned)
+func begin_victory_sequence() -> void:
+	# Lock the result before the boss explosion animation starts.  The actual
+	# victory dialog is emitted by trigger_game_won after that animation.
+	if terminal_result_locked and not is_game_won:
+		return
+	terminal_result_locked = true
+	is_game_won = true
+	is_game_over = false
+	if player_hp <= 0.0:
+		player_hp = player_max_hp * 0.5
+		player_health_updated.emit(player_hp, player_max_hp)
+
+func trigger_game_won(stars_earned: int = 3, coins_earned: int = 100) -> void:
+	if victory_rewarded: return
+	if is_game_over and not is_game_won:
+		return
+	victory_rewarded = true
+	terminal_result_locked = true
+	is_game_won = true
+	is_game_over = false
+	if player_hp <= 0.0:
+		player_hp = player_max_hp * 0.5
+		player_health_updated.emit(player_hp, player_max_hp)
+	var m_idx = clamp(current_map - 1, 0, 4)
+	# Determine stars earned (1-3 stars based on surviving HP and VIP rescues)
+	var calc_stars = 1
+	if player_hp >= player_max_hp * 0.40:
+		calc_stars += 1
+	if rescued_vip_count >= target_vip_count or player_hp >= player_max_hp * 0.80:
+		calc_stars = 3
+	# Stars reflect performance, not the default argument supplied by the boss.
+	if calc_stars > 3: calc_stars = 3
+
+	map_stars[m_idx] = max(map_stars[m_idx], calc_stars)
+	map_high_scores[m_idx] = max(map_high_scores[m_idx], score)
+
+	# Unlock next map sequentially
+	if current_map < 5:
+		map_unlocked[current_map] = true
+
+	total_vips_rescued += rescued_vip_count
+	total_missions_cleared += 1
+
+	# Rewards
+	coins += coins_earned
+	coins_earned_in_run += coins_earned
+	gems += 5
+	coins_updated.emit(coins)
+	gems_updated.emit(gems)
+
+	save_user_data()
+	game_won_triggered.emit(calc_stars, coins_earned)
+
+func is_map_unlocked(map_index: int) -> bool:
+	if map_index < 1 or map_index > 5: return false
+	return map_unlocked[map_index - 1]
+
+func unlock_all_maps_debug() -> void:
+	map_unlocked = [true, true, true, true, true]
+	save_user_data()
 
 func damage_player(amount: float) -> void:
+	if is_game_won or is_game_over: return
 	player_hp = max(0.0, player_hp - amount)
 	player_health_updated.emit(player_hp, player_max_hp)
 	if combo_count > 0:
 		combo_count = 0
 		combo_updated.emit(0, "")
-	if player_hp <= 0.0 and not is_game_over:
+	if player_hp <= 0.0 and not is_game_over and not is_game_won:
 		trigger_game_over()
 
 func update_boss_health(cur_hp: float, m_hp: float, is_vis: bool) -> void:
@@ -594,6 +724,7 @@ var is_overcharged: bool = false
 var overcharge_timer: float = 0.0
 
 func _process(delta: float) -> void:
+	magnet_timer = maxf(0.0, magnet_timer - delta)
 	if is_overcharged:
 		overcharge_timer -= delta
 		if overcharge_timer <= 0.0:
@@ -611,8 +742,8 @@ func _process(delta: float) -> void:
 			princess_cheer_timer = 0.0
 			trigger_princess_cheer()
 
-func activate_star_magnet(_duration: float = 10.0) -> void:
-	pass
+func activate_star_magnet(duration: float = 10.0) -> void:
+	magnet_timer = maxf(magnet_timer, duration)
 
 func activate_overcharge_boost(duration: float = 10.0) -> void:
 	is_overcharged = true
@@ -841,6 +972,9 @@ func buy_pregame_buff(buff_key: String) -> bool:
 	if not PREGAME_BUFF_CATALOG.has(buff_key): return false
 	# Cannot refund or re-buy if already owned for next run!
 	if pregame_buffs.get(buff_key, false): return false
+	if buff_key in ["laser_cannon", "spread_cannon", "thunder_cannon"]:
+		for key in ["laser_cannon", "spread_cannon", "thunder_cannon"]:
+			if pregame_buffs.get(key, false): return false
 
 	var price = PREGAME_BUFF_CATALOG[buff_key]["price"] as int
 	if use_gems(price):
@@ -855,3 +989,4 @@ func toggle_pregame_buff(buff_key: String) -> bool:
 func clear_pregame_buffs() -> void:
 	for k in pregame_buffs.keys():
 		pregame_buffs[k] = false
+	save_user_data()

@@ -84,7 +84,12 @@ func load_audio_resources() -> void:
 		"explosion": "res://extracted_assets/Audio/Explosion_01.wav",
 		"explosion_heavy": "res://extracted_assets/Audio/Explosion_09.wav",
 		"powerup": "res://extracted_assets/Audio/ScoreOrMedalsPickup.wav",
-		"siren": "res://extracted_assets/Audio/SirenAlarm.wav"
+		"siren": "res://extracted_assets/Audio/SirenAlarm.wav",
+		"defeat": "res://extracted_assets/Audio/Explosion_09.wav",
+		"victory": "res://extracted_assets/Audio/Falco_-_FlapsUp_Menu.wav",
+		"click": "res://extracted_assets/Audio/UI_Beep_Single_Clean_Dark_stereo.wav",
+		"evade": "res://extracted_assets/Audio/FastWoosh.wav",
+		"laser_warning": "res://extracted_assets/Audio/UI_Beep_Double_Quick_Bright_stereo.wav"
 	}
 	
 	for key in audio_files:
@@ -123,3 +128,14 @@ func play_sfx(key: String, volume_db: float = 0.0, pitch: float = 1.0) -> void:
 	sfx_players[0].volume_db = final_db
 	sfx_players[0].pitch_scale = pitch
 	sfx_players[0].play()
+
+func play_game_over_sfx() -> void:
+	# Dramatic defeat sound: heavy explosion followed by radio static
+	play_sfx("defeat", 2.0, 0.65)
+	play_sfx("explosion_heavy", 0.0, 0.7)
+
+func play_victory_sfx() -> void:
+	# Uplifting victory fanfare
+	play_sfx("victory", 3.0, 1.05)
+	play_sfx("powerup", 2.0, 1.25)
+

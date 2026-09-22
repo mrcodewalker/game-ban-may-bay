@@ -1,5 +1,8 @@
 extends Area2D
 
+var evasion = preload("res://scripts/enemies/evasion_ai.gd").new()
+var death_started: bool = false
+
 @export var max_hp: float = 70.0
 @export var score_value: int = 150
 @export var base_speed: float = 270.0
@@ -33,7 +36,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if GameManager.is_game_over: return
+	if GameManager.is_game_over or GameManager.is_game_won: return
 	time_passed += delta
 	
 	# Spiral S-Curve Flight Movement
@@ -46,12 +49,21 @@ func _process(delta: float) -> void:
 	if is_instance_valid(sprite) and velocity.length_squared() > 10.0:
 		sprite.rotation = lerp_angle(sprite.rotation, velocity.angle() + (PI / 2.0), 12.0 * delta)
 
+	handle_bullet_evasion(delta)
+
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
 		shoot()
 		shoot_timer = randf_range(1.5, 2.5)
 
 	if position.y > 1060: queue_free()
+
+var evade_cooldown: float = 0.0
+var is_evading: bool = false
+
+func handle_bullet_evasion(delta: float) -> void:
+	evasion.update(self, delta, 48.0, 1.2)
+	is_evading = evasion.is_dodging()
 
 func shoot() -> void:
 	if not bullet_scene or position.y < 30 or position.y > 850: return
@@ -62,6 +74,8 @@ func shoot() -> void:
 	get_parent().add_child(b)
 
 func take_damage(amount: float) -> void:
+	if death_started or GameManager.is_game_won: return
+	if evasion.is_dodging(): return
 	hp -= amount
 	if sprite:
 		sprite.modulate = Color(3.0, 0.4, 0.4)
@@ -70,6 +84,8 @@ func take_damage(amount: float) -> void:
 	if hp <= 0.0: die()
 
 func die() -> void:
+	if death_started: return
+	death_started = true
 	if AudioManager: AudioManager.play_sfx("explosion", -3.0)
 	GameManager.add_score(score_value)
 	

@@ -26,6 +26,7 @@ var explosion_scene: PackedScene = preload("res://scenes/effects/explosion_fx.ts
 func _ready() -> void:
 	add_to_group("enemies")
 	hp = max_hp
+	update_damage_stage()
 	area_entered.connect(_on_area_entered)
 
 func setup_textures(tex_normal: Texture2D, tex_d1: Texture2D = null, tex_d2: Texture2D = null, tex_d3: Texture2D = null, tex_dest: Texture2D = null) -> void:

@@ -20,6 +20,12 @@ var is_multipart: bool = false
 var boss_parts: Array[BossPart] = []
 var active_turrets: Array[Node2D] = []
 
+var telegraph_line: Line2D = null
+var laser_attack_timer: float = 4.5
+var is_telegraphing: bool = false
+var telegraph_elapsed: float = 0.0
+var locked_laser_dir: Vector2 = Vector2.DOWN
+
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var turret_left: Sprite2D = get_node_or_null("TurretLeft")
 @onready var turret_right: Sprite2D = get_node_or_null("TurretRight")
@@ -28,6 +34,8 @@ const TEX_PATH = "res://extracted_assets/Textures/"
 
 func _ready() -> void:
 	add_to_group("enemies")
+	add_to_group("bosses")
+	setup_telegraph_line()
 	configure_boss_by_map()
 	position = Vector2(270, -320)
 	area_entered.connect(_on_area_entered)
@@ -38,6 +46,14 @@ func _ready() -> void:
 		
 	if AudioManager:
 		AudioManager.play_sfx("siren")
+
+func setup_telegraph_line() -> void:
+	telegraph_line = Line2D.new()
+	telegraph_line.width = 2.0
+	telegraph_line.default_color = Color(1.0, 0.2, 0.2, 0.45)
+	telegraph_line.z_index = 20
+	telegraph_line.visible = false
+	add_child(telegraph_line)
 
 func configure_boss_by_map() -> void:
 	var map_id = GameManager.current_map
@@ -200,6 +216,14 @@ func _on_part_destroyed(part: BossPart) -> void:
 	if cam and cam.has_method("add_shake"):
 		cam.add_shake(6.0)
 		
+	# Smart Adaptive Reaction:
+	# If turrets are getting depleted, adapt combat strategy: increase agility & trigger shockwave burst!
+	if active_turrets.size() <= 2:
+		move_speed = 170.0
+		for a in range(0, 360, 45):
+			spawn_bullet_at(global_position, Vector2.DOWN.rotated(deg_to_rad(a)))
+		if AudioManager: AudioManager.play_sfx("enemy_shoot", -2.0)
+		
 	recalculate_total_hp()
 	check_phase_transition()
 
@@ -208,6 +232,7 @@ func _on_part_destroyed(part: BossPart) -> void:
 
 func _process(delta: float) -> void:
 	if GameManager.is_game_over or is_dying:
+		if is_instance_valid(telegraph_line): telegraph_line.visible = false
 		return
 		
 	# Aim turrets towards player
@@ -231,6 +256,9 @@ func _process(delta: float) -> void:
 		position.y += 110.0 * delta
 		return
 
+	# Smart Telegraph Laser Beam attack timer
+	handle_smart_telegraph_laser(delta)
+
 	# Patrol movement
 	position.x += move_direction * move_speed * delta
 	if position.x > 430:
@@ -245,6 +273,46 @@ func _process(delta: float) -> void:
 	if attack_timer <= 0.0:
 		perform_attack()
 		reset_attack_timer()
+
+func handle_smart_telegraph_laser(delta: float) -> void:
+	if not is_instance_valid(telegraph_line) or is_dying: return
+	
+	if not is_telegraphing:
+		laser_attack_timer -= delta
+		if laser_attack_timer <= 0.0:
+			is_telegraphing = true
+			telegraph_elapsed = 0.0
+			telegraph_line.visible = true
+			telegraph_line.width = 2.0
+			telegraph_line.default_color = Color(1.0, 0.2, 0.2, 0.45)
+			if AudioManager: AudioManager.play_sfx("laser_warning", -3.0)
+	else:
+		telegraph_elapsed += delta
+		var player_nodes = get_tree().get_nodes_in_group("player")
+		var target_pos = player_nodes[0].global_position if player_nodes.size() > 0 else global_position + Vector2(0, 400)
+		var start_local = Vector2(0, 50)
+		
+		if telegraph_elapsed < 0.90:
+			# Actively track player with targeting line
+			locked_laser_dir = (target_pos - (global_position + start_local)).normalized()
+			telegraph_line.points = PackedVector2Array([start_local, start_local + locked_laser_dir * 950.0])
+			telegraph_line.width = lerp(2.0, 4.5, telegraph_elapsed / 0.90)
+		elif telegraph_elapsed < 1.15:
+			# Lock targeting angle and flash bright alert
+			telegraph_line.default_color = Color(1.0, 0.95, 0.3, 0.95)
+			telegraph_line.width = 6.0
+		elif telegraph_elapsed < 1.50:
+			# Fire rapid pulsed heavy plasma beam along locked line!
+			telegraph_line.default_color = Color(0.25, 0.95, 1.0, 1.0)
+			telegraph_line.width = 10.0
+			if fmod(telegraph_elapsed, 0.07) < delta:
+				spawn_bullet_at(global_position + start_local, locked_laser_dir)
+				if AudioManager: AudioManager.play_sfx("enemy_shoot", -3.0, 1.3)
+		else:
+			# Cooldown
+			telegraph_line.visible = false
+			is_telegraphing = false
+			laser_attack_timer = randf_range(5.0, 7.5)
 
 func perform_attack() -> void:
 	if not bullet_scene or is_dying:
@@ -384,16 +452,38 @@ func check_phase_transition() -> void:
 		if AudioManager: AudioManager.play_sfx("siren")
 
 func start_death_sequence() -> void:
+	if is_dying:
+		return
 	is_dying = true
+	# Resolve the result now, not at the end of the explosion animation.
+	# This makes a lethal ram against the boss a win, never a win + game over.
+	GameManager.begin_victory_sequence()
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", false)
+	for bp in boss_parts:
+		if is_instance_valid(bp):
+			bp.set_deferred("monitoring", false)
+			bp.set_deferred("monitorable", false)
+
+	# Clean up all enemy bullets immediately so player cannot die after boss defeat
+	for b in get_tree().get_nodes_in_group("enemy_bullets"):
+		if is_instance_valid(b):
+			b.queue_free()
+
+	# Protect player with invulnerability during death sequence
+	for p in get_tree().get_nodes_in_group("player"):
+		if is_instance_valid(p) and p.has_method("trigger_invulnerability"):
+			p.trigger_invulnerability(15.0)
+
 	GameManager.update_boss_health(0, max_hp, false)
 	GameManager.add_score(score_value)
 	
 	var main_scene = get_tree().current_scene
 	var cam = main_scene.get_node("Camera2D") if main_scene and main_scene.has_node("Camera2D") else null
 	
-	# Epic Chain Explosions across all parts
-	for i in range(20):
-		await get_tree().create_timer(0.14).timeout
+	# Epic Chain Explosions across all parts (faster 12 iterations for crisp pace)
+	for i in range(12):
+		await get_tree().create_timer(0.09).timeout
 		var offset = Vector2(randf_range(-140, 140), randf_range(-100, 100))
 		if is_multipart and boss_parts.size() > 0:
 			var bp = boss_parts[i % boss_parts.size()]
@@ -431,6 +521,7 @@ func start_death_sequence() -> void:
 	queue_free()
 
 func _on_area_entered(area: Area2D) -> void:
+	if is_dying: return
 	if area.is_in_group("player"):
 		if area.has_method("take_damage"):
 			area.take_damage(40.0)

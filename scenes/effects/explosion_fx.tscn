@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cexplosionfx001"]
 
 [ext_resource type="Script" path="res://scripts/effects/explosion_fx.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://clingua001" path="res://extracted_assets/Textures/Lingua_di_fuoco_01.png" id="2_texture"]
+[ext_resource type="Texture2D" path="res://extracted_assets/Textures/Lingua_di_fuoco_01.png" id="2_texture"]
 
 [node name="ExplosionFX" type="Node2D"]
 script = ExtResource("1_script")

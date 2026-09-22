@@ -14,6 +14,8 @@ func _ready() -> void:
 		direction = get_meta("direction") as Vector2
 	if has_meta("speed"):
 		speed = get_meta("speed") as float
+	if has_meta("damage"):
+		damage = float(get_meta("damage"))
 
 func _process(delta: float) -> void:
 	position += direction * speed * delta

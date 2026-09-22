@@ -1,5 +1,8 @@
 extends Area2D
 
+var evasion = preload("res://scripts/enemies/evasion_ai.gd").new()
+var death_started: bool = false
+
 @export var max_hp: float = 35.0
 @export var score_value: int = 180
 @export var base_speed: float = 380.0
@@ -31,9 +34,14 @@ func _ready() -> void:
 			sprite.scale = Vector2(sc, sc)
 
 
+var evade_cooldown: float = 0.0
+var is_evading: bool = false
+
 func _process(delta: float) -> void:
-	if GameManager.is_game_over: return
+	if GameManager.is_game_over or GameManager.is_game_won: return
 	position += velocity * delta
+
+	handle_bullet_evasion(delta)
 
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
@@ -41,6 +49,10 @@ func _process(delta: float) -> void:
 		shoot_timer = 2.2
 
 	if position.y > 1060: queue_free()
+
+func handle_bullet_evasion(delta: float) -> void:
+	evasion.update(self, delta, 40.0, 1.35)
+	is_evading = evasion.is_dodging()
 
 func shoot() -> void:
 	if not bullet_scene or position.y < 30 or position.y > 850: return
@@ -51,16 +63,23 @@ func shoot() -> void:
 	get_parent().add_child(b)
 
 func take_damage(amount: float) -> void:
+	if death_started or GameManager.is_game_won: return
+	if evasion.is_dodging(): return
 	hp -= amount
-	if sprite:
+	if hp > 0.0 and evasion.can_trigger_emergency_dodge():
+		evasion.trigger_emergency_dodge(self, 40.0, 1.25)
+	elif sprite:
 		sprite.modulate = Color(3.0, 0.4, 0.4)
 		var tween = create_tween()
 		tween.tween_property(sprite, "modulate", Color(1, 1, 1), 0.08)
 	if hp <= 0.0: die()
 
 func die() -> void:
+	if death_started: return
+	death_started = true
 	if AudioManager: AudioManager.play_sfx("explosion", -3.0)
 	GameManager.add_score(score_value)
+	GameManager.register_jet_kill()
 	if explosion_fx_scene:
 		var exp = explosion_fx_scene.instantiate()
 		exp.global_position = global_position

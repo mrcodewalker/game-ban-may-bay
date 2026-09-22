@@ -1,61 +1,5 @@
 extends Control
-
-# Panels
-@onready var title_panel: Control = $TitlePanel
-@onready var main_panel: Control = $MainPanel
-@onready var mission_board_panel: Control = $MissionBoardPanel
-@onready var settings_panel: Control = $SettingsPanel
-@onready var controls_panel: Control = $ControlsPanel
-
-# Title Screen ("PRESS ANY BUTTON")
-@onready var press_any_btn: Button = $TitlePanel/PressAnyButton
-
-# Main Menu Buttons
-@onready var play_btn: Button = $MainPanel/VBox/PlayButton
-@onready var shop_btn: Button = $MainPanel/VBox/ShopButton
-@onready var options_btn: Button = $MainPanel/VBox/OptionsButton
-@onready var quit_btn: Button = $MainPanel/VBox/QuitButton
-
-# Mission Board (Screen 3) Controls
-@onready var mission_buttons: Array[Button] = [
-	$MissionBoardPanel/CorkBoard/MissionList/Btn01,
-	$MissionBoardPanel/CorkBoard/MissionList/Btn02,
-	$MissionBoardPanel/CorkBoard/MissionList/Btn03,
-	$MissionBoardPanel/CorkBoard/MissionList/Btn04,
-	$MissionBoardPanel/CorkBoard/MissionList/Btn05
-]
-
-@onready var circle_indicators: Array[Control] = [
-	$MissionBoardPanel/CorkBoard/MissionList/Btn01/RedCircle,
-	$MissionBoardPanel/CorkBoard/MissionList/Btn02/RedCircle,
-	$MissionBoardPanel/CorkBoard/MissionList/Btn03/RedCircle,
-	$MissionBoardPanel/CorkBoard/MissionList/Btn04/RedCircle,
-	$MissionBoardPanel/CorkBoard/MissionList/Btn05/RedCircle
-]
-
-@onready var target_crosshair: TextureRect = $MissionBoardPanel/CorkBoard/TacticalMap/TargetCrosshair
-@onready var intel_label: Label = $MissionBoardPanel/CorkBoard/TacticalMap/IntelLabel if has_node("MissionBoardPanel/CorkBoard/TacticalMap/IntelLabel") else null
-@onready var images_shop_btn: Button = $MissionBoardPanel/CorkBoard/ImagesShopBtn
-@onready var exit_board_btn: Button = $MissionBoardPanel/CorkBoard/ExitBoardBtn
-@onready var engage_btn: Button = $MissionBoardPanel/CorkBoard/EngageBtn
-
-# Target crosshair positions on the island tactical map for Mission 01-05
-var target_map_positions: Array[Vector2] = [
-	Vector2(165, 325), # Mission 01 - Island 1 (Pacific Strike)
-	Vector2(235, 245), # Mission 02 - Island 2 (Sunrise Archipelago)
-	Vector2(135, 165), # Mission 03 - Island 3 (Dogfight Bay)
-	Vector2(65, 95),   # Mission 04 - Island 4 (Sunset Fortress)
-	Vector2(225, 45)   # Mission 05 - Island 5 (Dreadnought HQ)
-]
-
-var mission_intel_titles: Array[String] = [
-	"🎯 TARGET 01:\nYAMATO ATOLL BASE",
-	"🎯 TARGET 02:\nSUNRISE AIRFIELD FLEET",
-	"🎯 TARGET 03:\nSTORM BATTLESHIP SQUADRON",
-	"🎯 TARGET 04:\nSUNSET COASTAL FORTRESS",
-	"🎯 TARGET 05:\nDREADNOUGHT FLYING HQ"
-]
-
+const UI = preload("res://scripts/ui/ui_kit.gd")
 var mission_story_data: Array[Dictionary] = [
 	{
 		"title": "CHIẾN DỊCH 01: ĐỘT KÍCH TRẠM RADAR YAMATO",
@@ -99,490 +43,127 @@ var mission_story_data: Array[Dictionary] = [
 	}
 ]
 
-var mission_story_card: PanelContainer = null
-var story_portrait_img: TextureRect = null
-var story_title_label: Label = null
-var story_speaker_label: Label = null
-var story_desc_label: Label = null
-var story_target_label: Label = null
 
+const PHOTOS = ["Airforce1943_sunrise.png", "Sunrise_foto3.png", "Dogfight_foto2.png", "Sunset_foto4.png", "Airforce1943_dogfight.png"]
+const NAMES = ["Yamato · Vành đai radar", "Sunrise · Tập kích bình minh", "Dogfight · Tâm bão", "Hoàng hôn · Pháo đài", "Dreadnought · Trận cuối"]
 var selected_mission_idx: int = 0
-var plane_shop_scene: PackedScene = preload("res://scenes/ui/plane_shop.tscn")
-var ant_hive_scene: PackedScene = preload("res://scenes/ui/ant_hive_upgrade.tscn")
-var pregame_buff_scene: PackedScene = preload("res://scenes/ui/pregame_buff_shop.tscn")
-var active_plane_shop: Control = null
-
-@onready var hive_upgrade_btn: Button = $MainPanel/VBox/HiveUpgradeButton if has_node("MainPanel/VBox/HiveUpgradeButton") else null
-@onready var pregame_buff_btn: Button = $MissionBoardPanel/CorkBoard/PregameBuffBtn if has_node("MissionBoardPanel/CorkBoard/PregameBuffBtn") else null
+var content: VBoxContainer
 
 func _ready() -> void:
-	if press_any_btn: press_any_btn.pressed.connect(show_main_menu)
-	if play_btn: play_btn.pressed.connect(show_mission_board)
-	if shop_btn: shop_btn.pressed.connect(open_plane_shop)
-	if options_btn: options_btn.pressed.connect(show_settings)
-	if quit_btn: quit_btn.pressed.connect(func(): get_tree().quit())
-	
-	if hive_upgrade_btn: hive_upgrade_btn.pressed.connect(open_ant_hive_shop)
-	if pregame_buff_btn: pregame_buff_btn.pressed.connect(open_pregame_buff_shop)
+	get_tree().paused = false
+	for child in get_children():
+		remove_child(child)
+		child.queue_free()
+	var page = UI.page(self, "AIR FORCE 1943", "CHIẾN DỊCH VALKYRIE")
+	content = VBoxContainer.new()
+	content.add_theme_constant_override("separation", 14)
+	page.add_child(content)
+	show_main_menu()
+	AudioManager.play_bgm("bgm_menu")
 
-	# Apply cut asset textured button styles & micro-animations
-	if play_btn: ButtonStyler.apply_textured_style(play_btn, "green")
-	if shop_btn: ButtonStyler.apply_textured_style(shop_btn, "purple")
-	if hive_upgrade_btn: ButtonStyler.apply_textured_style(hive_upgrade_btn, "gold")
-	if options_btn: ButtonStyler.apply_textured_style(options_btn, "default")
-	if quit_btn: ButtonStyler.apply_textured_style(quit_btn, "red")
-	if pregame_buff_btn: ButtonStyler.apply_textured_style(pregame_buff_btn, "purple")
-	if images_shop_btn: ButtonStyler.apply_textured_style(images_shop_btn, "purple")
-	if engage_btn: ButtonStyler.apply_textured_style(engage_btn, "green")
-	if exit_board_btn: ButtonStyler.apply_textured_style(exit_board_btn, "red")
-	if has_node("SettingsPanel/BackButton"): ButtonStyler.apply_textured_style($SettingsPanel/BackButton, "red")
-	if has_node("ControlsPanel/CloseButton"): ButtonStyler.apply_textured_style($ControlsPanel/CloseButton, "red")
-
-	# Mission board buttons
-	for i in range(mission_buttons.size()):
-		var btn = mission_buttons[i]
-		if btn:
-			ButtonStyler.apply_textured_style(btn, "default")
-			var idx = i
-			btn.pressed.connect(func(): select_mission(idx))
-			
-	if images_shop_btn: images_shop_btn.pressed.connect(open_plane_shop)
-	if exit_board_btn: exit_board_btn.pressed.connect(show_main_menu)
-	if engage_btn: engage_btn.pressed.connect(launch_selected_mission)
-	
-	if has_node("SettingsPanel/BackButton"): $SettingsPanel/BackButton.pressed.connect(show_main_menu)
-	if has_node("ControlsPanel/CloseButton"): $ControlsPanel/CloseButton.pressed.connect(show_main_menu)
-	
-	setup_settings_panel()
-	setup_mission_story_card()
-
-	if AudioManager: AudioManager.play_bgm("bgm_menu")
-	
-	show_title_screen()
-
-func setup_settings_panel() -> void:
-	if not has_node("SettingsPanel/VBox"): return
-	
-	var bgm_slider = $SettingsPanel/VBox/BgmRow/BgmSlider if has_node("SettingsPanel/VBox/BgmRow/BgmSlider") else null
-	var bgm_val = $SettingsPanel/VBox/BgmRow/BgmVal if has_node("SettingsPanel/VBox/BgmRow/BgmVal") else null
-	var sfx_slider = $SettingsPanel/VBox/SfxRow/SfxSlider if has_node("SettingsPanel/VBox/SfxRow/SfxSlider") else null
-	var sfx_val = $SettingsPanel/VBox/SfxRow/SfxVal if has_node("SettingsPanel/VBox/SfxRow/SfxVal") else null
-	var mute_cb = $SettingsPanel/VBox/MuteCheckBox if has_node("SettingsPanel/VBox/MuteCheckBox") else null
-	var settings_back_btn = $SettingsPanel/VBox/BackButton if has_node("SettingsPanel/VBox/BackButton") else null
-
-	if settings_back_btn:
-		ButtonStyler.apply_textured_style(settings_back_btn, "red")
-		settings_back_btn.pressed.connect(show_main_menu)
-
-	if bgm_slider:
-		bgm_slider.value = (AudioManager.bgm_volume_scale if AudioManager else 1.0) * 100.0
-		if bgm_val: bgm_val.text = "%d%%" % int(bgm_slider.value)
-		bgm_slider.value_changed.connect(func(v: float):
-			if bgm_val: bgm_val.text = "%d%%" % int(v)
-			if AudioManager: AudioManager.set_bgm_volume_linear(v / 100.0)
-		)
-
-	if sfx_slider:
-		sfx_slider.value = (AudioManager.sfx_volume_scale if AudioManager else 1.0) * 100.0
-		if sfx_val: sfx_val.text = "%d%%" % int(sfx_slider.value)
-		sfx_slider.value_changed.connect(func(v: float):
-			if sfx_val: sfx_val.text = "%d%%" % int(v)
-			if AudioManager: AudioManager.set_sfx_volume_linear(v / 100.0)
-			if AudioManager: AudioManager.play_sfx("click")
-		)
-
-	if mute_cb:
-		mute_cb.button_pressed = (AudioManager.is_muted if AudioManager else false)
-		mute_cb.toggled.connect(func(toggled: bool):
-			if AudioManager: AudioManager.set_muted(toggled)
-		)
-
-	# Mission Board Difficulty Selector
-	var norm_btn = $MissionBoardPanel/CorkBoard/DiffContainer/NormalBtn if has_node("MissionBoardPanel/CorkBoard/DiffContainer/NormalBtn") else null
-	var hard_btn = $MissionBoardPanel/CorkBoard/DiffContainer/HardBtn if has_node("MissionBoardPanel/CorkBoard/DiffContainer/HardBtn") else null
-
-	if norm_btn:
-		norm_btn.pressed.connect(func():
-			GameManager.current_difficulty = GameManager.Difficulty.NORMAL
-			update_difficulty_buttons_ui()
-			if AudioManager: AudioManager.play_sfx("click")
-		)
-
-	if hard_btn:
-		hard_btn.pressed.connect(func():
-			GameManager.current_difficulty = GameManager.Difficulty.HARD
-			update_difficulty_buttons_ui()
-			if AudioManager: AudioManager.play_sfx("click")
-		)
-
-	update_difficulty_buttons_ui()
-
-func update_difficulty_buttons_ui() -> void:
-	var norm_btn = $MissionBoardPanel/CorkBoard/DiffContainer/NormalBtn if has_node("MissionBoardPanel/CorkBoard/DiffContainer/NormalBtn") else null
-	var hard_btn = $MissionBoardPanel/CorkBoard/DiffContainer/HardBtn if has_node("MissionBoardPanel/CorkBoard/DiffContainer/HardBtn") else null
-
-	if not norm_btn or not hard_btn: return
-
-	var is_hard = (GameManager.current_difficulty == GameManager.Difficulty.HARD)
-
-	# Active Selected Button Style (Thick 3px glowing border, high-contrast bg)
-	var sb_active = StyleBoxFlat.new()
-	sb_active.set_corner_radius_all(8)
-	sb_active.set_border_width_all(3)
-
-	# Inactive Unselected Button Style (Dark muted grey bg, 1px thin border)
-	var sb_inactive = StyleBoxFlat.new()
-	sb_inactive.bg_color = Color(0.06, 0.08, 0.12, 0.60)
-	sb_inactive.border_color = Color(0.25, 0.35, 0.45, 0.40)
-	sb_inactive.set_border_width_all(1)
-	sb_inactive.set_corner_radius_all(8)
-
-	if is_hard:
-		# HARD is ACTIVE
-		sb_active.bg_color = Color(0.35, 0.06, 0.08, 0.95)
-		sb_active.border_color = Color(1.0, 0.35, 0.20, 1.0)
-
-		hard_btn.text = "🔥 HARD"
-		hard_btn.add_theme_stylebox_override("normal", sb_active)
-		hard_btn.add_theme_stylebox_override("hover", sb_active)
-		hard_btn.add_theme_stylebox_override("pressed", sb_active)
-		hard_btn.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
-		hard_btn.modulate = Color(1.15, 1.15, 1.15, 1.0)
-
-		norm_btn.text = "🟢 NORMAL"
-		norm_btn.add_theme_stylebox_override("normal", sb_inactive)
-		norm_btn.add_theme_stylebox_override("hover", sb_inactive)
-		norm_btn.add_theme_stylebox_override("pressed", sb_inactive)
-		norm_btn.add_theme_color_override("font_color", Color(0.55, 0.65, 0.75))
-		norm_btn.modulate = Color(0.7, 0.7, 0.7, 0.8)
-	else:
-		# NORMAL is ACTIVE
-		sb_active.bg_color = Color(0.04, 0.24, 0.12, 0.95)
-		sb_active.border_color = Color(0.25, 0.95, 0.45, 1.0)
-
-		norm_btn.text = "🟢 NORMAL"
-		norm_btn.add_theme_stylebox_override("normal", sb_active)
-		norm_btn.add_theme_stylebox_override("hover", sb_active)
-		norm_btn.add_theme_stylebox_override("pressed", sb_active)
-		norm_btn.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
-		norm_btn.modulate = Color(1.15, 1.15, 1.15, 1.0)
-
-		hard_btn.text = "🔥 HARD"
-		hard_btn.add_theme_stylebox_override("normal", sb_inactive)
-		hard_btn.add_theme_stylebox_override("hover", sb_inactive)
-		hard_btn.add_theme_stylebox_override("pressed", sb_inactive)
-		hard_btn.add_theme_color_override("font_color", Color(0.55, 0.65, 0.75))
-		hard_btn.modulate = Color(0.7, 0.7, 0.7, 0.8)
-
-func _input(event: InputEvent) -> void:
-	if title_panel.visible:
-		if (event is InputEventKey and event.pressed) or (event is InputEventMouseButton and event.pressed):
-			show_main_menu()
-
-func show_title_screen() -> void:
-	title_panel.show()
-	main_panel.hide()
-	mission_board_panel.hide()
-	settings_panel.hide()
-	controls_panel.hide()
+func clear_content() -> void:
+	for child in content.get_children():
+		content.remove_child(child)
+		child.queue_free()
 
 func show_main_menu() -> void:
-	title_panel.hide()
-	main_panel.show()
-	mission_board_panel.hide()
-	settings_panel.hide()
-	controls_panel.hide()
-	if AudioManager: AudioManager.play_sfx("shoot", -8.0)
+	clear_content()
+	UI.photo(content, "res://extracted_assets/Textures/Airforce1943_sunset.png", 210)
+	UI.label(content, "Bầu trời đang chờ bạn.", 27)
+	UI.label(content, "Xuyên qua phòng tuyến Đế chế. Giải cứu các kỹ sư và đưa Công chúa Aura trở về.", 17, UI.MUTED)
+	UI.button(content, "Bắt đầu chiến dịch", show_mission_board, "green")
+	UI.button(content, "Kho máy bay & trợ thủ", func(): open_modal("plane_shop"))
+	UI.button(content, "Phòng nghiên cứu", func(): open_modal("ant_hive_upgrade"))
+	UI.button(content, "Thành tích & tiến trình", func(): open_modal("historical_progress_dialog"))
+	UI.button(content, "Cài đặt & hướng dẫn", show_settings)
+	UI.button(content, "Thoát game", func(): get_tree().quit(), "red")
 
 func show_mission_board() -> void:
-	title_panel.hide()
-	main_panel.hide()
-	mission_board_panel.show()
-	settings_panel.hide()
-	controls_panel.hide()
-	
-	select_mission(GameManager.current_map - 1)
+	clear_content()
+	UI.label(content, "Chọn nhiệm vụ", 26)
+	var grid = GridContainer.new()
+	grid.columns = 5
+	grid.add_theme_constant_override("h_separation", 8)
+	content.add_child(grid)
+	for i in range(5):
+		var b = UI.button(grid, "%02d" % (i + 1), select_mission.bind(i), "green" if i == selected_mission_idx else "default")
+		b.tooltip_text = NAMES[i] if GameManager.is_map_unlocked(i + 1) else "Chưa mở khóa"
+	var idx = selected_mission_idx
+	UI.photo(content, "res://extracted_assets/Textures/" + PHOTOS[idx], 160)
+	UI.label(content, "MISSION %02d\n%s" % [idx + 1, NAMES[idx]], 24)
+	UI.label(content, mission_story_data[idx]["short_story"], 17, UI.MUTED)
+	UI.label(content, "Bắt buộc: tiêu diệt boss.\nMục tiêu phụ: cứu VIP và giữ giáp để nhận thêm sao.", 16, UI.ACCENT)
+	var row = HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	content.add_child(row)
+	UI.button(row, "Tiêu chuẩn", set_difficulty.bind(false), "green" if not GameManager.is_hard_mode() else "default")
+	UI.button(row, "Thử thách", set_difficulty.bind(true), "green" if GameManager.is_hard_mode() else "default")
+	var supplies = HBoxContainer.new()
+	supplies.add_theme_constant_override("separation", 10)
+	content.add_child(supplies)
+	UI.button(supplies, "Kho máy bay", func(): open_modal("plane_shop"))
+	UI.button(supplies, "Tiếp tế", func(): open_modal("pregame_buff_shop"))
+	var unlocked = GameManager.is_map_unlocked(idx + 1)
+	var engage = UI.button(content, "Đọc lệnh xuất kích" if unlocked else "Hoàn thành nhiệm vụ trước để mở khóa", show_briefing, "green")
+	engage.disabled = not unlocked
+	UI.button(content, "Về trang chủ", show_main_menu)
 
 func select_mission(idx: int) -> void:
-	if idx < 0 or idx >= 5: return
-	
 	selected_mission_idx = idx
 	GameManager.current_map = idx + 1
+	show_mission_board()
 
-	
-	# Update red circles
-	for i in range(circle_indicators.size()):
-		if circle_indicators[i]:
-			circle_indicators[i].visible = (i == selected_mission_idx)
-			
-	# Update Intel Label
-	if intel_label and idx < mission_intel_titles.size():
-		intel_label.text = mission_intel_titles[idx]
-			
-	# Move crosshair on map with pulse animation
-	if target_crosshair and idx < target_map_positions.size():
-		var tween = create_tween()
-		tween.tween_property(target_crosshair, "position", target_map_positions[idx], 0.25).set_trans(Tween.TRANS_QUAD)
-		target_crosshair.pivot_offset = target_crosshair.size * 0.5
-		var scale_tween = create_tween()
-		scale_tween.tween_property(target_crosshair, "scale", Vector2(1.3, 1.3), 0.12)
-		scale_tween.tween_property(target_crosshair, "scale", Vector2(1.0, 1.0), 0.12)
-		
-	update_mission_story_card(idx)
-	if AudioManager: AudioManager.play_sfx("powerup", -6.0)
+func set_difficulty(hard: bool) -> void:
+	GameManager.current_difficulty = GameManager.Difficulty.HARD if hard else GameManager.Difficulty.NORMAL
+	show_mission_board()
+
+func show_briefing() -> void:
+	clear_content()
+	var idx = selected_mission_idx
+	UI.label(content, "LỆNH XUẤT KÍCH · %02d" % (idx + 1), 16, UI.ACCENT)
+	UI.photo(content, "res://extracted_assets/Textures/" + PHOTOS[idx], 170)
+	UI.label(content, NAMES[idx], 26)
+	UI.label(content, "BỘ TƯ LỆNH · CÔNG CHÚA AURA", 15, UI.ACCENT)
+	UI.label(content, mission_story_data[idx]["full_story"], 18)
+	UI.label(content, "ĐIỀU KIỆN CHIẾN THẮNG", 15, UI.ACCENT)
+	UI.label(content, mission_story_data[idx]["target"].replace("🎯 ", "") + "\n1 sao: thắng · 2 sao: còn ít nhất 40% giáp · 3 sao: cứu đủ VIP hoặc còn 80% giáp.", 16, UI.MUTED)
+	UI.button(content, "XUẤT KÍCH", launch_selected_mission, "green")
+	UI.button(content, "Quay lại chọn nhiệm vụ", show_mission_board)
 
 func launch_selected_mission() -> void:
+	if not GameManager.is_map_unlocked(selected_mission_idx + 1): return
+	GameManager.current_map = selected_mission_idx + 1
 	GameManager.reset_game()
-	if AudioManager: AudioManager.play_bgm("bgm_main")
+	get_tree().paused = false
 	get_tree().change_scene_to_file("res://scenes/main/main.tscn")
 
-func open_plane_shop() -> void:
-	if plane_shop_scene:
-		if not is_instance_valid(active_plane_shop):
-			active_plane_shop = plane_shop_scene.instantiate()
-			if active_plane_shop.has_signal("closed"):
-				active_plane_shop.closed.connect(_on_shop_closed)
-			add_child(active_plane_shop)
-		else:
-			active_plane_shop.show()
-			active_plane_shop.update_ui()
-
-func _on_shop_closed() -> void:
-	if AudioManager: AudioManager.play_sfx("shoot", -8.0)
-	if mission_board_panel.visible:
-		select_mission(selected_mission_idx)
-	else:
-		show_main_menu()
+func open_modal(scene_name: String) -> void:
+	var modal = load("res://scenes/ui/" + scene_name + ".tscn").instantiate()
+	modal.process_mode = Node.PROCESS_MODE_ALWAYS
+	modal.z_index = 100
+	add_child(modal)
+	if modal.has_signal("closed"):
+		modal.closed.connect(func(): if is_instance_valid(modal): modal.queue_free())
 
 func show_settings() -> void:
-	main_panel.hide()
-	settings_panel.show()
-
-func open_ant_hive_shop() -> void:
-	if ant_hive_scene:
-		var hive_ui = ant_hive_scene.instantiate()
-		add_child(hive_ui)
-
-func open_pregame_buff_shop() -> void:
-	if pregame_buff_scene:
-		var buff_ui = pregame_buff_scene.instantiate()
-		add_child(buff_ui)
-
-func setup_mission_story_card() -> void:
-	var cork = get_node_or_null("MissionBoardPanel/CorkBoard")
-	if not cork: return
-
-	mission_story_card = PanelContainer.new()
-	mission_story_card.name = "MissionStoryCard"
-	mission_story_card.custom_minimum_size = Vector2(500, 118)
-	mission_story_card.size = Vector2(500, 118)
-	mission_story_card.position = Vector2(20, 650)
-	mission_story_card.z_index = 5
-
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.08, 0.16, 0.94)
-	sb.border_color = Color(1.0, 0.82, 0.25, 0.90)
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(10)
-	sb.set_content_margin_all(8)
-	mission_story_card.add_theme_stylebox_override("panel", sb)
-
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 10)
-
-	# Left Column: Portrait and Detail Button
-	var vbox_left = VBoxContainer.new()
-	vbox_left.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox_left.custom_minimum_size = Vector2(70, 0)
-	vbox_left.add_theme_constant_override("separation", 4)
-
-	var p_frame = PanelContainer.new()
-	p_frame.custom_minimum_size = Vector2(65, 75)
-	var p_style = StyleBoxFlat.new()
-	p_style.bg_color = Color(0.08, 0.14, 0.22, 0.9)
-	p_style.border_color = Color(0.3, 0.85, 1.0, 0.85)
-	p_style.set_border_width_all(2)
-	p_style.set_corner_radius_all(6)
-	p_frame.add_theme_stylebox_override("panel", p_style)
-
-	story_portrait_img = TextureRect.new()
-	story_portrait_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	story_portrait_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	story_portrait_img.custom_minimum_size = Vector2(60, 70)
-	p_frame.add_child(story_portrait_img)
-	vbox_left.add_child(p_frame)
-
-	var btn_read = Button.new()
-	btn_read.text = "📖 CỐT TRUYỆN"
-	btn_read.custom_minimum_size = Vector2(70, 24)
-	btn_read.add_theme_font_size_override("font_size", 9)
-	ButtonStyler.apply_textured_style(btn_read, "gold")
-	btn_read.pressed.connect(func(): open_full_story_modal(selected_mission_idx))
-	vbox_left.add_child(btn_read)
-
-	hbox.add_child(vbox_left)
-
-	# Right Column: Story Text and Objectives
-	var vbox_right = VBoxContainer.new()
-	vbox_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox_right.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox_right.add_theme_constant_override("separation", 3)
-
-	story_title_label = Label.new()
-	story_title_label.text = "CHIẾN DỊCH 01"
-	story_title_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-	story_title_label.add_theme_font_size_override("font_size", 12)
-	vbox_right.add_child(story_title_label)
-
-	story_speaker_label = Label.new()
-	story_speaker_label.text = "[ 👑 CÔNG CHÚA AURA ]"
-	story_speaker_label.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
-	story_speaker_label.add_theme_font_size_override("font_size", 10)
-	vbox_right.add_child(story_speaker_label)
-
-	story_desc_label = Label.new()
-	story_desc_label.text = ""
-	story_desc_label.add_theme_color_override("font_color", Color(0.95, 0.95, 0.95))
-	story_desc_label.add_theme_font_size_override("font_size", 10)
-	story_desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox_right.add_child(story_desc_label)
-
-	story_target_label = Label.new()
-	story_target_label.text = ""
-	story_target_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.35))
-	story_target_label.add_theme_font_size_override("font_size", 10)
-	vbox_right.add_child(story_target_label)
-
-	hbox.add_child(vbox_right)
-	mission_story_card.add_child(hbox)
-	cork.add_child(mission_story_card)
-
-	# Ensure Difficulty Container and Launch buttons remain on top and completely unobstructed
-	if cork.has_node("DiffContainer"):
-		var diff = cork.get_node("DiffContainer")
-		diff.z_index = 25
-		cork.move_child(diff, -1)
-	if cork.has_node("EngageBtn"):
-		var eng = cork.get_node("EngageBtn")
-		eng.z_index = 25
-		cork.move_child(eng, -1)
-	if cork.has_node("ExitBoardBtn"):
-		var ext = cork.get_node("ExitBoardBtn")
-		ext.z_index = 25
-		cork.move_child(ext, -1)
-
-func update_mission_story_card(idx: int) -> void:
-	if idx < 0 or idx >= mission_story_data.size(): return
-	var data = mission_story_data[idx]
-
-	if story_title_label: story_title_label.text = data.get("title", "")
-	if story_speaker_label: story_speaker_label.text = data.get("speaker", "")
-	if story_desc_label: story_desc_label.text = data.get("short_story", "")
-	if story_target_label: story_target_label.text = data.get("target", "")
-
-	var p_path = data.get("portrait", "") as String
-	if ResourceLoader.exists(p_path) and story_portrait_img:
-		story_portrait_img.texture = load(p_path) as Texture2D
-
-func open_full_story_modal(idx: int) -> void:
-	if idx < 0 or idx >= mission_story_data.size(): return
-	var data = mission_story_data[idx]
-
-	if AudioManager: AudioManager.play_sfx("click")
-
-	# Fullscreen overlay backdrop
-	var modal_bg = ColorRect.new()
-	modal_bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	modal_bg.size = Vector2(540, 960)
-	modal_bg.color = Color(0.01, 0.03, 0.07, 0.90)
-	modal_bg.mouse_filter = Control.MOUSE_FILTER_STOP
-	modal_bg.z_index = 100
-
-	var modal_box = PanelContainer.new()
-	modal_box.custom_minimum_size = Vector2(470, 480)
-	modal_box.size = Vector2(470, 480)
-	modal_box.position = Vector2((540.0 - 470.0) * 0.5, (960.0 - 480.0) * 0.5)
-
-	var sb = StyleBoxFlat.new()
-	sb.bg_color = Color(0.04, 0.08, 0.16, 0.98)
-	sb.border_color = Color(1.0, 0.82, 0.22, 0.95)
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(14)
-	sb.set_content_margin_all(16)
-	modal_box.add_theme_stylebox_override("panel", sb)
-
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 12)
-
-	var title_lbl = Label.new()
-	title_lbl.text = data.get("title", "")
-	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.88, 0.25))
-	title_lbl.add_theme_font_size_override("font_size", 14)
-	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title_lbl)
-
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 14)
-	hbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
-
-	var p_frame = PanelContainer.new()
-	p_frame.custom_minimum_size = Vector2(110, 160)
-	p_frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var p_style = StyleBoxFlat.new()
-	p_style.bg_color = Color(0.07, 0.12, 0.22, 0.95)
-	p_style.border_color = Color(0.3, 0.85, 1.0, 0.9)
-	p_style.set_border_width_all(2)
-	p_style.set_corner_radius_all(10)
-	p_frame.add_theme_stylebox_override("panel", p_style)
-
-	var p_path = data.get("portrait", "") as String
-	if ResourceLoader.exists(p_path):
-		var p_img = TextureRect.new()
-		p_img.texture = load(p_path) as Texture2D
-		p_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		p_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		p_img.custom_minimum_size = Vector2(100, 150)
-		p_frame.add_child(p_img)
-	hbox.add_child(p_frame)
-
-	var vbox_text = VBoxContainer.new()
-	vbox_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox_text.add_theme_constant_override("separation", 6)
-
-	var spk_lbl = Label.new()
-	spk_lbl.text = data.get("speaker", "")
-	spk_lbl.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
-	spk_lbl.add_theme_font_size_override("font_size", 12)
-	vbox_text.add_child(spk_lbl)
-
-	var full_lbl = Label.new()
-	full_lbl.text = data.get("full_story", "")
-	full_lbl.add_theme_color_override("font_color", Color(0.98, 0.96, 0.92))
-	full_lbl.add_theme_font_size_override("font_size", 11)
-	full_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	full_lbl.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox_text.add_child(full_lbl)
-
-	var tgt_lbl = Label.new()
-	tgt_lbl.text = data.get("target", "")
-	tgt_lbl.add_theme_color_override("font_color", Color(1.0, 0.35, 0.25))
-	tgt_lbl.add_theme_font_size_override("font_size", 11)
-	vbox_text.add_child(tgt_lbl)
-
-	hbox.add_child(vbox_text)
-	vbox.add_child(hbox)
-
-	var btn_close = Button.new()
-	btn_close.text = "❌ ĐÓNG"
-	btn_close.custom_minimum_size = Vector2(140, 42)
-	btn_close.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	ButtonStyler.apply_textured_style(btn_close, "red")
-	btn_close.pressed.connect(func():
-		if AudioManager: AudioManager.play_sfx("click")
-		modal_bg.queue_free()
-	)
-	vbox.add_child(btn_close)
-
-	modal_box.add_child(vbox)
-	modal_bg.add_child(modal_box)
-	add_child(modal_bg)
+	clear_content()
+	UI.label(content, "Cài đặt & hướng dẫn", 27)
+	for kind in ["Âm nhạc", "Hiệu ứng"]:
+		UI.label(content, kind, 18)
+		var slider = HSlider.new()
+		slider.max_value = 100
+		slider.value = (AudioManager.bgm_volume_scale if kind == "Âm nhạc" else AudioManager.sfx_volume_scale) * 100
+		slider.custom_minimum_size.y = 44
+		slider.value_changed.connect(func(v):
+			if kind == "Âm nhạc": AudioManager.set_bgm_volume_linear(v / 100.0)
+			else: AudioManager.set_sfx_volume_linear(v / 100.0)
+		)
+		content.add_child(slider)
+	var mute = CheckButton.new()
+	mute.text = "Tắt âm thanh"
+	mute.button_pressed = AudioManager.is_muted
+	mute.toggled.connect(AudioManager.set_muted)
+	content.add_child(mute)
+	UI.label(content, "ĐIỀU KHIỂN", 16, UI.ACCENT)
+	UI.label(content, "WASD / phím mũi tên: di chuyển\nSpace / J / chuột trái: bắn\nK / Shift: bom\nEsc / P: tạm dừng\n\nNé làn đạn, phá tháp phòng không và thu thập tiếp tế. Tiêu diệt boss để mở nhiệm vụ tiếp theo. Tiến trình được lưu tự động.", 18, UI.MUTED)
+	UI.button(content, "Về trang chủ", show_main_menu)

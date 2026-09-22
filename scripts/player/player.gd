@@ -80,7 +80,7 @@ func _ready() -> void:
 	# Apply Pre-Game Consumable PowerUp Buffs (bought with Gems before match)
 	if GameManager.pregame_buffs.get("starting_shield", false):
 		activate_shield(120.0)
-		pregame_shield_timer = 4.0
+		pregame_shield_timer = 3.0
 
 	if GameManager.pregame_buffs.get("laser_cannon", false):
 		current_weapon_type = WeaponType.LASER
@@ -92,14 +92,12 @@ func _ready() -> void:
 		current_weapon_type = WeaponType.THUNDER
 		spawn_pickup_text("⚡ THUNDER CANNON EQUIPPED!")
 
-	if GameManager.pregame_buffs.get("bullet_up", false):
-		GameManager.upgrade_weapon()
+	# Starting level and bombs were already applied by reset_game_state.
 
 	if GameManager.pregame_buffs.get("speed_boost", false):
 		activate_speed_boost(4.0)
 
 	if GameManager.pregame_buffs.get("mega_bomb", false):
-		GameManager.add_bomb(2)
 		spawn_pickup_text("💣 +2 MEGA BOMBS!")
 
 	if GameManager.pregame_buffs.get("pet_jet", false):
@@ -228,6 +226,7 @@ func _process(delta: float) -> void:
 	if is_victory_flyaway:
 		handle_victory_flyaway(delta)
 		return
+	if GameManager.is_game_won: return
 
 	# Process active shield 3.0s expiration timer
 	if active_shield_timer > 0.0:
@@ -363,11 +362,20 @@ func update_banking_sprite(horizontal_input: float) -> void:
 		elif bank_textures_right.size() > 2:
 			sprite.texture = bank_textures_right[2]
 
+func _is_input_active() -> bool:
+	# Fire when: keyboard move, mouse drag, or hold Space / J / mouse button
+	var kbd_move = Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	if kbd_move != Vector2.ZERO: return true
+	if is_dragging_ship and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): return true
+	if Input.is_action_pressed("shoot"): return true
+	return false
+
 func handle_shooting(delta: float) -> void:
 	fire_timer -= delta
 	missile_fire_timer -= delta
-	var is_firing = Input.is_action_pressed("shoot") or (is_dragging_ship and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not is_mouse_over_ui())
-	
+	# Only fire when player is actively controlling the jet
+	var is_firing = _is_input_active()
+
 	if is_firing:
 		var fire_rate = get_fire_rate()
 		if fire_timer <= 0.0:
@@ -404,14 +412,14 @@ func fire_continuous_laser() -> void:
 		AudioManager.play_sfx("shoot", -7.0, 1.3)
 
 func get_fire_rate() -> float:
-	var base_rate = 0.14
+	var base_rate = 0.18
 	match current_weapon_type:
-		WeaponType.VULCAN: base_rate = 0.12 - (GameManager.current_weapon_level * 0.01)
-		WeaponType.LASER: base_rate = 0.13 - (GameManager.current_weapon_level * 0.01)
-		WeaponType.MISSILE: base_rate = 0.22 - (GameManager.current_weapon_level * 0.015)
-		WeaponType.SPREAD: base_rate = 0.15 - (GameManager.current_weapon_level * 0.01)
-		WeaponType.THUNDER: base_rate = 0.13 - (GameManager.current_weapon_level * 0.01)
-	return max(0.04, base_rate / GameManager.get_hive_fire_rate_mult())
+		WeaponType.VULCAN:  base_rate = 0.18 - (GameManager.current_weapon_level * 0.012)
+		WeaponType.LASER:   base_rate = 0.16 - (GameManager.current_weapon_level * 0.010)
+		WeaponType.MISSILE: base_rate = 0.30 - (GameManager.current_weapon_level * 0.018)
+		WeaponType.SPREAD:  base_rate = 0.20 - (GameManager.current_weapon_level * 0.012)
+		WeaponType.THUNDER: base_rate = 0.17 - (GameManager.current_weapon_level * 0.010)
+	return max(0.08, base_rate / GameManager.get_hive_fire_rate_mult())
 
 func shoot_bullets() -> void:
 	var level = GameManager.current_weapon_level
@@ -635,9 +643,32 @@ class ShieldDrawNode extends Node2D:
 			var a = (float(i) / segs) * TAU
 			pts.append(center + Vector2(cos(a) * radius, sin(a) * radius))
 		draw_colored_polygon(pts, color)
+func take_burn_damage(amount: float) -> void:
+	if GameManager.is_game_over or GameManager.is_game_won: return
+	if has_shield and shield_hp > 0.0:
+		shield_hp -= amount
+		if is_instance_valid(shield_node):
+			shield_node.modulate = Color(3.5, 1.2, 0.4, 1.0)
+			var tw = create_tween()
+			tw.tween_property(shield_node, "modulate", Color(1, 1, 1, 1), 0.12)
+		if shield_hp <= 0.0:
+			has_shield = false
+			if is_instance_valid(shield_node):
+				shield_node.hide()
+		return
+		
+	# Direct burn damage to HP (sát thương thiêu đốt)
+	GameManager.damage_player(amount)
+	# Fiery / electric plasma burn flash on player sprite
+	if sprite:
+		sprite.modulate = Color(3.5, 0.7, 0.2, 1.0)
+		var tw = create_tween()
+		tw.tween_property(sprite, "modulate", Color.WHITE, 0.14)
+	if AudioManager and fmod(Time.get_ticks_msec() * 0.001, 0.35) < 0.06:
+		AudioManager.play_sfx("laser_warning", -6.0, 1.3)
 
 func take_damage(amount: float) -> void:
-	if GameManager.is_game_over: return
+	if GameManager.is_game_over or GameManager.is_game_won or is_invulnerable: return
 	
 	# Ant Hive Dodge / Evasion chance
 	if randf() < GameManager.get_hive_dodge_chance():
@@ -665,9 +696,10 @@ func take_damage(amount: float) -> void:
 		trigger_hit_flash(0.15)
 		return
 
-	# INSTANT DAMAGE: Deduct HP immediately on every hit!
+	# Deduct HP and grant brief 0.6s invulnerability frame with flashing
 	GameManager.damage_player(amount)
-	trigger_hit_flash(0.20)
+	trigger_invulnerability(0.6)
+	trigger_hit_flash(0.6)
 	
 	if AudioManager: AudioManager.play_sfx("explosion", 0.0, 1.1)
 
@@ -687,6 +719,9 @@ func trigger_revive_invulnerability(duration: float = 3.0) -> void:
 func handle_invulnerability(delta: float) -> void:
 	if invuln_timer > 0.0:
 		invuln_timer -= delta
+		if sprite:
+			# Blink effect during i-frames
+			sprite.visible = fmod(invuln_timer, 0.12) < 0.06
 		if invuln_timer <= 0.0:
 			is_invulnerable = false
 			if sprite:
@@ -706,12 +741,17 @@ func _on_area_entered(area: Area2D) -> void:
 		elif "gold" in area_name:
 			crash_dmg = 80.0
 			
+		# Apply damage to the enemy first.  A killing ram against a boss locks the
+		# victory result before damage can be applied back to the player.
+		if area.has_method("take_damage"):
+			area.take_damage(350.0)
+		if GameManager.is_game_won or area.get("is_dying") == true:
+			return
+
 		# Apply Ant Hive Collision Damage Reduction
 		var reduction = GameManager.get_hive_collision_reduction()
 		crash_dmg *= max(0.2, 1.0 - reduction)
 		take_damage(crash_dmg)
-		if area.has_method("take_damage"):
-			area.take_damage(350.0)
 
 			
 		var main_scene = get_tree().current_scene

@@ -14,7 +14,11 @@ enum PowerUpType {
 	STAR          # star.png
 }
 
-@export var type: PowerUpType = PowerUpType.BULLET_UP
+@export var type: PowerUpType = PowerUpType.BULLET_UP:
+	set(val):
+		type = val
+		update_appearance()
+
 @export var speed: float = 120.0
 
 var time_passed: float = 0.0
@@ -28,12 +32,18 @@ func _ready() -> void:
 	z_index = 6
 	area_entered.connect(_on_area_entered)
 	
-	# Create glowing aura border node behind sprite
 	create_glow_border_node()
 
-	if not sprite:
+	if not sprite and has_node("Sprite2D"):
+		sprite = $Sprite2D
+	elif not sprite:
 		sprite = Sprite2D.new()
 		add_child(sprite)
+		
+	if has_node("Label"):
+		label = $Label
+		label.hide()
+		
 	update_appearance()
 
 func create_glow_border_node() -> void:
@@ -46,48 +56,55 @@ func create_glow_border_node() -> void:
 	glow_node = g
 
 func update_appearance() -> void:
-	if not is_inside_tree() or not sprite:
-		return
+	if not sprite:
+		if has_node("Sprite2D"):
+			sprite = $Sprite2D
+		else:
+			return
+			
+	if label or has_node("Label"):
+		var l = label if label else $Label
+		l.hide()
 		
 	var base_trimmed = "res://extracted_assets/AI/cut_assets/power-up/trimmed_powerups/"
-	var file_name = ""
+	var base_alt = "res://extracted_assets/AI/cut_assets/powerups/"
+	var base_sprite = "res://extracted_assets/sprites/"
+	
+	var candidates: Array[String] = []
 	match type:
-		PowerUpType.BULLET_UP: file_name = "increase-1-bullet-more.png"
-		PowerUpType.THUNDER: file_name = "thunder-bullet.png"
-		PowerUpType.SPREAD: file_name = "spread-bullet.png"
-		PowerUpType.SHIELD: file_name = "shield.png"
-		PowerUpType.SPEED_BOOST: file_name = "speed-more.png"
-		PowerUpType.MEGA_BOMB: file_name = "bomb-decrease-hp-can-fire-bullet.png"
-		PowerUpType.PET_JET: file_name = "hire-pet-jet.png"
-		PowerUpType.MAGNET: file_name = "attract-coin.png"
-		PowerUpType.OVERCHARGE: file_name = "power-up.png"
-		PowerUpType.COIN: file_name = "coin.png"
-		PowerUpType.STAR: file_name = "star.png"
-		
-	var full_path = base_trimmed + file_name
-	if ResourceLoader.exists(full_path):
-		var tex = load(full_path) as Texture2D
-		if tex:
-			sprite.texture = tex
-			var max_dim = float(max(tex.get_width(), tex.get_height()))
-			var sc = 48.0 / max(1.0, max_dim)
-			sprite.scale = Vector2(sc, sc)
-			sprite.modulate = Color(1.15, 1.15, 1.15, 1.0)
-			if label: label.hide()
-			return
-
-	# Fallback to numbered files if named files missing
-	var fallback_file = "powerup_%02d.png" % (int(type) + 1)
-	if ResourceLoader.exists(base_trimmed + fallback_file):
-		var tex = load(base_trimmed + fallback_file) as Texture2D
-		if tex:
-			sprite.texture = tex
-			var max_dim = float(max(tex.get_width(), tex.get_height()))
-			var sc = 48.0 / max(1.0, max_dim)
-			sprite.scale = Vector2(sc, sc)
-			sprite.modulate = Color(1.15, 1.15, 1.15, 1.0)
-			if label: label.hide()
-			return
+		PowerUpType.BULLET_UP:
+			candidates = [base_trimmed + "increase-1-bullet-more.png", base_alt + "suc-manh.png", base_sprite + "buff_weapon_capsule.png"]
+		PowerUpType.THUNDER:
+			candidates = [base_trimmed + "thunder-bullet.png", base_alt + "dan-laser.png", base_sprite + "buff_weapon_capsule.png"]
+		PowerUpType.SPREAD:
+			candidates = [base_trimmed + "spread-bullet.png", base_alt + "ban-ra-5-qua-ten-lua.png", base_sprite + "buff_wings.png"]
+		PowerUpType.SHIELD:
+			candidates = [base_trimmed + "shield.png", base_alt + "khien-suc-manh.png", base_sprite + "buff_shield.png"]
+		PowerUpType.SPEED_BOOST:
+			candidates = [base_trimmed + "speed-more.png", base_alt + "dich-chuyen-tuc-thoi-sang-vi-tri-khac.png", base_sprite + "buff_wings.png"]
+		PowerUpType.MEGA_BOMB:
+			candidates = [base_trimmed + "bomb-decrease-hp-can-fire-bullet.png", base_sprite + "buff_bomb.png"]
+		PowerUpType.PET_JET:
+			candidates = [base_trimmed + "hire-pet-jet.png", base_alt + "trieu-hoi-pet-jet.png", base_sprite + "buff_wings.png"]
+		PowerUpType.MAGNET:
+			candidates = [base_trimmed + "attract-coin.png", base_alt + "nam-cham-hut-tien.png", base_sprite + "buff_magnet.png"]
+		PowerUpType.OVERCHARGE:
+			candidates = [base_trimmed + "power-up.png", base_alt + "suc-manh.png", base_sprite + "buff_weapon_capsule.png"]
+		PowerUpType.COIN:
+			candidates = [base_trimmed + "coin.png", base_alt + "hoi-mau.png", base_sprite + "buff_coin.png"]
+		PowerUpType.STAR:
+			candidates = [base_trimmed + "star.png", base_alt + "ngau-nhien-dan.png", base_sprite + "buff_star.png"]
+			
+	for p in candidates:
+		if ResourceLoader.exists(p):
+			var tex = load(p) as Texture2D
+			if tex:
+				sprite.texture = tex
+				var max_dim = float(max(tex.get_width(), tex.get_height()))
+				var sc = 48.0 / max(1.0, max_dim)
+				sprite.scale = Vector2(sc, sc)
+				sprite.modulate = Color(1.15, 1.15, 1.15, 1.0)
+				return
 
 func _process(delta: float) -> void:
 	time_passed += delta

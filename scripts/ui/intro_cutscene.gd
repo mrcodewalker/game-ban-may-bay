@@ -1,9 +1,10 @@
 extends Control
 
-@onready var bg_texture: TextureRect = $Background
-@onready var story_label: Label = $TextPanel/StoryLabel
-@onready var skip_button: Button = $SkipButton
-@onready var next_button: Button = $NextButton
+const UI = preload("res://scripts/ui/ui_kit.gd")
+var bg_texture: TextureRect
+var story_label: Label
+var skip_button: Button
+var next_button: Button
 
 var slides: Array[Dictionary] = [
 	{
@@ -28,10 +29,15 @@ var type_timer: float = 0.0
 var is_typing: bool = false
 
 func _ready() -> void:
-	if skip_button:
-		skip_button.pressed.connect(_on_skip_pressed)
-	if next_button:
-		next_button.pressed.connect(_on_next_pressed)
+	for child in get_children():
+		remove_child(child)
+		child.queue_free()
+	var col = UI.page(self, "BẦU TRỜI THẤT THỦ", "AIR FORCE 1943 · LỜI MỞ ĐẦU")
+	bg_texture = UI.photo(col, "", 320)
+	story_label = UI.label(col, "", 22)
+	story_label.custom_minimum_size.y = 220
+	next_button = UI.button(col, "Tiếp tục", _on_next_pressed, "green")
+	skip_button = UI.button(col, "Vào bộ tư lệnh", _on_skip_pressed)
 		
 	show_slide(0)
 
@@ -66,7 +72,7 @@ func _process(delta: float) -> void:
 			if visible_chars >= full_text.length():
 				is_typing = false
 
-func _input(event: InputEvent) -> void:
+func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		advance_cutscene()
 	elif event is InputEventMouseButton and event.pressed:

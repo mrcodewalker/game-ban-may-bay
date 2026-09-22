@@ -26,7 +26,7 @@ var start_fly_y: float = 700.0
 @onready var sprite: Sprite2D = null
 @onready var label_node: Label = null
 
-# Custom hand-cut princess textures
+# Custom hand-cut princess textures from commit 8fd02b0
 var tex_help: Array[Texture2D] = []
 var tex_success: Array[Texture2D] = []
 var tex_bye: Texture2D = null
@@ -47,55 +47,62 @@ func _ready() -> void:
 func load_textures() -> void:
 	var base_path = "res://extracted_assets/AI/cut_assets/princess/"
 	
-	for name in ["princess-aura-help-04.png", "princess-aura-help-5.png"]:
+	for name in ["princess-aura-help-04.png", "princess-aura-help-5.png", "princess-01.png", "princess-02.png"]:
 		var p = base_path + name
 		if ResourceLoader.exists(p):
 			var t = load(p) as Texture2D
 			if t: tex_help.append(t)
 			
-	for name in ["princess-success-06.png", "princess-success-07.png"]:
+	for name in ["princess-success-06.png", "princess-success-07.png", "princess-03.png"]:
 		var p = base_path + name
 		if ResourceLoader.exists(p):
 			var t = load(p) as Texture2D
 			if t: tex_success.append(t)
-			
+							
 	var bye_path = base_path + "princess-success-bye.png"
 	if ResourceLoader.exists(bye_path):
 		tex_bye = load(bye_path) as Texture2D
 
 func setup_sprites() -> void:
+	for child in get_children():
+		if child is Sprite2D:
+			child.queue_free()
+
 	sprite = Sprite2D.new()
-	sprite.position = Vector2(0, -25)
+	sprite.position = Vector2(0, -6)
 	add_child(sprite)
 	
 	if tex_help.size() > 0:
 		sprite.texture = tex_help[0]
-		set_sprite_scale(36.0)
+		set_sprite_scale(48.0)
+	else:
+		sprite.modulate = Color(1.0, 0.85, 0.2, 0.95)
 
 func set_sprite_scale(target_width: float) -> void:
 	if sprite and sprite.texture:
 		var tw = sprite.texture.get_width()
-		if tw > 0:
+		var th = sprite.texture.get_height()
+		if tw > 0 and th > 0:
 			var sc = target_width / float(tw)
 			sprite.scale = Vector2(sc, sc)
 
 func setup_label() -> void:
 	label_node = Label.new()
-	label_node.text = "[ 🔒 VIP RECOVERY ZONE 🔒 ]"
+	label_node.text = "[ 🔒 VIP RESCUE ZONE 🔒 ]"
 	label_node.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label_node.position = Vector2(-140, -95)
-	label_node.custom_minimum_size = Vector2(280, 24)
+	label_node.position = Vector2(-90, -44)
+	label_node.custom_minimum_size = Vector2(180, 18)
 	label_node.add_theme_color_override("font_color", Color(0.0, 0.95, 1.0))
 	label_node.add_theme_color_override("font_outline_color", Color(0.0, 0.1, 0.2, 1.0))
-	label_node.add_theme_constant_override("outline_size", 6)
-	label_node.add_theme_font_size_override("font_size", 11)
+	label_node.add_theme_constant_override("outline_size", 3)
+	label_node.add_theme_font_size_override("font_size", 9)
 	add_child(label_node)
 
 func setup_collision() -> void:
 	if not has_node("CollisionShape2D"):
 		var col = CollisionShape2D.new()
 		var shape = CircleShape2D.new()
-		shape.radius = 38.0
+		shape.radius = 32.0
 		col.shape = shape
 		add_child(col)
 
@@ -106,7 +113,7 @@ func _draw() -> void:
 	var pulse = 1.0 + sin(osc_timer * 4.5) * 0.08
 	var rot_cw = osc_timer * 2.5
 	var rot_ccw = -osc_timer * 1.8
-	var r = 38.0 * pulse
+	var r = 32.0 * pulse
 	
 	var cyan_idle = Color(0.0, 0.95, 1.0, 0.85)
 	var green_active = Color(0.1, 1.0, 0.5, 0.98)
@@ -186,10 +193,10 @@ func process_waiting_help(delta: float) -> void:
 		anim_timer = 0.0
 		anim_frame = (anim_frame + 1) % tex_help.size()
 		sprite.texture = tex_help[anim_frame]
-		set_sprite_scale(60.0)
+		set_sprite_scale(48.0)
 		
-	var aura_pulse = 1.0 + sin(osc_timer * 5.0) * 0.22
-	sprite.modulate = Color(1.25, 1.15, 0.85, 1.0) * aura_pulse
+	var aura_pulse = 1.0 + sin(osc_timer * 4.5) * 0.15
+	sprite.modulate = Color(1.20, 1.15, 0.90, 1.0) * aura_pulse
 
 	if is_player_inside and is_instance_valid(player_ref):
 		hover_timer += delta
@@ -207,7 +214,7 @@ func process_waiting_help(delta: float) -> void:
 			label_node.add_theme_color_override("font_color", Color(0.2, 1.0, 0.5))
 			label_node.add_theme_color_override("font_outline_color", Color(0.0, 0.2, 0.1, 1.0))
 		else:
-			label_node.text = "[ 🔒 HOLOGRAPHIC VIP RECOVERY ZONE 🔒 ]"
+			label_node.text = "[ 🔒 VIP RESCUE ZONE 🔒 ]"
 			label_node.add_theme_color_override("font_color", Color(0.0, 0.95, 1.0))
 			label_node.add_theme_color_override("font_outline_color", Color(0.0, 0.1, 0.2, 1.0))
 
@@ -252,87 +259,70 @@ func complete_rescue() -> void:
 		if GameManager.has_method("register_princess_rescue"):
 			GameManager.register_princess_rescue()
 
-	spawn_popup_text("✨ PRINCESS RESCUED! +5,000 PT & 🛡️ 3S SHIELD! ✨")
-
+	spawn_popup_text("✨ PRINCESS RESCUED! +5,000 PT & 🛡️ SHIELD! ✨")
+		
 	if tex_success.size() > 0:
 		sprite.texture = tex_success[0]
-		set_sprite_scale(65.0)
-		
+		set_sprite_scale(50.0)
+
 	if label_node:
 		label_node.text = "[ ✨ VIP SECURED - 🛡️ SHIELD GRANTED ✨ ]"
 		label_node.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
 		
-	sprite.modulate = Color(2.5, 2.5, 2.5, 1.0)
+	if sprite:
+		sprite.modulate = Color(2.2, 2.4, 2.2, 1.0)
 
 func trigger_rescue_effects() -> void:
-	var canvas = CanvasLayer.new()
-	canvas.layer = 100
-	var flash_rect = ColorRect.new()
-	flash_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
-	flash_rect.color = Color(1.0, 0.96, 0.65, 0.65)
-	canvas.add_child(flash_rect)
-	get_tree().root.add_child(canvas)
-	
-	var tween = canvas.create_tween()
-	tween.tween_property(flash_rect, "color:a", 0.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.tween_callback(canvas.queue_free)
-
 	var exp_scene = load("res://scenes/effects/explosion_fx.tscn") as PackedScene
 	if exp_scene:
 		for i in range(6):
 			var angle = (float(i) / 6.0) * TAU
-			var offset = Vector2(cos(angle), sin(angle)) * 50.0
+			var offset = Vector2(cos(angle), sin(angle)) * 40.0
 			var exp = exp_scene.instantiate()
 			exp.global_position = global_position + offset
-			exp.scale = Vector2(0.85, 0.85)
+			exp.scale = Vector2(0.75, 0.75)
 			exp.modulate = Color(1.5, 1.3, 0.5)
 			get_parent().add_child(exp)
 
 func process_rescuing(delta: float) -> void:
-	sprite.modulate = sprite.modulate.lerp(Color.WHITE, 6.0 * delta)
-	
-	if tex_success.size() > 0 and anim_timer >= 0.50:
-		anim_timer = 0.0
-		anim_frame = (anim_frame + 1) % tex_success.size()
-		sprite.texture = tex_success[anim_frame]
-		set_sprite_scale(65.0)
+	if sprite:
+		sprite.modulate = sprite.modulate.lerp(Color.WHITE, 6.0 * delta)
+		if tex_success.size() > 0 and anim_timer >= 0.45:
+			anim_timer = 0.0
+			anim_frame = (anim_frame + 1) % tex_success.size()
+			sprite.texture = tex_success[anim_frame]
+			set_sprite_scale(50.0)
 		
-	if state_timer >= 1.4:
+	if state_timer >= 1.0:
 		transition_to_flying_away()
 
 func transition_to_flying_away() -> void:
 	current_state = State.FLYING_AWAY
 	state_timer = 0.0
 	start_fly_y = position.y
-	fly_random_x = randf_range(-140.0, 140.0)
-	fly_velocity = Vector2(fly_random_x, -120.0)
-	z_index = 12
+	fly_random_x = randf_range(-100.0, 100.0)
+	fly_velocity = Vector2(fly_random_x, -160.0)
+	z_index = 10
 	
 	if tex_bye:
 		sprite.texture = tex_bye
-		set_sprite_scale(75.0)
+		set_sprite_scale(62.0)
 		
 	if label_node:
 		label_node.text = "[ 👋 BYE! THANK YOU! ❤️ ]"
-		label_node.add_theme_color_override("font_color", Color(1.0, 0.4, 0.8, 1.0))
+		label_node.add_theme_color_override("font_color", Color(1.0, 0.45, 0.85, 1.0))
 
 func process_flying_away(delta: float) -> void:
-	fly_velocity.y = lerp(fly_velocity.y, -420.0, 2.2 * delta)
+	fly_velocity.y = lerp(fly_velocity.y, -450.0, 2.5 * delta)
 	position += fly_velocity * delta
-	position.x += sin(state_timer * 5.0) * 35.0 * delta
+	position.x += sin(state_timer * 6.0) * 25.0 * delta
 	
-	var start_y = max(300.0, start_fly_y)
-	var top_y = -100.0
-	var height_ratio = clamp((position.y - top_y) / float(max(1.0, start_y - top_y)), 0.0, 1.0)
+	if state_timer > 0.4:
+		var fade_alpha = clamp(1.0 - ((state_timer - 0.4) / 0.7), 0.0, 1.0)
+		if sprite: sprite.modulate.a = fade_alpha
+		if label_node: label_node.modulate.a = fade_alpha
 	
-	var current_w = lerp(30.0, 75.0, height_ratio)
-	set_sprite_scale(current_w)
-	
-	if height_ratio < 0.25:
-		sprite.modulate.a = height_ratio / 0.25
-		if label_node: label_node.modulate.a = sprite.modulate.a
-	
-	if position.y < -150:
+	if position.y < -120 or state_timer >= 1.3:
 		queue_free()
 
 func spawn_popup_text(msg: String) -> void:

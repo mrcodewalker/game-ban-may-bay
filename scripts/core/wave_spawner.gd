@@ -101,7 +101,7 @@ func start_wave(wave_num: int) -> void:
 
 
 func _process(delta: float) -> void:
-	if GameManager.is_game_over or boss_spawned:
+	if GameManager.is_game_over or GameManager.is_game_won or boss_spawned:
 		return
 
 	# STRICT ZERO-SPAWN 6-SECOND INITIAL GRACE PERIOD
@@ -118,6 +118,13 @@ func _process(delta: float) -> void:
 
 	wave_timer += delta
 	continuous_timer += delta
+	# Storm bay introduces moving interference fields, distinct from the
+	# coastal batteries in map 1 and interceptor waves in map 2.
+	if GameManager.current_map == 3:
+		debuff_timer += delta
+		if debuff_timer >= 16.0 and get_tree().get_nodes_in_group("debuff_zones").size() < 1:
+			debuff_timer = 0.0
+			spawn_debuff_zone()
 
 	# Overall Progress ratio (0.0 to 1.0) across 5 waves towards Boss
 	var wave_base_progress = float(clamp(current_wave - 1, 0, 5)) * 0.20
@@ -146,9 +153,9 @@ func _process(delta: float) -> void:
 		spawn_ground_tower()
 
 	princess_timer += delta
-	if princess_timer >= 55.0:
+	if princess_timer >= 18.0:
 		var active_zones = get_tree().get_nodes_in_group("rescue_zones").size()
-		if active_zones < 1:
+		if active_zones < 1 and GameManager.princesses_rescued_in_run < GameManager.target_princesses_count:
 			princess_timer = 0.0
 			spawn_princess_vip()
 
@@ -236,6 +243,13 @@ func spawn_phase_pack() -> void:
 	var active_count = get_tree().get_nodes_in_group("enemies").size()
 	var max_allowed = get_max_active_enemies()
 	if active_count >= max_allowed:
+		return
+
+	if GameManager.current_map == 2 and current_phase >= 2:
+		spawn_fast_jet_blitz(2)
+		return
+	if GameManager.current_map == 3 and current_phase >= 2:
+		spawn_medium_bombers(2)
 		return
 
 	match current_phase:

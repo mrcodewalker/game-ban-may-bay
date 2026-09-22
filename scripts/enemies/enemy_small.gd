@@ -1,5 +1,8 @@
 extends Area2D
 
+var evasion = preload("res://scripts/enemies/evasion_ai.gd").new()
+var death_started: bool = false
+
 enum FlightPattern { ARC_LEFT_TO_RIGHT, ARC_RIGHT_TO_LEFT, S_CURVE, LOOP_DE_LOOP, DIVE_ATTACK }
 
 @export var max_hp: float = 30.0
@@ -21,6 +24,9 @@ var time_passed: float = 0.0
 var shoot_timer: float = 1.2
 var velocity: Vector2 = Vector2.ZERO
 var start_pos: Vector2 = Vector2.ZERO
+var evade_cooldown: float = 0.0
+var is_evading: bool = false
+var evade_offset_x: float = 0.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 
@@ -37,25 +43,23 @@ func _ready() -> void:
 		if tex:
 			sprite.texture = tex
 			var sc = 80.0 / float(max(1, tex.get_width()))
-
-
-
-
 			sprite.scale = Vector2(sc, sc)
 
 func _process(delta: float) -> void:
-	if GameManager.is_game_over:
+	if GameManager.is_game_over or GameManager.is_game_won:
 		return
 		
 	time_passed += delta
 	compute_flight_path(delta)
+	
+	# Smart Bullet Evasion AI
+	handle_bullet_evasion(delta)
 	
 	position += velocity * delta
 	
 	if velocity.length_squared() > 10.0 and is_instance_valid(sprite):
 		var target_angle = velocity.angle() + (PI / 2.0)
 		sprite.rotation = lerp_angle(sprite.rotation, target_angle, 14.0 * delta)
-
 		
 	shoot_timer -= delta
 	if shoot_timer <= 0.0:
@@ -64,6 +68,10 @@ func _process(delta: float) -> void:
 		
 	if position.y > 1060 or position.y < -300 or position.x < -150 or position.x > 690:
 		queue_free()
+
+func handle_bullet_evasion(delta: float) -> void:
+	evasion.update(self, delta, 40.0, 1.0)
+	is_evading = evasion.is_dodging()
 
 func compute_flight_path(_delta: float) -> void:
 	var speed_mult = GameManager.get_enemy_speed_mult()
@@ -118,8 +126,12 @@ func shoot() -> void:
 		AudioManager.play_sfx("enemy_shoot", -11.0)
 
 func take_damage(amount: float) -> void:
+	if death_started or GameManager.is_game_won: return
+	if evasion.is_dodging(): return
 	hp -= amount
-	if sprite:
+	if hp > 0.0 and evasion.can_trigger_emergency_dodge():
+		evasion.trigger_emergency_dodge(self, 40.0, 1.0)
+	elif sprite:
 		sprite.modulate = Color(3.0, 0.4, 0.4)
 		var tween = create_tween()
 		tween.tween_property(sprite, "modulate", Color(1, 1, 1), 0.08)
@@ -128,6 +140,8 @@ func take_damage(amount: float) -> void:
 		die()
 
 func die() -> void:
+	if death_started: return
+	death_started = true
 	if AudioManager:
 		AudioManager.play_sfx("explosion", -3.0)
 		

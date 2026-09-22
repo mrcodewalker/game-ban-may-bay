@@ -1,818 +1,1011 @@
+## hud.gd  –  Air Force 1943 · Military Arcade Aviation HUD
+## Thiết kế: Ultra-compact, Glass Translucent Overlay, Gameplay-First
+## Màn hình target: 540 × 960 (dọc)
 extends CanvasLayer
 
-@onready var score_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/ScoreLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/ScoreLabel") else null
-@onready var high_score_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/HighScoreLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/HighScoreLabel") else null
-@onready var gems_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/GemsLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/GemsLabel") else null
-@onready var weapon_label: Label = $TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/WeaponLabel if has_node("TopBarPanel/Margin/HBox/VBoxLeft/HBoxSub/WeaponLabel") else null
-@onready var bomb_label: Label = null
+# ──────────────────────────────────────────────────────────────────────────────
+#  PALETTE (Military Arcade Aviation)
+# ──────────────────────────────────────────────────────────────────────────────
+const C_BG_GLASS   = Color(0.02, 0.05, 0.10, 0.65)   # Translucent Gunmetal / Navy Glass
+const C_EDGE_STEEL = Color(0.24, 0.52, 0.85, 0.38)   # Ultra-thin steel cyan edge
+const C_TEXT_MAIN  = Color(0.92, 0.96, 1.00, 1.00)   # Crisp cockpit white
+const C_TEXT_DIM   = Color(0.48, 0.65, 0.82, 0.80)   # Auxiliary dim blue-grey
+const C_HP_RED     = Color(0.95, 0.18, 0.20, 1.00)   # Deep red HP
+const C_ARM_CYAN   = Color(0.18, 0.78, 1.00, 1.00)   # High-tech cyan armor
+const C_SCORE_NUM  = Color(0.88, 0.98, 1.00, 1.00)   # Digital arcade score
+const C_GOLD_AMBER = Color(1.00, 0.82, 0.18, 1.00)   # Gold coin / amber
+const C_GEM_CYAN   = Color(0.28, 0.94, 1.00, 1.00)   # Gem crystal cyan
+const C_WARN_FLAME = Color(1.00, 0.38, 0.08, 1.00)   # Warning / alert orange
+const C_OK_GREEN   = Color(0.25, 0.95, 0.45, 1.00)   # Objective checkmark neon green
+const C_BOSS_NEON  = Color(0.98, 0.15, 0.22, 1.00)   # Boss health neon crimson
+const C_PHASE_CYAN = Color(0.25, 0.88, 1.00, 1.00)   # Wave phase cyan
 
-@onready var mute_btn: Button = $TopBarPanel/Margin/HBox/HBoxHeaderSettings/MuteButton if has_node("TopBarPanel/Margin/HBox/HBoxHeaderSettings/MuteButton") else null
-@onready var pause_btn: Button = $TopBarPanel/Margin/HBox/HBoxHeaderSettings/PauseButton if has_node("TopBarPanel/Margin/HBox/HBoxHeaderSettings/PauseButton") else null
+# Combo Tier Colors
+const C_TIER_COMBO  = Color(1.00, 0.88, 0.18, 1.00)  # 5x  COMBO (Gold)
+const C_TIER_ULTRA  = Color(0.25, 0.95, 1.00, 1.00)  # 10x ULTRA COMBO (Electric Cyan)
+const C_TIER_MEGA   = Color(1.00, 0.25, 0.85, 1.00)  # 20x MEGA COMBO (Neon Magenta)
+const C_TIER_INSANE = Color(1.00, 0.38, 0.08, 1.00)  # 30x INSANE (Fiery Orange)
 
-@onready var phase_banner: Label = $PhaseBanner if has_node("PhaseBanner") else null
-@onready var hp_bar: ProgressBar = $BottomMargin/HBoxBottom/VBoxHP/HPBar if has_node("BottomMargin/HBoxBottom/VBoxHP/HPBar") else null
-@onready var phase_bar: ProgressBar = $BottomMargin/HBoxBottom/VBoxPhase/PhaseBar if has_node("BottomMargin/HBoxBottom/VBoxPhase/PhaseBar") else null
-@onready var phase_title_label: Label = $BottomMargin/HBoxBottom/VBoxPhase/PhaseTitle if has_node("BottomMargin/HBoxBottom/VBoxPhase/PhaseTitle") else null
+# ──────────────────────────────────────────────────────────────────────────────
+#  NODE REFS
+# ──────────────────────────────────────────────────────────────────────────────
+var _root: Control
 
-@onready var boss_container: VBoxContainer = $BossContainer
-@onready var boss_hp_bar: ProgressBar = $BossContainer/BossHPBar
+# Unified Top Header Bar
+var _top_bar:     Control
+var _hp_bar:      ProgressBar
+var _hp_txt:      Label
+var _arm_bar:     ProgressBar
+var _arm_txt:     Label
+var _lv_lbl:      Label
+var _bomb_lbl:    Label
+var _mission_lbl: Label
+var _score_lbl:   Label
+var _gem_lbl:     Label
+var _gold_lbl:    Label
+var _pause_btn:   Button
 
-@onready var revive_panel: Control = $ReviveDialog if has_node("ReviveDialog") else null
-@onready var game_over_panel: Control = $GameOverDialog
-@onready var pause_dialog: Control = $PauseDialog if has_node("PauseDialog") else null
+# Combo System (Upper-Center, Free-Floating)
+var _combo_root:  Control
+var _combo_count: Label
+var _combo_name:  Label
+var _combo_tw:    Tween
 
+# Sub-Header: Objectives Tracker (Left) & Princess Chat Bubble (Right)
+var _sub_row:         HBoxContainer
+var _obj_panel:       Control
+var _obj_labels:      Array[Label] = []
+var _bubble_panel:    Control
+var _bubble_avatar:   TextureRect
+var _bubble_text:     Label
+var _bubble_tw:       Tween
+var _idle_cheer_timer: float = 0.0
+
+# Backwards-compatibility aliases
+var _dlg_panel: Control
+var _dlg_text:  Label
+var _dlg_tw:    Tween
+
+# Boss & Mission Phase Bar (Bottom Edge)
+var _phase_panel: Control
+var _phase_lbl:   Label
+var _phase_bar:   ProgressBar
+var _phase_fill:  StyleBoxFlat
+var _phase_step1: Label
+var _phase_step2: Label
+var _phase_step3: Label
+
+# Boss HP Strip (Underneath Top Bar, pop-in)
+var _boss_strip: Control
+var _boss_bar:   ProgressBar
+var _boss_lbl:   Label
+
+# Tactical Briefing Comms (NPC Intro)
+var _intro_overlay:  Control
+var _intro_text:     RichTextLabel
+var _intro_skip_btn: Button
+var _intro_queue:    Array = []
+var _intro_typing:   bool  = false
+var _type_timer:     Timer = null
+
+# Sub-Dialogues
+var _pause_dialog:    Control
+var _game_over_panel: Control
+var _revive_panel:    Control
+
+# Animation State
+var _score_display: float = 0.0
+var _score_target:  float = 0.0
+var _prev_phase:    int   = 1
+
+# ══════════════════════════════════════════════════════════════════════════════
 func _ready() -> void:
-	if GameManager:
-		GameManager.score_updated.connect(_on_score_updated)
-		GameManager.high_score_updated.connect(_on_high_score_updated)
-		GameManager.gems_updated.connect(_on_gems_updated)
-		GameManager.player_health_updated.connect(_on_player_health_updated)
-		GameManager.player_bombs_updated.connect(_on_player_bombs_updated)
-		GameManager.weapon_level_updated.connect(_on_weapon_level_updated)
-		GameManager.boss_health_updated.connect(_on_boss_health_updated)
-		GameManager.phase_changed.connect(_on_phase_changed)
-		GameManager.wave_progress_updated.connect(_on_wave_progress_updated)
-		GameManager.princess_rescued.connect(_on_princess_rescued)
-		GameManager.mission_tasks_updated.connect(_on_mission_tasks_updated)
-		if GameManager.has_signal("combo_updated"):
-			GameManager.combo_updated.connect(_on_combo_updated)
-		if GameManager.has_signal("princess_cheer_requested"):
-			GameManager.princess_cheer_requested.connect(show_princess_cheer_popup)
-		GameManager.game_over_triggered.connect(_on_game_over)
-		GameManager.game_won_triggered.connect(_on_game_won)
-		
-		_on_score_updated(GameManager.score)
-		_on_high_score_updated(GameManager.high_score)
-		_on_gems_updated(GameManager.gems)
-		_on_player_health_updated(GameManager.player_hp, GameManager.player_max_hp)
-		_on_player_bombs_updated(GameManager.player_bombs)
-		_on_weapon_level_updated(GameManager.current_weapon_level)
-		_on_princess_rescued(GameManager.princesses_rescued_in_run, GameManager.target_princesses_count)
-		_on_boss_health_updated(0, 100, false)
-		
-		setup_task_panel()
-		if GameManager.has_method("emit_mission_tasks"):
-			GameManager.emit_mission_tasks()
+	for child in get_children():
+		remove_child(child)
+		child.queue_free()
 
-	show_start_story_dialogue()
-		
-	if game_over_panel: game_over_panel.hide()
-	if revive_panel:
-		revive_panel.hide()
-		if revive_panel.has_signal("revive_cancelled"):
-			revive_panel.revive_cancelled.connect(show_game_over_dialog)
-	if pause_dialog: pause_dialog.hide()
-	setup_pause_and_audio_ui()
+	_root = Control.new()
+	_root.name = "HUDRoot"
+	_root.set_meta("ignore_skin", true)
+	_root.set_meta("custom_hud", true)
+	add_child(_root)
+	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-func setup_pause_and_audio_ui() -> void:
-	if mute_btn:
-		mute_btn.pressed.connect(_on_mute_btn_pressed)
-		ButtonStyler.apply_textured_style(mute_btn, "default")
-		update_mute_btn_visual(AudioManager.is_muted if AudioManager else false)
-		
-	if pause_btn:
-		pause_btn.pressed.connect(_on_pause_btn_pressed)
-		ButtonStyler.apply_textured_style(pause_btn, "default")
+	_build_top_bar()
+	_build_sub_header()
+	_build_boss_strip()
+	_build_combo()
+	_build_phase_bar()
+	_build_intro_overlay()
 
-	if AudioManager and AudioManager.has_signal("audio_settings_changed"):
-		AudioManager.audio_settings_changed.connect(func(_bgm, _sfx, is_muted):
-			update_mute_btn_visual(is_muted)
-		)
+	# Sub dialog scenes
+	_pause_dialog = load("res://scenes/ui/pause_dialog.tscn").instantiate()
+	_pause_dialog.set_meta("ignore_skin", true)
+	add_child(_pause_dialog)
 
-func update_mute_btn_visual(is_muted: bool) -> void:
-	if mute_btn:
-		mute_btn.text = "🔇" if is_muted else "🔊"
-		if is_muted:
-			ButtonStyler.apply_textured_style(mute_btn, "red")
+	_game_over_panel = load("res://scenes/ui/game_over_dialog.tscn").instantiate()
+	_game_over_panel.set_meta("ignore_skin", true)
+	add_child(_game_over_panel)
+	_game_over_panel.hide()
+
+	_revive_panel = load("res://scenes/ui/revive_dialog.tscn").instantiate()
+	_revive_panel.set_meta("ignore_skin", true)
+	add_child(_revive_panel)
+	_revive_panel.revive_cancelled.connect(show_game_over_dialog)
+
+	_connect_signals()
+	_refresh()
+	
+	# Start story briefing
+	get_tree().create_timer(0.65).timeout.connect(_start_intro)
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  STYLE HELPERS (Arcade Military Style)
+# ──────────────────────────────────────────────────────────────────────────────
+func _glass_box(alpha: float = 0.65, border_col: Color = C_EDGE_STEEL, r: int = 4) -> StyleBoxFlat:
+	var s = StyleBoxFlat.new()
+	s.bg_color = Color(C_BG_GLASS.r, C_BG_GLASS.g, C_BG_GLASS.b, alpha)
+	s.border_color = border_col
+	s.set_border_width_all(1)
+	s.set_corner_radius_all(r)
+	s.set_content_margin_all(6)
+	return s
+
+func _bar_fill_box(col: Color, r: int = 2) -> StyleBoxFlat:
+	var s = StyleBoxFlat.new()
+	s.bg_color = col
+	s.set_corner_radius_all(r)
+	return s
+
+func _bar_bg_box(r: int = 2) -> StyleBoxFlat:
+	var s = StyleBoxFlat.new()
+	s.bg_color = Color(0.04, 0.07, 0.12, 0.85)
+	s.border_color = Color(0.18, 0.32, 0.50, 0.45)
+	s.set_border_width_all(1)
+	s.set_corner_radius_all(r)
+	return s
+
+func _create_lbl(parent: Node, txt: String, sz: int, col: Color = C_TEXT_MAIN, outline_sz: int = 3) -> Label:
+	var l = Label.new()
+	l.text = txt
+	l.set_meta("ignore_skin", true)
+	l.add_theme_font_size_override("font_size", sz)
+	l.add_theme_color_override("font_color", col)
+	l.add_theme_constant_override("outline_size", outline_sz)
+	l.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
+	parent.add_child(l)
+	return l
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  1. UNIFIED TOP HEADER BAR  (Full-width cockpit banner, ~524 × 54 px)
+# ══════════════════════════════════════════════════════════════════════════════
+func _build_top_bar() -> void:
+	var p = PanelContainer.new()
+	_top_bar = p
+	p.set_meta("ignore_skin", true)
+	_root.add_child(p)
+	p.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	p.offset_left   = 8
+	p.offset_right  = -8
+	p.offset_top    = 6
+	p.offset_bottom = 60
+	p.add_theme_stylebox_override("panel", _glass_box(0.72, C_EDGE_STEEL, 4))
+
+	var main_hbox = HBoxContainer.new()
+	main_hbox.set_meta("ignore_skin", true)
+	main_hbox.add_theme_constant_override("separation", 8)
+	p.add_child(main_hbox)
+
+	# ── Left: Player Combat Status (HP & Armor bars)
+	var left_col = VBoxContainer.new()
+	left_col.set_meta("ignore_skin", true)
+	left_col.custom_minimum_size = Vector2(178, 0)
+	left_col.add_theme_constant_override("separation", 3)
+	main_hbox.add_child(left_col)
+
+	# HP Row
+	var hp_row = HBoxContainer.new()
+	hp_row.set_meta("ignore_skin", true)
+	hp_row.add_theme_constant_override("separation", 4)
+	left_col.add_child(hp_row)
+	_create_lbl(hp_row, "❤️", 9)
+	_hp_bar = ProgressBar.new()
+	_hp_bar.set_meta("ignore_skin", true)
+	_hp_bar.custom_minimum_size = Vector2(85, 6)
+	_hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_hp_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_hp_bar.show_percentage = false
+	_hp_bar.add_theme_stylebox_override("fill", _bar_fill_box(C_HP_RED))
+	_hp_bar.add_theme_stylebox_override("background", _bar_bg_box())
+	hp_row.add_child(_hp_bar)
+	_hp_txt = _create_lbl(hp_row, "260/260", 8, C_HP_RED, 2)
+
+	# Armor Row
+	var arm_row = HBoxContainer.new()
+	arm_row.set_meta("ignore_skin", true)
+	arm_row.add_theme_constant_override("separation", 4)
+	left_col.add_child(arm_row)
+	_create_lbl(arm_row, "🛡", 9)
+	_arm_bar = ProgressBar.new()
+	_arm_bar.set_meta("ignore_skin", true)
+	_arm_bar.custom_minimum_size = Vector2(85, 5)
+	_arm_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_arm_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_arm_bar.show_percentage = false
+	_arm_bar.add_theme_stylebox_override("fill", _bar_fill_box(C_ARM_CYAN))
+	_arm_bar.add_theme_stylebox_override("background", _bar_bg_box())
+	arm_row.add_child(_arm_bar)
+	_arm_txt = _create_lbl(arm_row, "100%", 8, C_ARM_CYAN, 2)
+
+	# ── Center: Mission & Large Digital Score
+	var mid_col = VBoxContainer.new()
+	mid_col.set_meta("ignore_skin", true)
+	mid_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mid_col.add_theme_constant_override("separation", 1)
+	mid_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	main_hbox.add_child(mid_col)
+
+	_mission_lbl = _create_lbl(mid_col, "MISSION 01", 8, C_TEXT_DIM, 2)
+	_mission_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	_score_lbl = _create_lbl(mid_col, "000000", 17, C_SCORE_NUM, 4)
+	_score_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	# ── Right: Currency (Gems/Gold), Pause, Level & Bomb
+	var right_col = VBoxContainer.new()
+	right_col.set_meta("ignore_skin", true)
+	right_col.custom_minimum_size = Vector2(165, 0)
+	right_col.add_theme_constant_override("separation", 3)
+	main_hbox.add_child(right_col)
+
+	# Row 1: Currency & Pause
+	var r_top = HBoxContainer.new()
+	r_top.set_meta("ignore_skin", true)
+	r_top.alignment = BoxContainer.ALIGNMENT_END
+	r_top.add_theme_constant_override("separation", 5)
+	right_col.add_child(r_top)
+
+	_create_lbl(r_top, "💎", 9)
+	_gem_lbl = _create_lbl(r_top, "0", 10, C_GEM_CYAN, 2)
+
+	var cur_div = _create_lbl(r_top, "│", 8, C_TEXT_DIM, 1)
+	cur_div.modulate.a = 0.40
+
+	_create_lbl(r_top, "⭐", 9)
+	_gold_lbl = _create_lbl(r_top, "0", 10, C_GOLD_AMBER, 2)
+
+	_pause_btn = Button.new()
+	_pause_btn.set_meta("ignore_skin", true)
+	_pause_btn.text = "⏸"
+	_pause_btn.custom_minimum_size = Vector2(22, 18)
+	_pause_btn.focus_mode = Control.FOCUS_NONE
+	var pb_style = StyleBoxFlat.new()
+	pb_style.bg_color = Color(0.08, 0.16, 0.28, 0.70)
+	pb_style.border_color = C_EDGE_STEEL
+	pb_style.set_border_width_all(1)
+	pb_style.set_corner_radius_all(3)
+	_pause_btn.add_theme_stylebox_override("normal", pb_style)
+	_pause_btn.add_theme_stylebox_override("hover",  pb_style)
+	_pause_btn.add_theme_stylebox_override("pressed", pb_style)
+	_pause_btn.add_theme_font_size_override("font_size", 9)
+	_pause_btn.add_theme_color_override("font_color", C_TEXT_MAIN)
+	_pause_btn.pressed.connect(_pause)
+	r_top.add_child(_pause_btn)
+
+	# Row 2: Level & Bomb
+	var r_btm = HBoxContainer.new()
+	r_btm.set_meta("ignore_skin", true)
+	r_btm.alignment = BoxContainer.ALIGNMENT_END
+	r_btm.add_theme_constant_override("separation", 6)
+	right_col.add_child(r_btm)
+
+	_create_lbl(r_btm, "LV", 8, C_TEXT_DIM, 2)
+	_lv_lbl = _create_lbl(r_btm, "1", 10, C_TEXT_MAIN, 2)
+
+	var lv_div = _create_lbl(r_btm, "·", 8, C_TEXT_DIM, 1)
+	lv_div.modulate.a = 0.40
+
+	_create_lbl(r_btm, "💣", 9)
+	_bomb_lbl = _create_lbl(r_btm, "×3", 10, C_GOLD_AMBER, 2)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  3. COMBO SYSTEM (Upper-Center, Free-Floating, No Box)
+# ══════════════════════════════════════════════════════════════════════════════
+func _build_combo() -> void:
+	_combo_root = Control.new()
+	_combo_root.set_meta("ignore_skin", true)
+	_combo_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_combo_root)
+	_combo_root.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_combo_root.offset_left   = -110
+	_combo_root.offset_right  = 110
+	_combo_root.offset_top    = 195
+	_combo_root.offset_bottom = 275
+	_combo_root.pivot_offset  = Vector2(110, 40)
+	_combo_root.hide()
+
+	var col = VBoxContainer.new()
+	col.set_meta("ignore_skin", true)
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	col.add_theme_constant_override("separation", 0)
+	col.alignment = BoxContainer.ALIGNMENT_CENTER
+	_combo_root.add_child(col)
+
+	_combo_count = _create_lbl(col, "10×", 48, C_TIER_ULTRA, 5)
+	_combo_count.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
+	_combo_count.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	_combo_name = _create_lbl(col, "ULTRA COMBO", 12, C_TIER_ULTRA, 3)
+	_combo_name.horizontal_alignment  = HORIZONTAL_ALIGNMENT_CENTER
+	_combo_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  4. SUB-HEADER: OBJECTIVES (LEFT) + PRINCESS AURORA CHAT BUBBLE (RIGHT)
+#  (Directly below Header, Y: 64 -> 120, Full-width 524px)
+# ══════════════════════════════════════════════════════════════════════════════
+func _build_sub_header() -> void:
+	_sub_row = HBoxContainer.new()
+	_sub_row.name = "SubHeaderRow"
+	_sub_row.set_meta("ignore_skin", true)
+	_root.add_child(_sub_row)
+	_sub_row.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	_sub_row.offset_left   = 8
+	_sub_row.offset_right  = -8
+	_sub_row.offset_top    = 64
+	_sub_row.offset_bottom = 120
+	_sub_row.add_theme_constant_override("separation", 6)
+
+	# ── Left: Task / Objectives Panel (~232px wide, 2x2 Grid)
+	_obj_panel = PanelContainer.new()
+	_obj_panel.name = "ObjectivePanel"
+	_obj_panel.set_meta("ignore_skin", true)
+	_obj_panel.custom_minimum_size = Vector2(232, 56)
+	_obj_panel.add_theme_stylebox_override("panel", _glass_box(0.75, C_EDGE_STEEL, 4))
+	_sub_row.add_child(_obj_panel)
+
+	var obj_vbox = VBoxContainer.new()
+	obj_vbox.set_meta("ignore_skin", true)
+	obj_vbox.add_theme_constant_override("separation", 2)
+	obj_vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	_obj_panel.add_child(obj_vbox)
+
+	var obj_hdr = HBoxContainer.new()
+	obj_hdr.set_meta("ignore_skin", true)
+	obj_hdr.add_theme_constant_override("separation", 4)
+	obj_vbox.add_child(obj_hdr)
+
+	_create_lbl(obj_hdr, "🎯", 9)
+	_create_lbl(obj_hdr, "NHIỆM VỤ CHIẾN DỊCH", 8, Color(0.40, 0.78, 1.00), 2)
+
+	# 2 rows for targets (clear, spacious)
+	var r1 = HBoxContainer.new()
+	r1.set_meta("ignore_skin", true)
+	r1.add_theme_constant_override("separation", 8)
+	obj_vbox.add_child(r1)
+
+	var r2 = HBoxContainer.new()
+	r2.set_meta("ignore_skin", true)
+	r2.add_theme_constant_override("separation", 8)
+	obj_vbox.add_child(r2)
+
+	_obj_labels.clear()
+	# Targets: 0: VIP, 1: JET, 2: TANK, 3: TOWER
+	var l_vip = _create_lbl(r1, "◆ VIP 0/1", 10, C_TEXT_DIM, 2)
+	l_vip.custom_minimum_size = Vector2(104, 0)
+	_obj_labels.append(l_vip)
+
+	var l_jet = _create_lbl(r1, "◆ JET 0/0", 10, C_TEXT_DIM, 2)
+	l_jet.custom_minimum_size = Vector2(104, 0)
+	_obj_labels.append(l_jet)
+
+	var l_tank = _create_lbl(r2, "◆ TANK 0/0", 10, C_TEXT_DIM, 2)
+	l_tank.custom_minimum_size = Vector2(104, 0)
+	_obj_labels.append(l_tank)
+
+	var l_tower = _create_lbl(r2, "◆ TOWER 0/0", 10, C_TEXT_DIM, 2)
+	l_tower.custom_minimum_size = Vector2(104, 0)
+	_obj_labels.append(l_tower)
+
+	# ── Right: Princess Aurora Chat Bubble (Speech bubble with avatar + cheerful quotes)
+	_bubble_panel = PanelContainer.new()
+	_bubble_panel.name = "PrincessChatBubble"
+	_bubble_panel.set_meta("ignore_skin", true)
+	_bubble_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_bubble_panel.custom_minimum_size   = Vector2(0, 56)
+
+	var bubble_style = StyleBoxFlat.new()
+	bubble_style.bg_color = Color(0.04, 0.07, 0.15, 0.85)
+	bubble_style.border_color = Color(0.92, 0.48, 0.98, 0.75)
+	bubble_style.set_border_width_all(1)
+	bubble_style.set_corner_radius_all(5)
+	bubble_style.set_content_margin_all(4)
+	_bubble_panel.add_theme_stylebox_override("panel", bubble_style)
+	_sub_row.add_child(_bubble_panel)
+
+	_dlg_panel = _bubble_panel
+
+	var b_hbox = HBoxContainer.new()
+	b_hbox.set_meta("ignore_skin", true)
+	b_hbox.add_theme_constant_override("separation", 6)
+	_bubble_panel.add_child(b_hbox)
+
+	# Princess Avatar
+	var av_frame = Control.new()
+	av_frame.set_meta("ignore_skin", true)
+	av_frame.custom_minimum_size = Vector2(44, 46)
+	b_hbox.add_child(av_frame)
+
+	_bubble_avatar = TextureRect.new()
+	_bubble_avatar.set_meta("ignore_skin", true)
+	if ResourceLoader.exists("res://extracted_assets/AI/cut_assets/princess/princess-success-bye.png"):
+		_bubble_avatar.texture = load("res://extracted_assets/AI/cut_assets/princess/princess-success-bye.png")
+	_bubble_avatar.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_bubble_avatar.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_bubble_avatar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_bubble_avatar.pivot_offset = Vector2(22, 23)
+	av_frame.add_child(_bubble_avatar)
+
+	# Text Column
+	var text_col = VBoxContainer.new()
+	text_col.set_meta("ignore_skin", true)
+	text_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_col.add_theme_constant_override("separation", 1)
+	text_col.alignment = BoxContainer.ALIGNMENT_CENTER
+	b_hbox.add_child(text_col)
+
+	var th = HBoxContainer.new()
+	th.set_meta("ignore_skin", true)
+	th.add_theme_constant_override("separation", 4)
+	text_col.add_child(th)
+
+	_create_lbl(th, "👑 AURORA", 8, Color(1.0, 0.70, 0.96), 2)
+	var st = _create_lbl(th, "● RADIO", 7, Color(0.35, 0.90, 1.0, 0.8), 1)
+	st.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	_bubble_text = Label.new()
+	_bubble_text.set_meta("ignore_skin", true)
+	_bubble_text.text = "Xuất kích nào! Quét sạch quân địch nhé! ✨"
+	_bubble_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_bubble_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_bubble_text.add_theme_font_size_override("font_size", 9)
+	_bubble_text.add_theme_color_override("font_color", C_TEXT_MAIN)
+	_bubble_text.add_theme_constant_override("outline_size", 2)
+	_bubble_text.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
+	text_col.add_child(_bubble_text)
+
+	_dlg_text = _bubble_text
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  5. BOSS & MISSION PHASE BAR (Bottom Edge, ~48 px)
+# ══════════════════════════════════════════════════════════════════════════════
+func _build_phase_bar() -> void:
+	_phase_panel = PanelContainer.new()
+	_phase_panel.set_meta("ignore_skin", true)
+	_root.add_child(_phase_panel)
+	_phase_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_phase_panel.offset_left   = 10
+	_phase_panel.offset_right  = -10
+	_phase_panel.offset_top    = -54
+	_phase_panel.offset_bottom = -6
+	_phase_panel.add_theme_stylebox_override("panel", _glass_box(0.75, C_EDGE_STEEL, 4))
+
+	var col = VBoxContainer.new()
+	col.set_meta("ignore_skin", true)
+	col.add_theme_constant_override("separation", 3)
+	_phase_panel.add_child(col)
+
+	# Phase Header
+	var hdr = HBoxContainer.new()
+	hdr.set_meta("ignore_skin", true)
+	hdr.add_theme_constant_override("separation", 5)
+	col.add_child(hdr)
+
+	_create_lbl(hdr, "⚡", 9, C_PHASE_CYAN)
+	_phase_lbl = _create_lbl(hdr, "HEAVY ARMORED SQUADRON  ·  PHASE 1/3", 9, C_PHASE_CYAN, 2)
+	_phase_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	# 3-Stage labels: RECON ━━━━━ ASSAULT ━━━━━ DREADNOUGHT
+	var steps_row = HBoxContainer.new()
+	steps_row.set_meta("ignore_skin", true)
+	steps_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_child(steps_row)
+
+	_phase_step1 = _create_lbl(steps_row, "RECON", 9, C_PHASE_CYAN, 2)
+	_create_lbl(steps_row, " ━━━━━ ", 8, C_TEXT_DIM, 1)
+	_phase_step2 = _create_lbl(steps_row, "ASSAULT", 9, C_TEXT_DIM, 1)
+	_create_lbl(steps_row, " ━━━━━ ", 8, C_TEXT_DIM, 1)
+	_phase_step3 = _create_lbl(steps_row, "DREADNOUGHT", 9, C_TEXT_DIM, 1)
+
+	# Progress bar (7px)
+	_phase_bar = ProgressBar.new()
+	_phase_bar.set_meta("ignore_skin", true)
+	_phase_bar.custom_minimum_size   = Vector2(0, 7)
+	_phase_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_phase_bar.show_percentage       = false
+	_phase_bar.max_value             = 1.0
+
+	_phase_fill = _bar_fill_box(C_PHASE_CYAN, 3)
+	_phase_bar.add_theme_stylebox_override("fill",       _phase_fill)
+	_phase_bar.add_theme_stylebox_override("background", _bar_bg_box(3))
+	col.add_child(_phase_bar)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  6. BOSS HP STRIP (Directly underneath Sub-Header, Pop-in when boss arrives)
+# ══════════════════════════════════════════════════════════════════════════════
+func _build_boss_strip() -> void:
+	_boss_strip = Control.new()
+	_boss_strip.set_meta("ignore_skin", true)
+	_root.add_child(_boss_strip)
+	_boss_strip.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	_boss_strip.offset_left   = -175
+	_boss_strip.offset_right  = 175
+	_boss_strip.offset_top    = 124
+	_boss_strip.offset_bottom = 158
+	_boss_strip.hide()
+
+	var p = PanelContainer.new()
+	p.set_meta("ignore_skin", true)
+	p.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	p.add_theme_stylebox_override("panel", _glass_box(0.88, C_BOSS_NEON, 4))
+	_boss_strip.add_child(p)
+
+	var col = VBoxContainer.new()
+	col.set_meta("ignore_skin", true)
+	col.add_theme_constant_override("separation", 2)
+	p.add_child(col)
+
+	_boss_lbl = _create_lbl(col, "💀 BOSS · 100%", 9, C_BOSS_NEON, 2)
+	_boss_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	_boss_bar = ProgressBar.new()
+	_boss_bar.set_meta("ignore_skin", true)
+	_boss_bar.custom_minimum_size   = Vector2(0, 7)
+	_boss_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_boss_bar.show_percentage       = false
+	_boss_bar.add_theme_stylebox_override("fill",       _bar_fill_box(C_BOSS_NEON, 2))
+	_boss_bar.add_theme_stylebox_override("background", _bar_bg_box(2))
+	col.add_child(_boss_bar)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  8. TACTICAL BRIEFING COMMS (NPC Intro Overlay)
+# ══════════════════════════════════════════════════════════════════════════════
+func _build_intro_overlay() -> void:
+	_intro_overlay = Control.new()
+	_intro_overlay.set_meta("ignore_skin", true)
+	_intro_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	_root.add_child(_intro_overlay)
+	_intro_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_intro_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_intro_overlay.hide()
+
+	# Soft tactical scan tint (keeps plane visible)
+	var tint = ColorRect.new()
+	tint.set_meta("ignore_skin", true)
+	tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	tint.color = Color(0.0, 0.03, 0.08, 0.40)
+	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_intro_overlay.add_child(tint)
+
+	# Compact Briefing Box at Bottom (160px height)
+	var panel = PanelContainer.new()
+	panel.set_meta("ignore_skin", true)
+	_intro_overlay.add_child(panel)
+	panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	panel.offset_left   = 10
+	panel.offset_right  = -10
+	panel.offset_top    = -180
+	panel.offset_bottom = -10
+	panel.add_theme_stylebox_override("panel", _glass_box(0.92, Color(0.35, 0.75, 1.00, 0.75), 6))
+
+	var dc = VBoxContainer.new()
+	dc.set_meta("ignore_skin", true)
+	dc.add_theme_constant_override("separation", 6)
+	panel.add_child(dc)
+
+	# Header
+	var hdr = HBoxContainer.new()
+	hdr.set_meta("ignore_skin", true)
+	hdr.add_theme_constant_override("separation", 6)
+	dc.add_child(hdr)
+
+	_create_lbl(hdr, "👸", 18).size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var ni = VBoxContainer.new()
+	ni.set_meta("ignore_skin", true)
+	ni.add_theme_constant_override("separation", 0)
+	hdr.add_child(ni)
+	_create_lbl(ni, "CÔNG CHÚA AURORA", 10, Color(0.82, 0.55, 1.0), 2)
+	_create_lbl(ni, "[COMM LINK ACTIVE] · Tình Báo Hoàng Gia", 7, C_TEXT_DIM, 1)
+
+	# Typewriter text box
+	_intro_text = RichTextLabel.new()
+	_intro_text.set_meta("ignore_skin", true)
+	_intro_text.custom_minimum_size = Vector2(0, 50)
+	_intro_text.bbcode_enabled      = false
+	_intro_text.scroll_active       = false
+	_intro_text.process_mode        = Node.PROCESS_MODE_ALWAYS
+	_intro_text.add_theme_font_size_override("normal_font_size", 11)
+	_intro_text.add_theme_color_override("default_color", C_TEXT_MAIN)
+	dc.add_child(_intro_text)
+
+	# Action button
+	_intro_skip_btn = Button.new()
+	_intro_skip_btn.set_meta("ignore_skin", true)
+	_intro_skip_btn.text = "▶  XUẤT KÍCH CHIẾN ĐẤU!"
+	_intro_skip_btn.custom_minimum_size = Vector2(0, 32)
+	_intro_skip_btn.process_mode        = Node.PROCESS_MODE_ALWAYS
+	var bs = StyleBoxFlat.new()
+	bs.bg_color = Color(0.08, 0.35, 0.15, 0.95)
+	bs.border_color = Color(0.25, 0.85, 0.35, 0.75)
+	bs.set_border_width_all(1)
+	bs.set_corner_radius_all(4)
+	bs.set_content_margin_all(4)
+	_intro_skip_btn.add_theme_stylebox_override("normal", bs)
+	_intro_skip_btn.add_theme_stylebox_override("hover",  bs)
+	_intro_skip_btn.add_theme_stylebox_override("pressed", bs)
+	_intro_skip_btn.add_theme_color_override("font_color", C_TEXT_MAIN)
+	_intro_skip_btn.add_theme_font_size_override("font_size", 11)
+	_intro_skip_btn.pressed.connect(_on_intro_btn_pressed)
+	dc.add_child(_intro_skip_btn)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  SIGNAL WIRING
+# ══════════════════════════════════════════════════════════════════════════════
+func _connect_signals() -> void:
+	GameManager.score_updated.connect(func(v): _score_target = float(v); _refresh())
+	GameManager.player_health_updated.connect(func(_a, _b): _refresh())
+	GameManager.player_bombs_updated.connect(func(_v): _refresh())
+	GameManager.weapon_level_updated.connect(func(_v): _refresh())
+	GameManager.coins_updated.connect(func(_v): _refresh())
+	GameManager.gems_updated.connect(func(_v): _refresh())
+	GameManager.mission_tasks_updated.connect(func(_a,_b,_c,_d,_e,_f,_g,_h): _refresh())
+	GameManager.boss_health_updated.connect(_on_boss_health)
+	GameManager.wave_progress_updated.connect(_on_wave_progress)
+	GameManager.game_over_triggered.connect(_on_game_over)
+	GameManager.game_won_triggered.connect(_on_game_won)
+	GameManager.combo_updated.connect(_on_combo)
+	GameManager.princess_cheer_requested.connect(_show_dialogue)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  REFRESH HUD DATA
+# ══════════════════════════════════════════════════════════════════════════════
+func _refresh() -> void:
+	# ── Top-Right Info
+	_mission_lbl.text = "MISSION %02d" % GameManager.current_map
+	_score_target     = float(GameManager.score)
+	_gem_lbl.text     = str(GameManager.gems)
+	_gold_lbl.text    = str(GameManager.coins)
+
+	# ── HP Bar
+	var hp     = GameManager.player_hp
+	var max_hp = GameManager.player_max_hp
+	var pct    = hp / max(1.0, max_hp)
+	_hp_bar.max_value = max_hp
+	_hp_bar.value     = hp
+	var hc = C_HP_RED if pct > 0.25 else C_WARN_FLAME
+	_hp_bar.add_theme_stylebox_override("fill", _bar_fill_box(hc))
+	_hp_txt.text = "%d / %d" % [int(hp), int(max_hp)]
+	_hp_txt.add_theme_color_override("font_color", hc)
+
+	# ── Armor Bar
+	_arm_bar.max_value = max_hp
+	_arm_bar.value     = hp
+	_arm_bar.add_theme_stylebox_override("fill", _bar_fill_box(C_ARM_CYAN if pct > 0.25 else C_WARN_FLAME))
+	_arm_txt.text = "%.0f%%" % (pct * 100.0)
+
+	# ── Level & Bomb
+	_lv_lbl.text   = str(GameManager.current_weapon_level)
+	_bomb_lbl.text = "×%d" % GameManager.player_bombs
+
+	# ── Objectives Tracker
+	var rv = GameManager.rescued_vip_count;     var tv = GameManager.target_vip_count
+	var rj = GameManager.jets_destroyed_count;  var tj = GameManager.target_jets_count
+	var rk = GameManager.tanks_destroyed_count; var tk = GameManager.target_tanks_count
+	var rt = GameManager.towers_destroyed_count; var tt = GameManager.target_towers_count
+	var counts = [[rv,tv],[rj,tj],[rk,tk],[rt,tt]]
+	var names  = ["VIP", "JET", "TANK", "TOWER"]
+
+	for i in min(4, _obj_labels.size()):
+		var done   = counts[i][0] >= counts[i][1]
+		var col    = C_OK_GREEN if done else C_TEXT_DIM
+		var prefix = "✓ " if done else "◆ "
+		_obj_labels[i].text = "%s%s %d/%d" % [prefix, names[i], counts[i][0], counts[i][1]]
+		_obj_labels[i].add_theme_color_override("font_color", col)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PROCESS (Smooth animations & pulses)
+# ══════════════════════════════════════════════════════════════════════════════
+func _process(delta: float) -> void:
+	# Rolling Arcade Score
+	if abs(_score_display - _score_target) > 0.5:
+		_score_display = lerp(_score_display, _score_target, min(1.0, delta * 12.0))
+		_score_lbl.text = "%06d" % int(_score_display)
+
+	var t = Time.get_ticks_msec()
+
+	# HP Danger Pulse (<25%)
+	var hp   = GameManager.player_hp
+	var mhp  = GameManager.player_max_hp
+	var hpct = hp / max(1.0, mhp)
+	if hpct < 0.25 and _hp_bar:
+		var fl = 0.65 + abs(sin(t * 0.007)) * 0.35
+		_hp_bar.modulate = Color(1.0, fl * 0.4, fl * 0.4, 1.0)
+	elif _hp_bar:
+		_hp_bar.modulate = Color.WHITE
+
+	# Phase bar active glow
+	if _phase_fill:
+		var pulse = abs(sin(t * 0.003)) * 0.12
+		_phase_bar.modulate = Color(1.0 + pulse * 0.5, 1.0 + pulse, 1.0 + pulse * 0.3, 1.0)
+
+	# Princess periodic idle cheer (keeps UI alive and encouraging)
+	if not GameManager.is_game_over and not GameManager.is_game_won and not get_tree().paused:
+		_idle_cheer_timer += delta
+		if _idle_cheer_timer >= 14.0:
+			_idle_cheer_timer = 0.0
+			var idx = randi() % IDLE_CHEERS.size()
+			_bubble_speak(IDLE_CHEERS[idx], false)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  COMBO INDICATOR & PRINCESS CHEERING BUBBLE
+# ══════════════════════════════════════════════════════════════════════════════
+const IDLE_CHEERS: Array[String] = [
+	"Cố lên phi công! Hãy quét sạch địch! ✨",
+	"Nhớ né đạn và nhặt khiên tiếp tế nhé! 🛡",
+	"Tôi luôn ở đây yểm trợ bạn! Cố lên! 💖",
+	"Tập trung tiêu diệt mục tiêu nhiệm vụ! 🎯",
+	"Hỏa lực tuyệt vời! Tiếp tục phát huy! 🚀",
+	"Bảo vệ bầu trời vì hòa bình Hoàng Gia! 👑"
+]
+
+func _bubble_speak(msg: String, is_combo: bool = false) -> void:
+	if not _bubble_text: return
+	_bubble_text.text = msg
+	_idle_cheer_timer = 0.0
+
+	if _bubble_tw: _bubble_tw.kill()
+	_bubble_tw = create_tween()
+	_bubble_tw.set_parallel(true)
+
+	if _bubble_avatar:
+		var punch_scale = Vector2(1.26, 1.26) if is_combo else Vector2(1.14, 1.14)
+		_bubble_avatar.scale = punch_scale
+		_bubble_tw.tween_property(_bubble_avatar, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+
+	if _bubble_panel:
+		var highlight_col = Color(1.35, 1.10, 1.45, 1.0) if is_combo else Color(1.15, 1.15, 1.30, 1.0)
+		_bubble_panel.modulate = highlight_col
+		_bubble_tw.tween_property(_bubble_panel, "modulate", Color.WHITE, 0.35)
+
+func _on_combo(count: int, _title: String) -> void:
+	# Princess speech bubble reaction
+	if count >= 2:
+		var cheer_msg = ""
+		if count == 2:
+			cheer_msg = "Khởi đầu quá tuyệt! 2× Combo! 🔥"
+		elif count <= 4:
+			cheer_msg = "%d× Combo! Giữ vững hỏa lực nhé! ⚡" % count
+		elif count <= 7:
+			cheer_msg = "%d× COMBO! Bắn đỉnh quá phi công ơi! 💥" % count
+		elif count <= 9:
+			cheer_msg = "%d× COMBO! Bạn bắn quá chuẩn! ✨" % count
+		elif count <= 14:
+			cheer_msg = "10× ULTRA COMBO! Tuyệt đỉnh anh hùng! 💖"
+		elif count <= 19:
+			cheer_msg = "%d× COMBO! Không ai cản được bạn! 🚀" % count
+		elif count <= 29:
+			cheer_msg = "%d× MEGA COMBO! Thật ngoạn mục! 👑" % count
 		else:
-			ButtonStyler.apply_textured_style(mute_btn, "default")
+			cheer_msg = "%d× INSANE COMBO! Thần sấm bầu trời! 🌟" % count
+		_bubble_speak(cheer_msg, true)
 
-func _on_mute_btn_pressed() -> void:
-	if AudioManager:
-		var new_muted = AudioManager.toggle_mute()
-		update_mute_btn_visual(new_muted)
-
-func _on_pause_btn_pressed() -> void:
-	if is_game_over_or_dialog_active():
+	if _combo_tw: _combo_tw.kill()
+	if count < 3:
+		_combo_root.hide()
 		return
-	if pause_dialog and pause_dialog.has_method("open_pause_menu"):
-		pause_dialog.open_pause_menu()
 
-func is_game_over_or_dialog_active() -> bool:
-	if game_over_panel and game_over_panel.visible:
-		return true
-	if revive_panel and revive_panel.visible:
-		return true
-	return false
+	# Tier definition per user specification:
+	# 5x → COMBO, 10x → ULTRA COMBO, 20x → MEGA COMBO, 30x+ → INSANE
+	var tier: String
+	var col:  Color
+	if count >= 30:
+		tier = "INSANE!"
+		col  = C_TIER_INSANE
+	elif count >= 20:
+		tier = "MEGA COMBO"
+		col  = C_TIER_MEGA
+	elif count >= 10:
+		tier = "ULTRA COMBO"
+		col  = C_TIER_ULTRA
+	else:
+		tier = "COMBO"
+		col  = C_TIER_COMBO
+
+	_combo_count.text = "%d×" % count
+	_combo_name.text  = tier
+	_combo_count.add_theme_color_override("font_color", col)
+	_combo_name.add_theme_color_override("font_color", col)
+
+	_combo_root.show()
+	_combo_root.modulate.a = 1.0
+	_combo_root.scale = Vector2(1.0, 1.0)
+
+	# Scale punch animation: 1.0 -> 1.25 -> 1.0
+	_combo_tw = _combo_root.create_tween()
+	_combo_tw.tween_property(_combo_root, "scale", Vector2(1.25, 1.25), 0.08).set_trans(Tween.TRANS_BACK)
+	_combo_tw.tween_property(_combo_root, "scale", Vector2(1.00, 1.00), 0.12).set_ease(Tween.EASE_OUT)
+	_combo_tw.tween_interval(1.4)
+	_combo_tw.tween_property(_combo_root, "modulate:a", 0.0, 0.30)
+	_combo_tw.tween_callback(_combo_root.hide)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  IN-GAME CHARACTER DIALOGUE (Routes to Princess Chat Bubble)
+# ══════════════════════════════════════════════════════════════════════════════
+func _show_dialogue(msg: String) -> void:
+	_bubble_speak(msg, false)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  BOSS HEALTH BAR
+# ══════════════════════════════════════════════════════════════════════════════
+func _on_boss_health(cur: float, mx: float, vis: bool) -> void:
+	_boss_strip.visible = vis
+	if not vis: return
+	_boss_bar.max_value = mx
+	_boss_bar.value     = cur
+	var pct = cur / max(1.0, mx)
+	var fc  = C_BOSS_NEON if pct > 0.40 else C_WARN_FLAME
+	_boss_bar.add_theme_stylebox_override("fill", _bar_fill_box(fc, 2))
+	_boss_lbl.text = "💀 BOSS · %.0f%%" % (pct * 100.0)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  WAVE & PHASE PROGRESSION
+# ══════════════════════════════════════════════════════════════════════════════
+func _on_wave_progress(phase: int, ratio: float, _t: String) -> void:
+	_phase_bar.value = ratio
+	var ph = clamp(phase, 1, 3)
+
+	# Phase transition animation
+	if ph != _prev_phase:
+		_prev_phase = ph
+		_flash_phase_bar()
+
+	var phase_names = ["RECON", "ASSAULT", "DREADNOUGHT"]
+	_phase_lbl.text = "HEAVY ARMORED SQUADRON  ·  PHASE %d/3" % ph
+
+	# Update 3 step highlights
+	_phase_step1.add_theme_color_override("font_color", C_OK_GREEN if ph > 1 else (C_PHASE_CYAN if ph == 1 else C_TEXT_DIM))
+	_phase_step2.add_theme_color_override("font_color", C_OK_GREEN if ph > 2 else (C_WARN_FLAME if ph == 2 else C_TEXT_DIM))
+	_phase_step3.add_theme_color_override("font_color", C_BOSS_NEON if ph == 3 else C_TEXT_DIM)
+
+	var phase_cols = [C_PHASE_CYAN, C_WARN_FLAME, C_BOSS_NEON]
+	_phase_fill.bg_color = phase_cols[ph - 1]
+
+func _flash_phase_bar() -> void:
+	var tw = _phase_panel.create_tween()
+	tw.tween_property(_phase_panel, "modulate", Color(1.8, 1.8, 2.0), 0.10)
+	tw.tween_property(_phase_panel, "modulate", Color.WHITE, 0.25)
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  TACTICAL BRIEFING (NPC Intro, pauses game)
+# ══════════════════════════════════════════════════════════════════════════════
+const STORIES: Dictionary = {
+	1: ["Phi công! Tôi là Aurora – đặc vụ tình báo Hoàng Gia.",
+		"Chiến dịch 01: Trạm Radar YAMATO theo dõi toàn bộ phòng tuyến!",
+		"Tiêu diệt tiêm kích, xe tăng, tháp pháo. Cứu VIP để nhận khiên hỗ trợ!",
+		"Chúc may mắn phi công – tôi tin tưởng ở bạn! ✨"],
+	2: ["Xuất sắc! Hàng không mẫu hạm AKAGI đã triển khai phi đội!",
+		"25 tiêm kích, xe tăng hạng nặng và tháp pháo đang tiến đến.",
+		"Thu thập đạn tăng cường và bom thông minh khi bị vây ép! 🔥"],
+	3: ["Thiết giáp hạm KAGA tổng tấn công toàn diện!",
+		"Đội hình địch có hỏa lực cực mạnh. Giữ chuỗi Combo để tối đa điểm!",
+		"Cứu các công chúa VIP để nhận khiên năng lượng tức thì! 💖"],
+	4: ["Pháo đài SHINANO – màn đêm bão táp rực lửa!",
+		"Tháp pháo phòng không hạng nặng và xe tăng bọc thép.",
+		"Tập trung hỏa lực phá hủy tháp pháo trước khi tiến sâu! ⚡"],
+	5: ["Phi công – đây là trận chiến quyết định cuối cùng!",
+		"SUPREME DREADNOUGHT xuất kích với toàn bộ hạm đội tinh nhuệ!",
+		"Chiến đấu vì vinh quang Hoàng Gia. Xuất kích thắng lợi! 👑"]
+}
+
+func _start_intro() -> void:
+	if GameManager.is_game_over or GameManager.is_game_won: return
+	var map = clamp(GameManager.current_map, 1, 5)
+	_intro_queue = STORIES.get(map, STORIES[1]).duplicate()
+	get_tree().paused = true
+	_intro_overlay.show()
+	_intro_overlay.modulate.a = 0.0
+	var tw = _intro_overlay.create_tween()
+	tw.set_process_mode(Tween.TWEEN_PROCESS_IDLE)
+	tw.tween_property(_intro_overlay, "modulate:a", 1.0, 0.25)
+	tw.tween_callback(_advance_intro)
+
+func _advance_intro() -> void:
+	if _intro_queue.is_empty():
+		_close_intro()
+		return
+	_type_text(_intro_queue.pop_front())
+
+func _type_text(full: String) -> void:
+	_intro_typing = true
+	_intro_text.text = ""
+	var has_more = not _intro_queue.is_empty()
+	_intro_skip_btn.text = ("▶  TIẾP THEO (%d)" % _intro_queue.size()) if has_more else "▶  XUẤT KÍCH CHIẾN ĐẤU!"
+	
+	if _type_timer and is_instance_valid(_type_timer):
+		_type_timer.stop()
+		_type_timer.queue_free()
+		
+	_type_timer = Timer.new()
+	_type_timer.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_type_timer)
+	_type_timer.wait_time = 0.024
+	_type_timer.one_shot  = false
+	var ch = [0]
+	var tot = full.length()
+	_type_timer.timeout.connect(func():
+		if ch[0] < tot:
+			ch[0] += 1
+			_intro_text.text = full.substr(0, ch[0])
+		else:
+			_intro_typing = false
+			_type_timer.stop()
+	)
+	_type_timer.start()
+
+func _close_intro() -> void:
+	if not _intro_overlay.visible: return
+	if _type_timer and is_instance_valid(_type_timer):
+		_type_timer.stop()
+		_type_timer.queue_free()
+		_type_timer = null
+	var tw = _intro_overlay.create_tween()
+	tw.set_process_mode(Tween.TWEEN_PROCESS_IDLE)
+	tw.tween_property(_intro_overlay, "modulate:a", 0.0, 0.22)
+	tw.tween_callback(func():
+		_intro_overlay.hide()
+		get_tree().paused = false
+	)
+
+func _on_intro_btn_pressed() -> void:
+	if _intro_typing:
+		_intro_typing = false
+		if _type_timer and is_instance_valid(_type_timer): _type_timer.stop()
+	_advance_intro()
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  PAUSE / INPUT HANDLER
+# ══════════════════════════════════════════════════════════════════════════════
+func _pause() -> void:
+	if GameManager.is_game_over or GameManager.is_game_won: return
+	_pause_dialog.open_pause_menu()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_ESCAPE or event.keycode == KEY_P:
-			if is_game_over_or_dialog_active():
-				return
-			if pause_dialog:
-				if pause_dialog.visible:
-					pause_dialog.resume_game()
-				else:
-					pause_dialog.open_pause_menu()
-				get_viewport().set_input_as_handled()
+	if event.is_action_pressed("pause") and not _pause_dialog.visible:
+		_pause()
+		get_viewport().set_input_as_handled()
+	if event.is_action_pressed("ui_accept") and _intro_overlay.visible:
+		_on_intro_btn_pressed()
+		get_viewport().set_input_as_handled()
 
-func _on_score_updated(new_score: int) -> void:
-	if score_label:
-		score_label.text = "MISSION %d | SCORE: %06d" % [GameManager.current_map, new_score]
-
-func _on_high_score_updated(new_high: int) -> void:
-	if high_score_label:
-		high_score_label.text = "BEST: %06d" % new_high
-
-func _on_gems_updated(new_gems: int) -> void:
-	if gems_label:
-		gems_label.text = "💎 GEMS: %d" % new_gems
-
-func _on_player_health_updated(current: float, max_hp: float) -> void:
-	if hp_bar:
-		hp_bar.max_value = max_hp
-		hp_bar.value = current
-
-func _on_player_bombs_updated(_bombs: int) -> void:
-	pass
-
-func _on_weapon_level_updated(level: int) -> void:
-	if weapon_label:
-		weapon_label.text = "🔫 WEAPON LV.%d | 👑 %d/%d" % [level, GameManager.princesses_rescued_in_run, GameManager.target_princesses_count]
-
-func _on_princess_rescued(total: int, target: int) -> void:
-	if weapon_label:
-		weapon_label.text = "🔫 WEAPON LV.%d | 👑 %d/%d" % [GameManager.current_weapon_level, total, target]
-	if total > 0:
-		show_big_rescue_banner()
-
-
-func show_big_rescue_banner() -> void:
-	var center_ctrl = Control.new()
-	center_ctrl.set_anchors_preset(Control.PRESET_FULL_RECT)
-	center_ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(center_ctrl)
-	
-	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(400, 110)
-	panel.set_anchors_preset(Control.PRESET_CENTER)
-	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
-	panel.position = Vector2(-200, -55)
-	
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.08, 0.16, 0.92)
-	style.border_color = Color(1.0, 0.85, 0.2, 0.95)
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(14)
-	style.shadow_color = Color(1.0, 0.8, 0.1, 0.4)
-	style.shadow_size = 12
-	panel.add_theme_stylebox_override("panel", style)
-	
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	panel.add_child(margin)
-	
-	var vbox = VBoxContainer.new()
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	margin.add_child(vbox)
-	
-	# Main Big Title
-	var title = Label.new()
-	title.text = "👑 RESCUE SUCCESSFUL! 👑"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.2))
-	title.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
-	title.add_theme_constant_override("outline_size", 10)
-	title.add_theme_font_size_override("font_size", 24)
-	vbox.add_child(title)
-	
-	# Subtitle
-	var sub = Label.new()
-	sub.text = "✨ VIP PRINCESS RESCUED • +5,000 PT & 🛡️ SHIELD ✨"
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	sub.add_theme_color_override("font_color", Color(0.3, 1.0, 0.6))
-	sub.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1.0))
-	sub.add_theme_constant_override("outline_size", 5)
-	sub.add_theme_font_size_override("font_size", 13)
-	vbox.add_child(sub)
-	
-	center_ctrl.add_child(panel)
-	
-	# Scale bounce entry & float fade out animation centered on pivot
-	panel.pivot_offset = Vector2(200, 55)
-	panel.scale = Vector2(0.2, 0.2)
-	
-	var tween = center_ctrl.create_tween()
-	tween.tween_property(panel, "scale", Vector2(1.2, 1.2), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.15)
-	tween.tween_interval(1.8)
-	tween.parallel().tween_property(panel, "position:y", panel.position.y - 80.0, 0.6)
-	tween.parallel().tween_property(panel, "modulate:a", 0.0, 0.6)
-	tween.tween_callback(center_ctrl.queue_free)
-
-
-func _on_boss_health_updated(current: float, max_hp: float, is_visible: bool) -> void:
-	if boss_container:
-		boss_container.visible = is_visible
-	if boss_hp_bar:
-		boss_hp_bar.max_value = max_hp
-		boss_hp_bar.value = current
-
-func _on_phase_changed(phase_num: int, phase_name: String) -> void:
-	if phase_banner:
-		phase_banner.text = phase_name
-		phase_banner.show()
-		phase_banner.modulate.a = 0.0
-		
-		var tween = create_tween()
-		tween.tween_property(phase_banner, "modulate:a", 1.0, 0.4)
-		tween.tween_interval(2.2)
-		tween.tween_property(phase_banner, "modulate:a", 0.0, 0.4)
-		tween.tween_callback(phase_banner.hide)
-		
-	if AudioManager: AudioManager.play_sfx("powerup", -4.0, 1.2)
-
-func _on_wave_progress_updated(phase_num: int, progress_ratio: float, phase_title: String) -> void:
-	if phase_bar:
-		phase_bar.max_value = 1.0
-		phase_bar.value = progress_ratio
-	if phase_title_label:
-		phase_title_label.text = phase_title
-
+# ══════════════════════════════════════════════════════════════════════════════
+#  GAME OVER & GAME WON HANDLERS
+# ══════════════════════════════════════════════════════════════════════════════
 func _on_game_over() -> void:
-	if pause_dialog and pause_dialog.visible:
-		pause_dialog.hide()
-	# Show Revive Modal first if player has gems
-	if revive_panel and revive_panel.has_method("popup_revive") and GameManager.gems >= 10:
-		revive_panel.popup_revive()
+	if GameManager.is_game_won: return
+	if GameManager.gems >= 10:
+		_revive_panel.popup_revive()
 	else:
 		show_game_over_dialog()
 
 func show_game_over_dialog() -> void:
-	if game_over_panel:
-		if game_over_panel.has_method("set_title"):
-			game_over_panel.set_title("GAME OVER", 0, 0)
-		game_over_panel.show()
-
-func _on_game_won(stars: int, coins_earned: int) -> void:
-	if pause_dialog and pause_dialog.visible:
-		pause_dialog.hide()
-		get_tree().paused = false
-	var map_id = GameManager.current_map if GameManager else 1
-	# 1. Cho máy bay bay vút lên tới hết màn hình trước (Fly off top boundary)
-	await get_tree().create_timer(1.8).timeout
-	
-	# 2. Xuất hiện công chúa nói dẫn tiếp cốt truyện
-	show_victory_story_dialogue(map_id, stars, coins_earned)
-
-func show_victory_story_dialogue(map_id: int, stars: int, coins_earned: int) -> void:
-	var speaker = "[ 👑 CÔNG CHÚA AURA ]"
-	var title = ""
-	var portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-success-06.png"
-	var msg = ""
-
-	match map_id:
-		1:
-			title = "🎉 CHIẾN THẮNG: TRẠM RADAR YAMATO ĐÃ BỊ PHÁ HỦY!"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-success-06.png"
-			msg = "Chiến thắng rồi! Nhờ sự quả cảm của bạn, Pháo đài Radar Yamato đã nổ tung, phòng tuyến bờ biển đã sụp đổ và nhóm kỹ sư VIP đầu tiên đã được giải cứu an toàn!\n\nNhưng cuộc chiến chưa dừng lại! Tình báo vừa giải mã điện tín: Tàn quân địch đang tháo chạy về Quần đảo Sunrise để tiếp nhiên liệu cho Hàng không mẫu hạm Akagi lúc bình minh. Hãy chuẩn bị xuất kích sang Chiến dịch 02!"
-		2:
-			title = "🎉 CHIẾN THẮNG: HẠM ĐỘI AKAGI BỊ ĐÁNH CHÌM!"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-02.png"
-			msg = "Bắn cừ lắm chàng phi công! Hàng không mẫu hạm Akagi đã chìm dưới đáy biển Sunrise, kế hoạch oanh tạc của địch đã bị bẻ gãy hoàn toàn!\n\nTuy nhiên, Bộ tư lệnh vừa phát hiện tàn dư hạm đội thiết giáp hạm Kaga đang ẩn nấp sâu trong tâm bão điện từ Dogfight để bảo vệ đoàn tàu hạt nhân. Bão sấm sét vô cùng khốc liệt, hãy giữ vững tay lái khi tiến vào Chiến dịch 03!"
-		3:
-			title = "🎉 CHIẾN THẮNG: VƯỢT QUA TÂM BÃO DOGFIGHT!"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-03.png"
-			msg = "Thật phi thường! Bạn không những vượt qua bão sấm sét dữ dội mà còn bắn chìm cả Pháo đài Thiết giáp Kaga, chặt đứt nguồn cung năng lượng hủy diệt của Đế chế!\n\nGiờ đây, trước mắt chúng ta chỉ còn một cứ điểm kiên cố cuối cùng: Pháo đài Hoàng Hôn với pháo cao xạ hạng nặng Shinano. Hãy tổng lực công phá cánh cửa thép này để mở đường tới hang ổ trùm cuối!"
-		4:
-			title = "🎉 CHIẾN THẮNG: CÔNG PHÁ PHÁO ĐÀI HOÀNG HÔN!"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-success-06.png"
-			msg = "Pháo đài Hoàng Hôn đã bị san phẳng! Nhưng... Khẩn cấp! Siêu Khí Hạm Supreme Dreadnought đã cất cánh bay lên tầng bình lưu và giam giữ tôi tại buồng phản ứng năng lượng tối cao! Chúng sắp kích hoạt bom phá hủy toàn bộ hành tinh!\n\nHỡi người hùng, đây là trận chiến định mệnh! Hãy bay vút lên bầu trời cao nhất, tiêu diệt Siêu Khí Hạm và cứu lấy tôi trước khi quá muộn!"
-		5, _:
-			title = "🏆 ĐẠI THẮNG TOÀN CHIẾN DỊCH: HÀNH TINH ĐÃ ĐƯỢC GIẢI CỨU! 🏆"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-success-bye.png"
-			msg = "Chiến thắng vĩ đại! Siêu Khí Hạm Supreme Dreadnought đã nổ tung thành trăm mảnh! Tôi đã được cứu thoát và bầu trời hòa bình đã trở lại trên hành tinh chúng ta!\n\nCảm ơn bạn - người phi công vĩ đại nhất! Nhưng hãy luôn sẵn sàng... Hộp đen giải mã tín hiệu ngoài không gian: 'Quân đoàn Trái Đất chỉ là nhóm thám hiểm... Hạm đội Không gian Vũ trụ thực sự đang trên đường tới!'"
-
-	var backdrop = ColorRect.new()
-	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	backdrop.size = Vector2(540, 960)
-	backdrop.color = Color(0.01, 0.03, 0.07, 0.90)
-	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
-	backdrop.z_index = 80
-	backdrop.process_mode = Node.PROCESS_MODE_ALWAYS
-
-	var dlg_panel = PanelContainer.new()
-	dlg_panel.custom_minimum_size = Vector2(460, 420)
-	dlg_panel.size = Vector2(460, 420)
-	dlg_panel.position = Vector2((540.0 - 460.0) * 0.5, (960.0 - 420.0) * 0.5)
-
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.08, 0.16, 0.98)
-	style.border_color = Color(1.0, 0.85, 0.22, 0.95)
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(14)
-	style.set_content_margin_all(16)
-	dlg_panel.add_theme_stylebox_override("panel", style)
-
-	var vbox_main = VBoxContainer.new()
-	vbox_main.add_theme_constant_override("separation", 12)
-
-	var lbl_top_title = Label.new()
-	lbl_top_title.text = title
-	lbl_top_title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.25))
-	lbl_top_title.add_theme_font_size_override("font_size", 13)
-	lbl_top_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_top_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox_main.add_child(lbl_top_title)
-
-	var hbox_body = HBoxContainer.new()
-	hbox_body.add_theme_constant_override("separation", 14)
-	hbox_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-
-	var p_frame = PanelContainer.new()
-	p_frame.custom_minimum_size = Vector2(110, 150)
-	p_frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var p_style = StyleBoxFlat.new()
-	p_style.bg_color = Color(0.07, 0.12, 0.22, 0.95)
-	p_style.border_color = Color(0.3, 0.85, 1.0, 0.9)
-	p_style.set_border_width_all(2)
-	p_style.set_corner_radius_all(10)
-	p_frame.add_theme_stylebox_override("panel", p_style)
-
-	if ResourceLoader.exists(portrait_path):
-		var p_img = TextureRect.new()
-		p_img.texture = load(portrait_path) as Texture2D
-		p_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		p_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		p_img.custom_minimum_size = Vector2(100, 140)
-		p_frame.add_child(p_img)
-	hbox_body.add_child(p_frame)
-
-	var vbox_text = VBoxContainer.new()
-	vbox_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox_text.add_theme_constant_override("separation", 6)
-
-	var spk_lbl = Label.new()
-	spk_lbl.text = speaker
-	spk_lbl.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
-	spk_lbl.add_theme_font_size_override("font_size", 13)
-	vbox_text.add_child(spk_lbl)
-
-	var lbl_msg = Label.new()
-	lbl_msg.text = msg
-	lbl_msg.add_theme_color_override("font_color", Color(1.0, 0.97, 0.92))
-	lbl_msg.add_theme_font_size_override("font_size", 12)
-	lbl_msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_msg.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox_text.add_child(lbl_msg)
-
-	hbox_body.add_child(vbox_text)
-	vbox_main.add_child(hbox_body)
-
-	# Nút bấm tiếp tục để hiện kết quả và nút play again/menu
-	var btn_continue = Button.new()
-	btn_continue.text = "🎖️ TIẾP TỤC (XEM KẾT QUẢ)"
-	btn_continue.custom_minimum_size = Vector2(250, 46)
-	btn_continue.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	ButtonStyler.apply_textured_style(btn_continue, "green")
-
-	btn_continue.pressed.connect(func():
-		if AudioManager: AudioManager.play_sfx("click")
-		var tw = backdrop.create_tween()
-		tw.tween_property(backdrop, "modulate:a", 0.0, 0.20)
-		tw.tween_callback(func():
-			backdrop.queue_free()
-			# Sau khi công chúa nói xong, hiển thị dialog kết quả và play again / menu!
-			if map_id == 5:
-				show_grand_campaign_clear_dialog(stars, coins_earned)
-			else:
-				if game_over_panel:
-					if game_over_panel.has_method("set_title"):
-						game_over_panel.set_title("MISSION ACCOMPLISHED!", stars, coins_earned)
-					game_over_panel.show()
-		)
-	)
-	vbox_main.add_child(btn_continue)
-
-	dlg_panel.add_child(vbox_main)
-	backdrop.add_child(dlg_panel)
-	add_child(backdrop)
-
-	if AudioManager: AudioManager.play_sfx("powerup", 2.0, 1.1)
-
-func show_grand_campaign_clear_dialog(stars: int, coins_earned: int) -> void:
-	var victory_dlg = PanelContainer.new()
-	victory_dlg.custom_minimum_size = Vector2(510, 440)
-	victory_dlg.set_anchors_preset(Control.PRESET_CENTER)
-	victory_dlg.position = Vector2(-255, -220)
-	victory_dlg.z_index = 30
-
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.07, 0.15, 0.97)
-	style.border_color = Color(1.0, 0.85, 0.2, 1.0)
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(14)
-	style.set_content_margin_all(14)
-	style.shadow_color = Color(1.0, 0.8, 0.2, 0.5)
-	style.shadow_size = 18
-	victory_dlg.add_theme_stylebox_override("panel", style)
-
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-
-	var title_lbl = Label.new()
-	title_lbl.text = "🏆 CAMPAIGN CLEAR - PLANET SAVED! 🏆"
-	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2))
-	title_lbl.add_theme_constant_override("outline_size", 6)
-	title_lbl.add_theme_font_size_override("font_size", 17)
-	vbox.add_child(title_lbl)
-
-	# Epilogue Header Row
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 10)
-	
-	var p_frame = PanelContainer.new()
-	p_frame.custom_minimum_size = Vector2(80, 80)
-	var p_style = StyleBoxFlat.new()
-	p_style.bg_color = Color(0.08, 0.14, 0.22, 0.9)
-	p_style.border_color = Color(0.3, 0.95, 1.0, 0.9)
-	p_style.set_border_width_all(2)
-	p_style.set_corner_radius_all(8)
-	p_frame.add_theme_stylebox_override("panel", p_style)
-
-	var p_img_path = "res://extracted_assets/AI/cut_assets/princess/princess-success-bye.png"
-	if ResourceLoader.exists(p_img_path):
-		var img = TextureRect.new()
-		img.texture = load(p_img_path) as Texture2D
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		img.custom_minimum_size = Vector2(70, 70)
-		p_frame.add_child(img)
-	hbox.add_child(p_frame)
-
-	var msg_lbl = Label.new()
-	msg_lbl.text = "👑 CÔNG CHÚA AURA:\n'Cảm ơn anh hùng! Nhờ sự dũng cảm của bạn, Siêu Khí Hạm Supreme Dreadnought đã bị tiêu diệt, tôi và các kỹ sư VIP đã được giải cứu an toàn, hòa bình đã trở lại hành tinh!'"
-	msg_lbl.add_theme_color_override("font_color", Color(0.3, 0.95, 1.0))
-	msg_lbl.add_theme_font_size_override("font_size", 11)
-	msg_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	msg_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox.add_child(msg_lbl)
-	vbox.add_child(hbox)
-
-	# Secret Cliffhanger Teaser Box
-	var teaser_box = PanelContainer.new()
-	var t_style = StyleBoxFlat.new()
-	t_style.bg_color = Color(0.10, 0.05, 0.18, 0.9)
-	t_style.border_color = Color(1.0, 0.4, 0.8, 0.9)
-	t_style.set_border_width_all(2)
-	t_style.set_corner_radius_all(8)
-	t_style.set_content_margin_all(8)
-	teaser_box.add_theme_stylebox_override("panel", t_style)
-
-	var teaser_lbl = Label.new()
-	teaser_lbl.text = "📡 BẬT MÍ CỐT TRUYỆN BÍ ẨN:\nGiải mã hộp đen của Supreme Dreadnought, Bộ chỉ huy phát hiện tín hiệu vô tuyến ngoài Không gian:\n\"Tập đoàn Trái Đất chỉ là kẻ tiên phong... Hạm đội Vũ trụ thực sự đang tiến về Trái Đất!\"\n🚀 Hãy sẵn sàng cho Phần 2: VOID ECLIPSE - SPACE WARFARE!"
-	teaser_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-	teaser_lbl.add_theme_font_size_override("font_size", 10)
-	teaser_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	teaser_box.add_child(teaser_lbl)
-	vbox.add_child(teaser_box)
-
-	var score_lbl = Label.new()
-	score_lbl.text = "FINAL SCORE: %06d  |  ⭐ REWARD: +%d STARS  |  💎 +10 GEMS" % [GameManager.score, coins_earned]
-	score_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	score_lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0))
-	score_lbl.add_theme_font_size_override("font_size", 12)
-	vbox.add_child(score_lbl)
-
-	var btn_hbox = HBoxContainer.new()
-	btn_hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	btn_hbox.add_theme_constant_override("separation", 16)
-
-	var btn_restart = Button.new()
-	btn_restart.text = "🔄 PLAY AGAIN"
-	btn_restart.custom_minimum_size = Vector2(170, 42)
-	ButtonStyler.apply_textured_style(btn_restart, "purple")
-	btn_restart.pressed.connect(func():
-		if AudioManager: AudioManager.play_sfx("click")
-		GameManager.reset_game()
-		get_tree().change_scene_to_file("res://scenes/main/main.tscn")
-	)
-	btn_hbox.add_child(btn_restart)
-
-	var btn_menu = Button.new()
-	btn_menu.text = "🏠 MAIN MENU"
-	btn_menu.custom_minimum_size = Vector2(170, 42)
-	ButtonStyler.apply_textured_style(btn_menu, "green")
-	btn_menu.pressed.connect(func():
-		if AudioManager: AudioManager.play_sfx("click")
-		get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
-	)
-	btn_hbox.add_child(btn_menu)
-
-	vbox.add_child(btn_hbox)
-	victory_dlg.add_child(vbox)
-	add_child(victory_dlg)
-
-	if AudioManager: AudioManager.play_sfx("powerup", 4.0, 1.1)
-
-func _on_combo_updated(combo_count: int, combo_title: String) -> void:
-	if combo_title == "": return
-	
-	var pop = Label.new()
-	pop.text = combo_title
-	pop.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pop.position = Vector2(130, 140)
-	pop.custom_minimum_size = Vector2(280, 32)
-	pop.z_index = 25
-	pop.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2))
-	pop.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-	pop.add_theme_constant_override("outline_size", 6)
-	pop.add_theme_font_size_override("font_size", 16)
-	add_child(pop)
-
-	pop.scale = Vector2(0.5, 0.5)
-	pop.pivot_offset = Vector2(140, 16)
-	var tw = pop.create_tween()
-	tw.tween_property(pop, "scale", Vector2(1.2, 1.2), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(pop, "scale", Vector2(1.0, 1.0), 0.10)
-	tw.tween_property(pop, "modulate:a", 0.0, 0.4).set_delay(0.6)
-	tw.tween_callback(pop.queue_free)
-	
-	if AudioManager and combo_count in [3, 5, 8, 10, 15]:
-		AudioManager.play_sfx("powerup", -2.0, 1.1 + (combo_count * 0.03))
-
-func show_princess_cheer_popup(msg: String) -> void:
-	var cheer_card = PanelContainer.new()
-	cheer_card.custom_minimum_size = Vector2(280, 60)
-	cheer_card.position = Vector2(240, 95)
-	cheer_card.z_index = 22
-
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.05, 0.18, 0.92)
-	style.border_color = Color(1.0, 0.4, 0.8, 0.95)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(10)
-	style.set_content_margin_all(6)
-	cheer_card.add_theme_stylebox_override("panel", style)
-
-	var hbox = HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 8)
-
-	var p_img_path = "res://extracted_assets/AI/cut_assets/princess/princess-success-06.png"
-	if ResourceLoader.exists(p_img_path):
-		var img = TextureRect.new()
-		img.texture = load(p_img_path) as Texture2D
-		img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		img.custom_minimum_size = Vector2(45, 45)
-		hbox.add_child(img)
-
-	var vbox = VBoxContainer.new()
-	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-
-	var title_l = Label.new()
-	title_l.text = "👑 CÔNG CHÚA AURA:"
-	title_l.add_theme_color_override("font_color", Color(1.0, 0.45, 0.85))
-	title_l.add_theme_font_size_override("font_size", 11)
-	vbox.add_child(title_l)
-
-	var msg_l = Label.new()
-	msg_l.text = msg
-	msg_l.add_theme_color_override("font_color", Color(1.0, 0.95, 0.9))
-	msg_l.add_theme_font_size_override("font_size", 10)
-	msg_l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	vbox.add_child(msg_l)
-
-	hbox.add_child(vbox)
-	cheer_card.add_child(hbox)
-	add_child(cheer_card)
-
-	cheer_card.modulate.a = 0.0
-	var tw = cheer_card.create_tween()
-	tw.tween_property(cheer_card, "modulate:a", 1.0, 0.2)
-	tw.tween_property(cheer_card, "modulate:a", 1.0, 2.5)
-	tw.tween_property(cheer_card, "modulate:a", 0.0, 0.3)
-	tw.tween_callback(cheer_card.queue_free)
-
-	if AudioManager: AudioManager.play_sfx("powerup", -4.0, 1.3)
-
-var task_panel: PanelContainer = null
-var lbl_vip: Label = null
-var lbl_jets: Label = null
-var lbl_tanks: Label = null
-var lbl_towers: Label = null
-
-func setup_task_panel() -> void:
-	if is_instance_valid(task_panel): return
-	
-	task_panel = PanelContainer.new()
-	task_panel.position = Vector2(16, 78)
-	task_panel.custom_minimum_size = Vector2(215, 115)
-	
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.08, 0.14, 0.85)
-	style.border_color = Color(0.2, 0.8, 1.0, 0.75)
-	style.set_border_width_all(1)
-	style.set_corner_radius_all(8)
-	task_panel.add_theme_stylebox_override("panel", style)
-	
-	var margin = MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_top", 6)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_bottom", 6)
-	task_panel.add_child(margin)
-	
-	var vbox = VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
-	margin.add_child(vbox)
-	
-	var header = Label.new()
-	header.text = "📋 MISSION OBJECTIVES"
-	header.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
-	header.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-	header.add_theme_constant_override("outline_size", 4)
-	header.add_theme_font_size_override("font_size", 12)
-	vbox.add_child(header)
-	
-	lbl_vip = create_task_label(vbox, "👑 Rescue VIP: 0/3")
-	lbl_jets = create_task_label(vbox, "🛩️ Destroy Jets: 0/20")
-	lbl_tanks = create_task_label(vbox, "🚜 Destroy Tanks: 0/6")
-	lbl_towers = create_task_label(vbox, "🏰 Destroy Towers: 0/4")
-	
-	add_child(task_panel)
-
-func create_task_label(parent: Control, text_val: String) -> Label:
-	var l = Label.new()
-	l.text = text_val
-	l.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
-	l.add_theme_color_override("font_outline_color", Color(0, 0, 0))
-	l.add_theme_constant_override("outline_size", 3)
-	l.add_theme_font_size_override("font_size", 11)
-	parent.add_child(l)
-	return l
-
-func _on_mission_tasks_updated(vip: int, target_vip: int, jets: int, target_jets: int, tanks: int, target_tanks: int, towers: int, target_towers: int) -> void:
-	if not is_instance_valid(task_panel):
-		setup_task_panel()
-		
-	update_task_item(lbl_vip, "👑 Rescue VIP", vip, target_vip)
-	update_task_item(lbl_jets, "🛩️ Destroy Jets", jets, target_jets)
-	update_task_item(lbl_tanks, "🚜 Destroy Tanks", tanks, target_tanks)
-	update_task_item(lbl_towers, "🏰 Destroy Towers", towers, target_towers)
-
-func update_task_item(lbl: Label, title: String, current: int, target: int) -> void:
-	if not is_instance_valid(lbl): return
-	if current >= target:
-		lbl.text = "[✓] %s: %d/%d (DONE!)" % [title, current, target]
-		lbl.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4))
-	else:
-		lbl.text = "%s: %d/%d" % [title, current, target]
-		lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0))
-
-func show_start_story_dialogue() -> void:
-	var map_id = GameManager.current_map if GameManager else 1
-	var speaker = "[ 👑 CÔNG CHÚA AURA ]"
-	var mission_name = "CHIẾN DỊCH 01: ĐỘT KÍCH TRẠM RADAR YAMATO"
-	var portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-01.png"
-	var msg = ""
-
-	match map_id:
-		1:
-			speaker = "[ 👑 CÔNG CHÚA AURA & BỘ TƯ LỆNH ]"
-			mission_name = "CHIẾN DỊCH 01: ĐỘT KÍCH TRẠM RADAR YAMATO"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-01.png"
-			msg = "Hỡi phi công anh hùng! Trạm Radar Yamato của Đế chế đang phong tỏa toàn bộ đường bay trên biển Tây Thái Bình Dương. Chúng đã bắt giữ nhóm kỹ sư công nghệ VIP. Hãy bay qua vành đai phòng không, bắn hạ các tàu chiến tuần tra, tiêu diệt trạm radar và giải cứu các con tin!"
-		2:
-			speaker = "[ 👑 CÔNG CHÚA AURA & BỘ TƯ LỆNH ]"
-			mission_name = "CHIẾN DỊCH 02: BÌNH MINH QUẦN ĐẢO SUNRISE"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-02.png"
-			msg = "Chào buổi sáng! Tình báo báo về Hàng không mẫu hạm Akagi của địch vừa cập cảng Sunrise để tiếp nhiên liệu và đạn dược. Đây là cơ hội vàng để mở cuộc tập kích phủ đầu lúc bình minh, đập tan phi đội tiêm kích hộ tống trước khi chúng kịp cất cánh oanh tạc!"
-		3:
-			speaker = "[ 👑 CÔNG CHÚA AURA & BỘ TƯ LỆNH ]"
-			mission_name = "CHIẾN DỊCH 03: BÃO SẤM SÉT VỊNH DOGFIGHT"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-03.png"
-			msg = "Cảnh báo giông sét cực mạnh! Hạm đội thiết giáp hạm Kaga đang ẩn nấp sâu trong tâm bão điện từ Dogfight để bảo vệ đoàn tàu vận tải vũ khí năng lượng cao. Mưa bão và sấm sét sẽ làm nhiễu radar máy bay. Bạn phải thận trọng né đạn pháo và tiêu diệt soái hạm Kaga!"
-		4:
-			speaker = "[ 👑 CÔNG CHÚA AURA & BỘ TƯ LỆNH ]"
-			mission_name = "CHIẾN DỊCH 04: CÔNG PHÁ PHÁO ĐÀI HOÀNG HÔN"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-success-06.png"
-			msg = "Pháo đài Hoàng Hôn là phòng tuyến công sự kiên cố cuối cùng bảo vệ lối vào đại bản doanh địch. Hệ thống pháo cao xạ hạng nặng Shinano và mạng lưới tháp pháo phòng không dày đặc đang chờ sẵn. Hãy dùng toàn bộ hỏa lực để san phẳng pháo đài này!"
-		5, _:
-			speaker = "[ 👑 CÔNG CHÚA AURA (CẦU CỨU KHẨN CẤP) ]"
-			mission_name = "CHIẾN DỊCH 05: ĐẠI CHIẾN KHÔNG HẠM SUPREME DREADNOUGHT"
-			portrait_path = "res://extracted_assets/AI/cut_assets/princess/princess-success-bye.png"
-			msg = "Hãy cứu tôi với! Siêu Khí Hạm Supreme Dreadnought đã cất cánh và giam giữ tôi tại buồng phản ứng năng lượng tối cao. Vận mệnh của toàn bộ hành tinh nằm trong tay bạn! Hãy phá hủy các tháp pháo, tiêu diệt lõi hủy diệt của siêu khí hạm và cứu lấy hành tinh chúng ta!"
-
-	# Fullscreen Dim / Blur Overlay that covers the whole screen (0, 0 to 540, 960)
-	var backdrop = ColorRect.new()
-	backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	backdrop.size = Vector2(540, 960)
-	backdrop.color = Color(0.01, 0.03, 0.07, 0.88)
-	backdrop.mouse_filter = Control.MOUSE_FILTER_STOP
-	backdrop.z_index = 80
-	backdrop.process_mode = Node.PROCESS_MODE_ALWAYS
-
-	# Modal Dialog placed precisely in the CENTER OF THE SCREEN
-	var dlg_panel = PanelContainer.new()
-	dlg_panel.custom_minimum_size = Vector2(460, 420)
-	dlg_panel.size = Vector2(460, 420)
-	dlg_panel.position = Vector2((540.0 - 460.0) * 0.5, (960.0 - 420.0) * 0.5)
-
-	var style = StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.08, 0.16, 0.98)
-	style.border_color = Color(1.0, 0.82, 0.20, 0.95)
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(14)
-	style.set_content_margin_all(16)
-	dlg_panel.add_theme_stylebox_override("panel", style)
-
-	var vbox_main = VBoxContainer.new()
-	vbox_main.add_theme_constant_override("separation", 12)
-
-	# Mission Header
-	var lbl_top_title = Label.new()
-	lbl_top_title.text = mission_name
-	lbl_top_title.add_theme_color_override("font_color", Color(1.0, 0.88, 0.25))
-	lbl_top_title.add_theme_font_size_override("font_size", 14)
-	lbl_top_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox_main.add_child(lbl_top_title)
-
-	# Horizontal Body: Standing Portrait on Left, Text & Speaker on Right
-	var hbox_body = HBoxContainer.new()
-	hbox_body.add_theme_constant_override("separation", 14)
-	hbox_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-
-	# Static character portrait standing still
-	var p_frame = PanelContainer.new()
-	p_frame.custom_minimum_size = Vector2(110, 150)
-	p_frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var p_style = StyleBoxFlat.new()
-	p_style.bg_color = Color(0.07, 0.12, 0.22, 0.95)
-	p_style.border_color = Color(0.3, 0.85, 1.0, 0.9)
-	p_style.set_border_width_all(2)
-	p_style.set_corner_radius_all(10)
-	p_frame.add_theme_stylebox_override("panel", p_style)
-
-	if ResourceLoader.exists(portrait_path):
-		var p_img = TextureRect.new()
-		p_img.texture = load(portrait_path) as Texture2D
-		p_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		p_img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		p_img.custom_minimum_size = Vector2(100, 140)
-		p_frame.add_child(p_img)
-	hbox_body.add_child(p_frame)
-
-	var vbox_text = VBoxContainer.new()
-	vbox_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox_text.add_theme_constant_override("separation", 6)
-
-	var lbl_spk = Label.new()
-	lbl_spk.text = speaker
-	lbl_spk.add_theme_color_override("font_color", Color(0.35, 0.95, 1.0))
-	lbl_spk.add_theme_font_size_override("font_size", 13)
-	vbox_text.add_child(lbl_spk)
-
-	var lbl_msg = Label.new()
-	lbl_msg.text = msg
-	lbl_msg.add_theme_color_override("font_color", Color(1.0, 0.97, 0.92))
-	lbl_msg.add_theme_font_size_override("font_size", 12)
-	lbl_msg.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_msg.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox_text.add_child(lbl_msg)
-
-	hbox_body.add_child(vbox_text)
-	vbox_main.add_child(hbox_body)
-
-	# Bottom Action Button: OK / Bắt đầu chiến đấu
-	var btn_ok = Button.new()
-	btn_ok.text = "🚀 BẮT ĐẦU CHIẾN ĐẤU (OK)"
-	btn_ok.custom_minimum_size = Vector2(240, 46)
-	btn_ok.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	ButtonStyler.apply_textured_style(btn_ok, "green")
-	
-	btn_ok.pressed.connect(func():
-		if AudioManager: AudioManager.play_sfx("click")
-		var tw = backdrop.create_tween()
-		tw.tween_property(backdrop, "modulate:a", 0.0, 0.22)
-		tw.tween_callback(func():
-			get_tree().paused = false
-			backdrop.queue_free()
-		)
-	)
-	vbox_main.add_child(btn_ok)
-
-	dlg_panel.add_child(vbox_main)
-	backdrop.add_child(dlg_panel)
-	add_child(backdrop)
-
-	# Pause the game so player can comfortably read the story
-	get_tree().paused = true
+	if not GameManager.is_game_over or GameManager.is_game_won: return
+	_game_over_panel.set_title("GAME OVER")
+	_game_over_panel.show()
+
+func _on_game_won(stars: int, reward: int) -> void:
+	_revive_panel.is_active = false
+	_revive_panel.hide()
+	_pause_dialog.hide()
+	get_tree().paused = false
+	_game_over_panel.set_title("MISSION ACCOMPLISHED!", stars, reward)
+	_game_over_panel.show()

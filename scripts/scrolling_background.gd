@@ -87,6 +87,7 @@ var warship_spawn_timer: float = 14.0
 var rescue_zone_spawn_timer: float = 8.0
 
 func _process(delta: float) -> void:
+	if GameManager.is_game_over or GameManager.is_game_won: return
 	if game_start_time < 0.0:
 		game_start_time = Time.get_ticks_msec() * 0.001
 	$OceanParallax.scroll_base_offset.y += scroll_speed * delta
