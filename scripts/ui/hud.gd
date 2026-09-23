@@ -6,14 +6,14 @@ extends CanvasLayer
 # ──────────────────────────────────────────────────────────────────────────────
 #  PALETTE (Military Arcade Aviation)
 # ──────────────────────────────────────────────────────────────────────────────
-const C_BG_GLASS   = Color(0.02, 0.05, 0.10, 0.65)   # Translucent Gunmetal / Navy Glass
-const C_EDGE_STEEL = Color(0.24, 0.52, 0.85, 0.38)   # Ultra-thin steel cyan edge
+const C_BG_GLASS   = Color(0.025, 0.055, 0.09, 0.78)   # Translucent Gunmetal / Navy Glass
+const C_EDGE_STEEL = Color(0.32, 0.53, 0.65, 0.55)   # Ultra-thin steel cyan edge
 const C_TEXT_MAIN  = Color(0.92, 0.96, 1.00, 1.00)   # Crisp cockpit white
-const C_TEXT_DIM   = Color(0.48, 0.65, 0.82, 0.80)   # Auxiliary dim blue-grey
-const C_HP_RED     = Color(0.95, 0.18, 0.20, 1.00)   # Deep red HP
-const C_ARM_CYAN   = Color(0.18, 0.78, 1.00, 1.00)   # High-tech cyan armor
+const C_TEXT_DIM   = Color("#afc3d7")   # Auxiliary dim blue-grey
+const C_HP_RED     = Color("#f5757c")   # Deep red HP
+const C_ARM_CYAN   = Color("#79dfd5")   # High-tech cyan armor
 const C_SCORE_NUM  = Color(0.88, 0.98, 1.00, 1.00)   # Digital arcade score
-const C_GOLD_AMBER = Color(1.00, 0.82, 0.18, 1.00)   # Gold coin / amber
+const C_GOLD_AMBER = Color("#efbd73")   # Gold coin / amber
 const C_GEM_CYAN   = Color(0.28, 0.94, 1.00, 1.00)   # Gem crystal cyan
 const C_WARN_FLAME = Color(1.00, 0.38, 0.08, 1.00)   # Warning / alert orange
 const C_OK_GREEN   = Color(0.25, 0.95, 0.45, 1.00)   # Objective checkmark neon green
@@ -123,6 +123,7 @@ func _ready() -> void:
 	_pause_dialog = load("res://scenes/ui/pause_dialog.tscn").instantiate()
 	_pause_dialog.set_meta("ignore_skin", true)
 	add_child(_pause_dialog)
+	_pause_dialog.visibility_changed.connect(func(): _root.visible = not _pause_dialog.visible)
 
 	_game_over_panel = load("res://scenes/ui/game_over_dialog.tscn").instantiate()
 	_game_over_panel.set_meta("ignore_skin", true)
@@ -148,14 +149,14 @@ func _glass_box(alpha: float = 0.65, border_col: Color = C_EDGE_STEEL, r: int = 
 	s.bg_color = Color(C_BG_GLASS.r, C_BG_GLASS.g, C_BG_GLASS.b, alpha)
 	s.border_color = border_col
 	s.set_border_width_all(1)
-	s.set_corner_radius_all(r)
+	s.set_corner_radius_all(r + 2)
 	s.set_content_margin_all(6)
 	return s
 
 func _bar_fill_box(col: Color, r: int = 2) -> StyleBoxFlat:
 	var s = StyleBoxFlat.new()
 	s.bg_color = col
-	s.set_corner_radius_all(r)
+	s.set_corner_radius_all(r + 2)
 	return s
 
 func _bar_bg_box(r: int = 2) -> StyleBoxFlat:
@@ -163,16 +164,17 @@ func _bar_bg_box(r: int = 2) -> StyleBoxFlat:
 	s.bg_color = Color(0.04, 0.07, 0.12, 0.85)
 	s.border_color = Color(0.18, 0.32, 0.50, 0.45)
 	s.set_border_width_all(1)
-	s.set_corner_radius_all(r)
+	s.set_corner_radius_all(r + 2)
 	return s
 
 func _create_lbl(parent: Node, txt: String, sz: int, col: Color = C_TEXT_MAIN, outline_sz: int = 3) -> Label:
 	var l = Label.new()
 	l.text = txt
+	l.add_theme_font_override("font", ThemeDB.fallback_font)
 	l.set_meta("ignore_skin", true)
 	l.add_theme_font_size_override("font_size", sz)
 	l.add_theme_color_override("font_color", col)
-	l.add_theme_constant_override("outline_size", outline_sz)
+	l.add_theme_constant_override("outline_size", mini(outline_sz, 1))
 	l.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.95))
 	parent.add_child(l)
 	return l
@@ -416,7 +418,7 @@ func _build_sub_header() -> void:
 
 	var bubble_style = StyleBoxFlat.new()
 	bubble_style.bg_color = Color(0.04, 0.07, 0.15, 0.85)
-	bubble_style.border_color = Color(0.92, 0.48, 0.98, 0.75)
+	bubble_style.border_color = Color(0.45, 0.65, 0.72, 0.65)
 	bubble_style.set_border_width_all(1)
 	bubble_style.set_corner_radius_all(5)
 	bubble_style.set_content_margin_all(4)
@@ -470,7 +472,7 @@ func _build_sub_header() -> void:
 	_bubble_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_bubble_text.add_theme_font_size_override("font_size", 9)
 	_bubble_text.add_theme_color_override("font_color", C_TEXT_MAIN)
-	_bubble_text.add_theme_constant_override("outline_size", 2)
+	_bubble_text.add_theme_constant_override("outline_size", 1)
 	_bubble_text.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.95))
 	text_col.add_child(_bubble_text)
 
@@ -980,7 +982,7 @@ func _pause() -> void:
 	_pause_dialog.open_pause_menu()
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("pause") and not _pause_dialog.visible:
+	if (event.is_action_pressed("pause") or (event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P)) and not _pause_dialog.visible:
 		_pause()
 		get_viewport().set_input_as_handled()
 	if event.is_action_pressed("ui_accept") and _intro_overlay.visible:

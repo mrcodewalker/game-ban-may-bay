@@ -89,8 +89,8 @@ func build_hangar() -> void:
 		var buy = UI.button(col, "Mua · %d ngọc" % data.price_gems, purchase.bind(data), "green")
 		buy.disabled = GameManager.gems < int(data.price_gems)
 	elif pets:
-		UI.button(col, "Trang bị cánh trái" if GameManager.equipped_left_pet != data.file else "✓ Cánh trái đã trang bị", equip_pet.bind(data.file, true), "green")
-		UI.button(col, "Trang bị cánh phải" if GameManager.equipped_right_pet != data.file else "✓ Cánh phải đã trang bị", equip_pet.bind(data.file, false))
+		UI.button(col, "Trang bị cánh trái" if GameManager.equipped_left_pet != data.file else "Tháo cánh trái", equip_pet.bind(data.file, true), "green")
+		UI.button(col, "Trang bị cánh phải" if GameManager.equipped_right_pet != data.file else "Tháo cánh phải", equip_pet.bind(data.file, false))
 	else:
 		var equip = UI.button(col, "Đang trang bị" if GameManager.selected_player_jet == data.file else "Trang bị máy bay", equip_jet.bind(data.file), "green")
 		equip.disabled = GameManager.selected_player_jet == data.file
@@ -120,11 +120,17 @@ func equip_jet(file: String) -> void:
 func equip_pet(file: String, left: bool) -> void:
 	if not GameManager.owned_pets.has(file): return
 	if left:
-		GameManager.equipped_left_pet = file
-		if GameManager.equipped_right_pet == file: GameManager.equipped_right_pet = ""
+		if GameManager.equipped_left_pet == file:
+			GameManager.equipped_left_pet = ""
+		else:
+			GameManager.equipped_left_pet = file
+			if GameManager.equipped_right_pet == file: GameManager.equipped_right_pet = ""
 	else:
-		GameManager.equipped_right_pet = file
-		if GameManager.equipped_left_pet == file: GameManager.equipped_left_pet = ""
+		if GameManager.equipped_right_pet == file:
+			GameManager.equipped_right_pet = ""
+		else:
+			GameManager.equipped_right_pet = file
+			if GameManager.equipped_left_pet == file: GameManager.equipped_left_pet = ""
 	GameManager.save_user_data()
 	update_ui()
 
