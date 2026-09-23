@@ -118,8 +118,8 @@ func setup_multipart_boss(total_hp: float) -> void:
 		["att_ala_sx", Vector2(-65, 10), 0.08, "att ala sx.png", "att ala sx dmg1.png", "att ala sx dmg2.png", "att ala sx dmg3.png", false, false],
 		["att_ala_dx", Vector2(65, 10), 0.08, "att ala dx.png", "att ala dx dmg1.png", "att ala dx dmg2.png", "att ala dx dmg3.png", false, false],
 		# Outer Wings (est ala)
-		["est_ala_sx", Vector2(-130, 15), 0.06, "est ala sx.png", "est ala sx dmg1.png", "est ala sx dmg2.png", "est ala sx dmg3.png", false, false],
-		["est_ala_dx", Vector2(130, 15), 0.06, "est ala dx.png", "est ala dx dmg1.png", "est ala dx dmg2.png", "est ala dx dmg3.png", false, false],
+		["est_ala_sx", Vector2(-130, 15), 0.06, "est ala sx dmg1.png", "est ala sx dmg1.png", "est ala sx dmg2.png", "est ala sx dmg3.png", false, false],
+		["est_ala_dx", Vector2(130, 15), 0.06, "est ala dx dmg1.png", "est ala dx dmg1.png", "est ala dx dmg2.png", "est ala dx dmg3.png", false, false],
 		# Wing Ailerons / Flaps (alett sx / dx)
 		["alett_sx", Vector2(-175, 22), 0.04, "alett sx.png", "alett sx dmg1.png", "alett sx dmg2.png", "alett sx dmg3.png", false, false],
 		["alett_dx", Vector2(175, 22), 0.04, "alett dx.png", "alett dx dmg1.png", "alett dx dmg2.png", "alett dx dmg3.png", false, false],

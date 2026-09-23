@@ -328,7 +328,7 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet1.png",
 		"name": "VALKYRIE ALPHA",
-		"desc": "Standard Heavy Fighter. Equipped with high-velocity Vulcan cannons.",
+		"desc": "Chiến cơ chủ lực của Valkyrie. Pháo Vulcan giữ vững hỏa lực trên đường bay.",
 		"weapon_type": 0, # Vulcan
 		"price_stars": 0,
 		"price_gems": 0,
@@ -337,7 +337,7 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet2.png",
 		"name": "PHANTOM STRIKER",
-		"desc": "Advanced Energy Interceptor. Starting Weapon: Thunder Strike Cannon.",
+		"desc": "Tiêm kích năng lượng. Xuất kích với pháo sấm sét để xuyên qua phòng tuyến.",
 		"weapon_type": 1, # Thunder Strike
 		"price_stars": 300,
 		"price_gems": 10,
@@ -346,7 +346,7 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet3.png",
 		"name": "ARROWHEAD SPREAD",
-		"desc": "Wide-Flak Assault Jet. Starting Weapon: 3-Way Spread Cannon.",
+		"desc": "Chiến cơ tấn công diện rộng. Đạn tỏa bao phủ nhiều hướng tiếp cận.",
 		"weapon_type": 3, # Spread
 		"price_stars": 500,
 		"price_gems": 15,
@@ -355,7 +355,7 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet4.png",
 		"name": "ROCKET DREADNOUGHT",
-		"desc": "Missile Heavy Gunship. Starting Weapon: Homing Rocket Salvos.",
+		"desc": "Pháo hạm trên không. Tên lửa dẫn đường truy đuổi mục tiêu.",
 		"weapon_type": 2, # Homing Rocket
 		"price_stars": 800,
 		"price_gems": 25,
@@ -364,7 +364,7 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet5.png",
 		"name": "SOLAR FLARE",
-		"desc": "Solar Energy Jet. Supercharged Thunder Strike Cannon and solar shield.",
+		"desc": "Chiến cơ mang sắc nắng. Giáp dày và pháo sấm sét dành cho những trận đánh dài.",
 		"weapon_type": 1, # Thunder Strike
 		"price_stars": 1200,
 		"price_gems": 35,
@@ -373,7 +373,7 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet6.png",
 		"name": "TEMPEST FLAK",
-		"desc": "Heavy Storm Fighter. Maximum Spread Arrow coverage.",
+		"desc": "Tiêm kích hạng nặng. Pháo bắn lan mở lối giữa đội hình đông đảo của địch.",
 		"weapon_type": 3, # Spread
 		"price_stars": 1500,
 		"price_gems": 45,
@@ -382,7 +382,7 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet7.png",
 		"name": "STORM HORNET",
-		"desc": "Ultra-Fast Interceptor. High Vulcan fire rate.",
+		"desc": "Chiến cơ đánh chặn. Giáp gia cố và pháo Vulcan cho các nhiệm vụ khốc liệt.",
 		"weapon_type": 0, # Vulcan
 		"price_stars": 2000,
 		"price_gems": 60,
@@ -391,7 +391,7 @@ const JET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "jet8.png",
 		"name": "APEX OMEGA",
-		"desc": "Supreme Flagship Fighter. Starts with dual Homing Missile launchers.",
+		"desc": "Soái hạm của phi đội. Giáp tối đa và tên lửa dẫn đường cho trận chiến cuối.",
 		"weapon_type": 2, # Homing Rocket
 		"price_stars": 3000,
 		"price_gems": 100,
@@ -403,7 +403,7 @@ const PET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "pet-jet-1.png",
 		"name": "DRONE ALPHA",
-		"desc": "Standard Support Wingman Drone. Fires energy bolts.",
+		"desc": "Bạn đồng hành đầu tiên. Tự động hỗ trợ hỏa lực bên cánh chiến cơ.",
 		"price_stars": 150,
 		"price_gems": 5,
 		"base_damage": 4.0
@@ -411,7 +411,7 @@ const PET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "pet-jet-2.png",
 		"name": "LASER BIT",
-		"desc": "Energy Support Bit. Fires targeted laser pulses.",
+		"desc": "Trợ thủ năng lượng nhỏ gọn. Tăng hỏa lực hỗ trợ cho phi đội.",
 		"price_stars": 300,
 		"price_gems": 10,
 		"base_damage": 6.0
@@ -419,7 +419,7 @@ const PET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "pet-jet-3.png",
 		"name": "PLASMA ORB",
-		"desc": "Plasma Support Wingman. Fires concentrated plasma bolts.",
+		"desc": "Trợ thủ plasma. Duy trì hỏa lực khi bạn tập trung né tránh.",
 		"price_stars": 500,
 		"price_gems": 15,
 		"base_damage": 8.0
@@ -427,7 +427,7 @@ const PET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "pet-jet-4.png",
 		"name": "FLAK GUARDIAN",
-		"desc": "Armored Guardian Drone. High damage support fire.",
+		"desc": "Vệ binh hộ tống. Hỏa lực mạnh cho những đường bay nguy hiểm.",
 		"price_stars": 800,
 		"price_gems": 25,
 		"base_damage": 10.0
@@ -435,7 +435,7 @@ const PET_CATALOG: Array[Dictionary] = [
 	{
 		"file": "pet-jet-5.png",
 		"name": "CELESTIAL DRONE",
-		"desc": "Supreme Celestial Companion. Massive support firepower.",
+		"desc": "Trợ thủ cao cấp. Sát thương hỗ trợ lớn nhất trong đội hình pet jet.",
 		"price_stars": 1500,
 		"price_gems": 40,
 		"base_damage": 14.0

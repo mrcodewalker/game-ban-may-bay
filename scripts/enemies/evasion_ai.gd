@@ -31,20 +31,48 @@ func update(actor: Node2D, delta: float, radius: float = 42.0, agility: float = 
 	scan_timer = 0.08
 	if actor.position.y < 40.0 or actor.position.y > 830.0: return
 	
-	# Scan for incoming player bullets
+	# Predict the closest approach before a bullet reaches this flight lane.
 	var examined = 0
+	var best_time = INF
+	var threat: Node2D = null
+	var threat_velocity = Vector2.ZERO
 	for bullet in actor.get_tree().get_nodes_in_group("player_bullets"):
 		if not is_instance_valid(bullet) or not bullet is Node2D: continue
 		examined += 1
 		if examined > 80: break
 		
-		var offset: Vector2 = bullet.global_position - actor.global_position
+		if not "direction" in bullet or not "speed" in bullet: continue
 		var direction = bullet.get("direction")
-		if direction is Vector2 and direction.y >= 0.0: continue
-		if offset.y < 0.0 or offset.y > 230.0 or absf(offset.x) > radius + 15.0: continue
-		
-		trigger_dodge(actor, radius, agility, offset.x >= 0.0)
-		break
+		var speed = bullet.get("speed")
+		if not direction is Vector2 or not speed is float: continue
+		var bullet_velocity: Vector2 = direction * speed
+		var actor_velocity: Vector2 = actor.get("velocity") if "velocity" in actor else Vector2.ZERO
+		var relative: Vector2 = bullet_velocity - actor_velocity
+		if relative.y >= -80.0: continue
+		var offset: Vector2 = bullet.global_position - actor.global_position
+		if offset.y < 18.0 or offset.y > 360.0: continue
+		var arrival: float = -offset.y / relative.y
+		if arrival < 0.10 or arrival > 0.62: continue
+		var miss_x: float = absf(offset.x + relative.x * arrival)
+		if miss_x > radius + 22.0 or arrival >= best_time: continue
+		best_time = arrival
+		threat = bullet
+		threat_velocity = bullet_velocity
+	if threat:
+		var side = _choose_safe_side(actor, threat, threat_velocity, radius, agility, best_time)
+		trigger_dodge(actor, radius, agility, side < 0.0)
+
+func _choose_safe_side(actor: Node2D, bullet: Node2D, bullet_velocity: Vector2, radius: float, agility: float, arrival: float) -> float:
+	var distance = clampf(115.0 * agility, 95.0, 150.0)
+	var predicted_x = bullet.global_position.x + bullet_velocity.x * arrival
+	var left_x = clampf(actor.global_position.x - distance, radius + 20.0, 540.0 - radius - 20.0)
+	var right_x = clampf(actor.global_position.x + distance, radius + 20.0, 540.0 - radius - 20.0)
+	var left_clearance = absf(left_x - predicted_x)
+	var right_clearance = absf(right_x - predicted_x)
+	# Keep distance from the edge so the next incoming volley remains dodgeable.
+	left_clearance += minf(left_x - radius, 540.0 - radius - left_x) * 0.12
+	right_clearance += minf(right_x - radius, 540.0 - radius - right_x) * 0.12
+	return -1.0 if left_clearance > right_clearance else 1.0
 
 func can_trigger_emergency_dodge() -> bool:
 	return cooldown <= 0.0 and remaining <= 0.0

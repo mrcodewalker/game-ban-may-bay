@@ -40,9 +40,9 @@ func update_ui() -> void:
 		remove_child(child)
 		child.queue_free()
 	var titles = {"plane_shop": "Kho máy bay", "ant_hive_upgrade": "Phòng nghiên cứu", "pregame_buff_shop": "Tiếp tế trước trận", "historical_progress_dialog": "Hồ sơ chiến dịch"}
-	body = UI.page(self, titles.get(screen, "Bộ tư lệnh"), "AIR FORCE 1943")
-	UI.button(body, "Quay lại", _close)
-	UI.label(body, "Ngọc: %d   ·   Tiền: %d" % [GameManager.gems, GameManager.coins], 17, UI.ACCENT)
+	body = UI.page(self, titles.get(screen, "Bộ tư lệnh"), "VALKYRIE · BỘ TƯ LỆNH")
+	UI.label(body, "◆ %d NGỌC     ★ %d TIỀN" % [GameManager.gems, GameManager.coins], 17, UI.ACCENT)
+	UI.button(body, "← Trở về", _close)
 	match screen:
 		"plane_shop": build_hangar()
 		"ant_hive_upgrade": build_tech()
@@ -62,16 +62,18 @@ func build_hangar() -> void:
 	var tabs = HBoxContainer.new()
 	tabs.add_theme_constant_override("separation", 10)
 	body.add_child(tabs)
-	UI.button(tabs, "Máy bay", func(): pets = false; index = 0; update_ui(), "green" if not pets else "default")
-	UI.button(tabs, "Trợ thủ", func(): pets = true; index = 0; update_ui(), "green" if pets else "default")
+	UI.button(tabs, "✈ CHIẾN CƠ", func(): pets = false; index = 0; update_ui(), "green" if not pets else "default")
+	UI.button(tabs, "◆ PET JET", func(): pets = true; index = 0; update_ui(), "green" if pets else "default")
 	var catalog = GameManager.PET_CATALOG if pets else GameManager.JET_CATALOG
 	index = clampi(index, 0, catalog.size() - 1)
 	var data: Dictionary = catalog[index]
 	var owned: bool = GameManager.owned_pets.has(data.file) if pets else data.file in GameManager.owned_player_jets
 	var col = card()
+	UI.label(col, "BẢN THIẾT KẾ %02d / %02d" % [index + 1, catalog.size()], 14, UI.ACCENT)
 	UI.label(col, data.name, 24)
-	var img = UI.photo(col, "res://extracted_assets/AI/cut_assets/" + ("pet_jets/" if pets else "player_jets/") + data.file, 210)
-	img.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var img = UI.hangar(col, "res://extracted_assets/AI/cut_assets/" + ("pet_jets/" if pets else "player_jets/") + data.file, 180)
+	img.custom_minimum_size.y = 210
+	UI.label(col, str(data.get("desc", "Chiến đấu cùng phi đội Valkyrie.")), 16, UI.MUTED)
 	if not pets:
 		var weapons = ["Pháo Vulcan", "Pháo sấm sét", "Tên lửa dẫn đường", "Pháo bắn lan"]
 		UI.label(col, "Giáp cơ bản: %d\nVũ khí: %s" % [data.hp, weapons[data.weapon_type]], 18, UI.MUTED)
@@ -82,13 +84,13 @@ func build_hangar() -> void:
 	col.add_child(nav)
 	UI.button(nav, "Trước", func(): index = (index - 1 + catalog.size()) % catalog.size(); update_ui())
 	UI.button(nav, "Tiếp", func(): index = (index + 1) % catalog.size(); update_ui())
-	UI.label(col, "%02d / %02d" % [index + 1, catalog.size()], 14, UI.MUTED)
+	UI.label(col, "SỞ HỮU" if owned else "CHƯA MỞ KHÓA", 15, UI.ACCENT)
 	if not owned:
 		var buy = UI.button(col, "Mua · %d ngọc" % data.price_gems, purchase.bind(data), "green")
 		buy.disabled = GameManager.gems < int(data.price_gems)
 	elif pets:
-		UI.button(col, "Trang bị bên trái", equip_pet.bind(data.file, true), "green")
-		UI.button(col, "Trang bị bên phải", equip_pet.bind(data.file, false))
+		UI.button(col, "Trang bị cánh trái" if GameManager.equipped_left_pet != data.file else "✓ Cánh trái đã trang bị", equip_pet.bind(data.file, true), "green")
+		UI.button(col, "Trang bị cánh phải" if GameManager.equipped_right_pet != data.file else "✓ Cánh phải đã trang bị", equip_pet.bind(data.file, false))
 	else:
 		var equip = UI.button(col, "Đang trang bị" if GameManager.selected_player_jet == data.file else "Trang bị máy bay", equip_jet.bind(data.file), "green")
 		equip.disabled = GameManager.selected_player_jet == data.file

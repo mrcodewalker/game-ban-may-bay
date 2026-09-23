@@ -3,8 +3,8 @@ class_name ButtonStyler
 static func apply_textured_style(btn: Button, variant: String = "default") -> void:
 	if not is_instance_valid(btn): return
 	var primary = variant in ["green", "play", "engage"]
-	var base = Color("#21404b") if primary else Color("#192d43")
-	var accent = Color("#7dd6c4") if primary else Color("#476078")
+	var base = Color("#efbd73") if primary else Color("#142b3d")
+	var accent = Color("#ffe2ab") if primary else Color("#3b596e")
 	if variant in ["red", "quit", "close"]: accent = Color("#bc7376")
 	if variant in ["gold", "upgrade"]: accent = Color("#d6af70")
 	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
@@ -23,8 +23,8 @@ static func apply_textured_style(btn: Button, variant: String = "default") -> vo
 	btn.add_theme_font_override("font", ThemeDB.fallback_font)
 	btn.add_theme_font_size_override("font_size", 16)
 	btn.add_theme_constant_override("outline_size", 0)
-	btn.add_theme_color_override("font_color", Color("#edf2f8"))
-	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_color_override("font_pressed_color", Color.WHITE)
+	btn.add_theme_color_override("font_color", Color("#101d29") if primary else Color("#edf2f8"))
+	btn.add_theme_color_override("font_hover_color", Color("#101d29") if primary else Color.WHITE)
+	btn.add_theme_color_override("font_pressed_color", Color("#101d29") if primary else Color.WHITE)
 	btn.add_theme_color_override("font_disabled_color", Color("#8d9caf"))
 	btn.scale = Vector2.ONE

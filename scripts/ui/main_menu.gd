@@ -1,98 +1,87 @@
 extends Control
 const UI = preload("res://scripts/ui/ui_kit.gd")
-var mission_story_data: Array[Dictionary] = [
-	{
-		"title": "CHIẾN DỊCH 01: ĐỘT KÍCH TRẠM RADAR YAMATO",
-		"speaker": "[ 👑 CÔNG CHÚA AURA & BỘ TƯ LỆNH ]",
-		"portrait": "res://extracted_assets/AI/cut_assets/princess/princess-01.png",
-		"target": "🎯 MỤC TIÊU: PHÁO ĐÀI YAMATO [HP: 2600]",
-		"short_story": "Đột kích trạm radar ven biển Yamato. Phá lưới quét phòng không & giải cứu nhóm kỹ sư VIP!",
-		"full_story": "Chiến dịch Valkyrie Sky chính thức mở màn! Trạm Radar Yamato của Đế chế đang kiểm soát toàn bộ đường bay trên biển Tây Thái Bình Dương, đe dọa các căn cứ phòng thủ tự do.\n\nTình báo phát hiện đối phương vừa bắt giữ nhóm kỹ sư công nghệ VIP của Hoàng gia. Phi công được giao nhiệm vụ xuất kích thọc sâu vào phòng tuyến bờ biển: tiêu diệt các tàu tuần tra, vô hiệu hóa tháp radar, và giải cứu các con tin an toàn!"
-	},
-	{
-		"title": "CHIẾN DỊCH 02: BÌNH MINH QUẦN ĐẢO SUNRISE",
-		"speaker": "[ 👑 CÔNG CHÚA AURA & BỘ TƯ LỆNH ]",
-		"portrait": "res://extracted_assets/AI/cut_assets/princess/princess-02.png",
-		"target": "🎯 MỤC TIÊU: HÀNG KHÔNG MẪU HẠM AKAGI [HP: 3500]",
-		"short_story": "Đánh phủ đầu Sân bay Sunrise lúc bình minh! Đập tan phi đội tiêm kích địch đang tiếp nhiên liệu.",
-		"full_story": "Sau khi trạm radar Yamato sụp đổ, hạm đội hàng không mẫu hạm Akagi của địch phải ghé vào Quần đảo Sunrise để tiếp nhiên liệu và vũ khí lúc bình minh.\n\nĐây là thời cơ duy nhất để mở cuộc tập kích bất ngờ! Hãy lợi dụng ánh sáng le lói và sương mù trên biển, phá hủy sân bay tiền duyên và đánh chìm hàng không mẫu hạm Akagi trước khi chúng kịp tung toàn bộ phi đội tiêm kích ra nghênh chiến!"
-	},
-	{
-		"title": "CHIẾN DỊCH 03: BÃO SẤM SÉT VỊNH DOGFIGHT",
-		"speaker": "[ 👑 CÔNG CHÚA AURA & BỘ TƯ LỆNH ]",
-		"portrait": "res://extracted_assets/AI/cut_assets/princess/princess-03.png",
-		"target": "🎯 MỤC TIÊU: PHÁO ĐÀI THIẾT GIÁP KAGA [HP: 5200]",
-		"short_story": "Thâm nhập bão điện từ Vịnh Dogfight. Tiêu diệt hạm đội thiết giáp hạm Kaga ẩn nấp trong mưa giông!",
-		"full_story": "Hạm đội thiết giáp hạm Kaga đang ẩn nấp sâu trong tâm bão điện từ tại Vịnh Dogfight để bảo vệ đoàn tàu vận tải vũ khí năng lượng cao của Đế chế.\n\nMưa giông và sấm sét dữ dội sẽ làm nhiễu loạn radar máy bay. Bạn phải điều khiển tiêm kích xuyên qua mắt bão, luồn lách né tránh hỏa lực phòng không dày đặc và bắn hạ Pháo đài Thiết giáp Kaga!"
-	},
-	{
-		"title": "CHIẾN DỊCH 04: CÔNG PHÁ PHÁO ĐÀI HOÀNG HÔN",
-		"speaker": "[ 👑 CÔNG CHÚA AURA & BỘ TƯ LỆNH ]",
-		"portrait": "res://extracted_assets/AI/cut_assets/princess/princess-success-06.png",
-		"target": "🎯 MỤC TIÊU: CHIẾN HẠM BỜ BIỂN SHINANO [HP: 6500]",
-		"short_story": "Công phá Pháo đài Hoàng Hôn. San phẳng pháo cao xạ hạng nặng Shinano bảo vệ đại bản doanh!",
-		"full_story": "Pháo đài Hoàng Hôn là vành đai phòng thủ kiên cố cuối cùng ngăn cách chúng ta với đại bản doanh tối cao. Hệ thống pháo cao xạ hạng nặng Shinano cùng mạng lưới lô cốt tên lửa ven biển tạo thành một bức tường thép bất khả xâm phạm.\n\nHãy tập trung toàn bộ hỏa lực, phá hủy các khẩu đội pháo bờ biển và mở toang cánh cửa dẫn tới trận chiến định mệnh!"
-	},
-	{
-		"title": "CHIẾN DỊCH 05: ĐẠI CHIẾN KHÔNG HẠM DREADNOUGHT",
-		"speaker": "[ 👑 CÔNG CHÚA AURA (CẦU CỨU) ]",
-		"portrait": "res://extracted_assets/AI/cut_assets/princess/princess-success-bye.png",
-		"target": "🎯 MỤC TIÊU: SIÊU KHÍ HẠM SUPREME DREADNOUGHT [HP: 8800]",
-		"short_story": "Quyết chiến Siêu Khí Hạm trên tầng bình lưu. Giải cứu Công chúa Aura và bảo vệ hành tinh!",
-		"full_story": "Trận chiến quyết định vận mệnh toàn cầu! Siêu Khí Hạm Supreme Dreadnought đã cất cánh bay lên tầng bình lưu và giam giữ Công chúa Aura ngay trong lõi phản ứng năng lượng tối cao.\n\nTất cả hy vọng của hành tinh dồn vào chuyến bay này! Hãy phá hủy các tháp pháo phụ, xuyên thủng lớp giáp kiên cố, tiêu diệt lõi hủy diệt và giải cứu Công chúa Aura trở về bình an!"
-	}
-]
-
-
-const PHOTOS = ["Airforce1943_sunrise.png", "Sunrise_foto3.png", "Dogfight_foto2.png", "Sunset_foto4.png", "Airforce1943_dogfight.png"]
-const NAMES = ["Yamato · Vành đai radar", "Sunrise · Tập kích bình minh", "Dogfight · Tâm bão", "Hoàng hôn · Pháo đài", "Dreadnought · Trận cuối"]
+const Story = preload("res://scripts/ui/campaign_story.gd")
 var selected_mission_idx: int = 0
 var content: VBoxContainer
+var active_modal: Control
+var current_view: String = "home"
 
 func _ready() -> void:
 	get_tree().paused = false
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
-	var page = UI.page(self, "AIR FORCE 1943", "CHIẾN DỊCH VALKYRIE")
+	selected_mission_idx = clampi(GameManager.current_map - 1, 0, 4)
+	var page = UI.page(self, "VALKYRIE", "AIR FORCE 1943  /  BỘ TƯ LỆNH")
 	content = VBoxContainer.new()
-	content.add_theme_constant_override("separation", 14)
+	content.add_theme_constant_override("separation", 12)
 	page.add_child(content)
-	show_main_menu()
+	if GameManager.get_meta("open_briefing", false):
+		GameManager.remove_meta("open_briefing")
+		show_briefing()
+	else:
+		show_main_menu()
 	AudioManager.play_bgm("bgm_menu")
 
 func clear_content() -> void:
+	content.add_theme_constant_override("separation", 12)
 	for child in content.get_children():
 		content.remove_child(child)
 		child.queue_free()
+	UI.reset_scroll(content)
 
 func show_main_menu() -> void:
+	current_view = "home"
 	clear_content()
-	UI.photo(content, "res://extracted_assets/Textures/Airforce1943_sunset.png", 210)
-	UI.label(content, "Bầu trời đang chờ bạn.", 27)
-	UI.label(content, "Xuyên qua phòng tuyến Đế chế. Giải cứu các kỹ sư và đưa Công chúa Aura trở về.", 17, UI.MUTED)
-	UI.button(content, "Bắt đầu chiến dịch", show_mission_board, "green")
-	UI.button(content, "Kho máy bay & trợ thủ", func(): open_modal("plane_shop"))
-	UI.button(content, "Phòng nghiên cứu", func(): open_modal("ant_hive_upgrade"))
-	UI.button(content, "Thành tích & tiến trình", func(): open_modal("historical_progress_dialog"))
-	UI.button(content, "Cài đặt & hướng dẫn", show_settings)
-	UI.button(content, "Thoát game", func(): get_tree().quit(), "red")
+	var hero = UI.card(content)
+	UI.label(hero, "HANGAR 01                         ● SẴN SÀNG", 13, UI.CYAN)
+	UI.hangar(hero, "res://extracted_assets/AI/cut_assets/player_jets/" + GameManager.selected_player_jet, 190)
+	UI.label(hero, str(GameManager.get_jet_data(GameManager.selected_player_jet).name), 22)
+	UI.label(hero, "Đôi cánh cuối cùng. Hy vọng của cả bầu trời.", 15, UI.MUTED)
+	var stats = HBoxContainer.new()
+	stats.add_theme_constant_override("separation", 8)
+	content.add_child(stats)
+	var stars: int = 0
+	for earned in GameManager.map_stars: stars += int(earned)
+	UI.metric(stats, "CHIẾN DỊCH", "%02d / 15 ★" % stars)
+	UI.metric(stats, "NGỌC", "%d ◆" % GameManager.gems)
+	UI.metric(stats, "TIỀN", "%d" % GameManager.coins)
+	var launch = UI.button(content, "CHỌN CHIẾN DỊCH   →", show_mission_board, "green")
+	launch.custom_minimum_size.y = 60
+	launch.add_theme_font_size_override("font_size", 20)
+	var grid = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	content.add_child(grid)
+	UI.tile(grid, "01  /  PHI ĐỘI", "Chiến cơ & pet jet", func(): open_modal("plane_shop"))
+	UI.tile(grid, "02  /  NGHIÊN CỨU", "Nâng cấp công nghệ", func(): open_modal("ant_hive_upgrade"))
+	UI.tile(grid, "03  /  CHIẾN CÔNG", "Sao & hồ sơ phi công", func(): open_modal("historical_progress_dialog"))
+	UI.tile(grid, "04  /  NHẬT KÝ", "Câu chuyện Valkyrie", show_lore)
+	var footer = HBoxContainer.new()
+	footer.add_theme_constant_override("separation", 10)
+	content.add_child(footer)
+	UI.button(footer, "Cài đặt & hướng dẫn", show_settings)
+	UI.button(footer, "Thoát", func(): get_tree().quit(), "red")
 
 func show_mission_board() -> void:
+	current_view = "missions"
 	clear_content()
-	UI.label(content, "Chọn nhiệm vụ", 26)
-	var grid = GridContainer.new()
-	grid.columns = 5
-	grid.add_theme_constant_override("h_separation", 8)
-	content.add_child(grid)
-	for i in range(5):
-		var b = UI.button(grid, "%02d" % (i + 1), select_mission.bind(i), "green" if i == selected_mission_idx else "default")
-		b.tooltip_text = NAMES[i] if GameManager.is_map_unlocked(i + 1) else "Chưa mở khóa"
+	content.add_theme_constant_override("separation", 8)
 	var idx = selected_mission_idx
-	UI.photo(content, "res://extracted_assets/Textures/" + PHOTOS[idx], 160)
-	UI.label(content, "MISSION %02d\n%s" % [idx + 1, NAMES[idx]], 24)
-	UI.label(content, mission_story_data[idx]["short_story"], 17, UI.MUTED)
-	UI.label(content, "Bắt buộc: tiêu diệt boss.\nMục tiêu phụ: cứu VIP và giữ giáp để nhận thêm sao.", 16, UI.ACCENT)
+	var data = Story.mission(idx)
+	UI.label(content, "ĐƯỜNG BAY GIẢI PHÓNG", 21, UI.ACCENT)
+	UI.label(content, "THÁI BÌNH DƯƠNG  /  05 PHÒNG TUYẾN", 12, UI.MUTED)
+	var route = preload("res://scripts/ui/mission_map.gd").new()
+	route.selected = idx
+	route.mission_selected.connect(select_mission)
+	content.add_child(route)
+	UI.photo(content, Story.ROOT + data.photo, 130)
+	UI.label(content, "%02d  /  %s" % [idx + 1, data.location], 14, UI.CYAN)
+	UI.label(content, data.name, 25)
+	var stars = clampi(GameManager.map_stars[idx], 0, 3)
+	UI.label(content, "★".repeat(stars) + "☆".repeat(3 - stars) + "   ·   " + data.time, 14, UI.ACCENT)
+	UI.label(content, data.summary, 17, UI.MUTED)
 	var row = HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
 	content.add_child(row)
@@ -101,12 +90,12 @@ func show_mission_board() -> void:
 	var supplies = HBoxContainer.new()
 	supplies.add_theme_constant_override("separation", 10)
 	content.add_child(supplies)
-	UI.button(supplies, "Kho máy bay", func(): open_modal("plane_shop"))
+	UI.button(supplies, "Phi đội", func(): open_modal("plane_shop"))
 	UI.button(supplies, "Tiếp tế", func(): open_modal("pregame_buff_shop"))
 	var unlocked = GameManager.is_map_unlocked(idx + 1)
-	var engage = UI.button(content, "Đọc lệnh xuất kích" if unlocked else "Hoàn thành nhiệm vụ trước để mở khóa", show_briefing, "green")
+	var engage = UI.button(content, "NHẬN LỆNH XUẤT KÍCH  →" if unlocked else "Hoàn thành nhiệm vụ trước để mở khóa", show_briefing, "green")
 	engage.disabled = not unlocked
-	UI.button(content, "Về trang chủ", show_main_menu)
+	UI.button(content, "← Bộ tư lệnh", show_main_menu)
 
 func select_mission(idx: int) -> void:
 	selected_mission_idx = idx
@@ -118,17 +107,22 @@ func set_difficulty(hard: bool) -> void:
 	show_mission_board()
 
 func show_briefing() -> void:
+	current_view = "briefing"
 	clear_content()
-	var idx = selected_mission_idx
-	UI.label(content, "LỆNH XUẤT KÍCH · %02d" % (idx + 1), 16, UI.ACCENT)
-	UI.photo(content, "res://extracted_assets/Textures/" + PHOTOS[idx], 170)
-	UI.label(content, NAMES[idx], 26)
-	UI.label(content, "BỘ TƯ LỆNH · CÔNG CHÚA AURA", 15, UI.ACCENT)
-	UI.label(content, mission_story_data[idx]["full_story"], 18)
-	UI.label(content, "ĐIỀU KIỆN CHIẾN THẮNG", 15, UI.ACCENT)
-	UI.label(content, mission_story_data[idx]["target"].replace("🎯 ", "") + "\n1 sao: thắng · 2 sao: còn ít nhất 40% giáp · 3 sao: cứu đủ VIP hoặc còn 80% giáp.", 16, UI.MUTED)
-	UI.button(content, "XUẤT KÍCH", launch_selected_mission, "green")
-	UI.button(content, "Quay lại chọn nhiệm vụ", show_mission_board)
+	content.add_theme_constant_override("separation", 10)
+	var data = Story.mission(selected_mission_idx)
+	UI.label(content, "LỆNH XUẤT KÍCH  /  %02d" % (selected_mission_idx + 1), 14, UI.ACCENT)
+	UI.photo(content, Story.ROOT + data.photo, 140)
+	UI.label(content, data.name, 25)
+	UI.radio(content, data.speaker, data.quote, "AURA" in data.speaker)
+	UI.label(content, data.briefing, 17, UI.MUTED)
+	var target = UI.card(content)
+	UI.label(target, "MỤC TIÊU CHÍNH", 12, UI.CYAN)
+	UI.label(target, "Tiêu diệt " + data.target, 19)
+	UI.label(target, "★ Hạ boss    ★★ Còn 40% giáp\n★★★ Cứu đủ VIP hoặc còn 80% giáp", 14, UI.ACCENT)
+	UI.label(content, "TÌNH BÁO  /  " + data.intel, 15, UI.MUTED)
+	UI.button(content, "XUẤT KÍCH  →", launch_selected_mission, "green")
+	UI.button(content, "← Chọn nhiệm vụ", show_mission_board)
 
 func launch_selected_mission() -> void:
 	if not GameManager.is_map_unlocked(selected_mission_idx + 1): return
@@ -138,14 +132,35 @@ func launch_selected_mission() -> void:
 	get_tree().change_scene_to_file("res://scenes/main/main.tscn")
 
 func open_modal(scene_name: String) -> void:
-	var modal = load("res://scenes/ui/" + scene_name + ".tscn").instantiate()
-	modal.process_mode = Node.PROCESS_MODE_ALWAYS
-	modal.z_index = 100
-	add_child(modal)
-	if modal.has_signal("closed"):
-		modal.closed.connect(func(): if is_instance_valid(modal): modal.queue_free())
+	if is_instance_valid(active_modal): return
+	active_modal = load("res://scenes/ui/" + scene_name + ".tscn").instantiate()
+	active_modal.process_mode = Node.PROCESS_MODE_ALWAYS
+	active_modal.z_index = 100
+	add_child(active_modal)
+	active_modal.closed.connect(func():
+		active_modal = null
+		if current_view == "home": show_main_menu()
+	)
+
+func show_lore() -> void:
+	current_view = "lore"
+	clear_content()
+	UI.label(content, "NHẬT KÝ VALKYRIE", 25, UI.ACCENT)
+	UI.photo(content, Story.ROOT + "Airforce1943_sunset.png", 175)
+	UI.label(content, "1943 · MỘT DÒNG LỊCH SỬ KHÁC", 13, UI.CYAN)
+	UI.label(content, "Aether từng thắp sáng các quần đảo. Khi Đế chế biến nguồn năng lượng ấy thành vũ khí, bầu trời không còn là đường về. Phi đội Valkyrie cất cánh để giành lại từng hành lang cứu hộ — và đưa người giữ chìa khóa Aether trở về.", 18, UI.MUTED)
+	UI.radio(content, "AURA · NGƯỜI GIỮ KHÓA AETHER", "Một bầu trời tự do phải có chỗ cho tất cả mọi người.", true)
+	UI.button(content, "Xem lại đoạn mở đầu", func(): get_tree().change_scene_to_file("res://scenes/ui/intro_cutscene.tscn"))
+	for i in range(5):
+		var data = Story.mission(i)
+		var col = UI.card(content)
+		UI.label(col, "%02d  /  %s" % [i + 1, data.location], 13, UI.ACCENT)
+		UI.label(col, data.name, 21)
+		UI.label(col, data.outcome if GameManager.map_stars[i] > 0 else "Hoàn thành nhiệm vụ để giải mật hồ sơ này.", 16, UI.MUTED)
+	UI.button(content, "← Bộ tư lệnh", show_main_menu)
 
 func show_settings() -> void:
+	current_view = "settings"
 	clear_content()
 	UI.label(content, "Cài đặt & hướng dẫn", 27)
 	for kind in ["Âm nhạc", "Hiệu ứng"]:
@@ -166,4 +181,4 @@ func show_settings() -> void:
 	content.add_child(mute)
 	UI.label(content, "ĐIỀU KHIỂN", 16, UI.ACCENT)
 	UI.label(content, "WASD / phím mũi tên: di chuyển\nSpace / J / chuột trái: bắn\nK / Shift: bom\nEsc / P: tạm dừng\n\nNé làn đạn, phá tháp phòng không và thu thập tiếp tế. Tiêu diệt boss để mở nhiệm vụ tiếp theo. Tiến trình được lưu tự động.", 18, UI.MUTED)
-	UI.button(content, "Về trang chủ", show_main_menu)
+	UI.button(content, "← Bộ tư lệnh", show_main_menu)

@@ -60,6 +60,12 @@ func _ready() -> void:
 	await capture("missions")
 	menu.show_briefing()
 	await capture("briefing")
+	menu.select_mission(2)
+	menu.show_briefing()
+	await capture("briefing_aura")
+	menu.select_mission(0)
+	menu.show_lore()
+	await capture("lore")
 	menu.show_settings()
 	await capture("settings")
 	menu.queue_free()
@@ -71,6 +77,13 @@ func _ready() -> void:
 		elif scene == "revive_dialog": screen.popup_revive()
 		elif scene == "game_over_dialog": screen.set_title("GAME OVER")
 		await capture(scene)
+		if scene == "intro_cutscene":
+			for chapter in range(3):
+				screen.show_slide(chapter)
+				screen.advance_cutscene()
+				check(not screen.is_typing, "first press reveals dialogue without skipping chapter")
+				check(screen.current_slide == chapter, "dialogue chapter remains selected")
+				await capture("story_%d" % (chapter + 1))
 		if scene == "plane_shop":
 			screen.pets = true
 			screen.update_ui()
@@ -81,6 +94,10 @@ func _ready() -> void:
 		get_tree().paused = false
 		screen.queue_free()
 		await get_tree().process_frame
+	if "--ui-only" in OS.get_cmdline_user_args():
+		print("UI TEST COMPLETE failures=", failures)
+		get_tree().quit(0 if failures == 0 else 1)
+		return
 	for map_id in [1, 2, 3, 4, 5]:
 		GameManager.current_map = map_id
 		GameManager.reset_game()
@@ -102,6 +119,18 @@ func _ready() -> void:
 		check(enemy.hp == health, "short dodge avoids damage")
 		bullet.queue_free()
 		enemy.queue_free()
+		var predictive_enemy = load("res://scenes/enemies/enemy_medium.tscn").instantiate()
+		game.add_child(predictive_enemy)
+		predictive_enemy.position = Vector2(270, 300)
+		predictive_enemy.evasion.cooldown = 0.0
+		var angled_bullet = load("res://scenes/combat/player_bullet.tscn").instantiate()
+		game.add_child(angled_bullet)
+		angled_bullet.position = Vector2(360, 520)
+		angled_bullet.direction = Vector2(-90, -220).normalized()
+		predictive_enemy.handle_bullet_evasion(0.016)
+		check(predictive_enemy.evasion.is_dodging(), "UFO predicts angled bullet map %d" % map_id)
+		angled_bullet.queue_free()
+		predictive_enemy.queue_free()
 		var tank = load("res://scenes/enemies/enemy_tank.tscn").instantiate()
 		game.add_child(tank)
 		tank.take_damage(tank.hp * 0.51)
@@ -149,6 +178,7 @@ func capture(tag: String) -> void:
 	for i in range(5): await get_tree().process_frame
 	audit_layout(get_tree().current_scene, tag)
 	if visual:
+		await get_tree().create_timer(0.45).timeout
 		await RenderingServer.frame_post_draw
 		get_viewport().get_texture().get_image().save_png("res://tools/test-output/" + tag + ".png")
 	print("SCREEN: ", tag)
@@ -158,5 +188,13 @@ func audit_layout(node: Node, tag: String) -> void:
 		var rect: Rect2 = node.get_global_rect()
 		var vp_size = get_viewport().get_visible_rect().size
 		check(rect.position.x >= -1 and rect.end.x <= vp_size.x + 1, tag + " button fits: " + node.text)
+	if (node is BoxContainer or node is GridContainer) and node.is_visible_in_tree():
+		var siblings: Array[Control] = []
+		for item in node.get_children():
+			if item is Control and item.is_visible_in_tree(): siblings.append(item)
+		for i in range(siblings.size()):
+			for j in range(i + 1, siblings.size()):
+				if siblings[i].get_global_rect().grow(-0.5).intersects(siblings[j].get_global_rect().grow(-0.5)):
+					check(false, tag + " overlapping container items: " + str(siblings[i].name) + " / " + str(siblings[j].name))
 	for child in node.get_children():
 		audit_layout(child, tag)
